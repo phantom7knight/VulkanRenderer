@@ -1,5 +1,6 @@
-#include <iostream>
-#include <stdlib.h>
+#include "stdafx.h"
+
+
 
 int main()
 {
