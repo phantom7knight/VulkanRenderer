@@ -14,6 +14,8 @@
 *.userprefs
 *.db
 *.VC.db
+*.html
+*.js
 
 # Build results
 [Dd]ebug/
