@@ -3,9 +3,14 @@
 //Library Includes
 #include <iostream>
 #include <stdlib.h>
+#include <memory.h>
+
 
 #define GLFW_INCLUDE_VULKAN
 #include "../Dependencies/GLFW/include/GLFW/glfw3.h"
+
+//Above line replaces the line below so no need to worry about including it 
+//#include <vulkan/vulkan.h>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE

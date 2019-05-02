@@ -1,27 +1,19 @@
 #include "stdafx.h"
 
-int main() {
-	glfwInit();
+#include "vkRenderer.h"
 
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	GLFWwindow* window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
 
-	uint32_t extensionCount = 0;
-	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+int main() 
+{
 
-	std::cout << extensionCount << " extensions supported" << std::endl;
+	vkRenderer::getInstance()->Init();
 
-	glm::mat4 matrix;
-	glm::vec4 vec;
-	auto test = matrix * vec;
 
-	while (!glfwWindowShouldClose(window)) {
-		glfwPollEvents();
-	}
+	vkRenderer::getInstance()->mainloop();
 
-	glfwDestroyWindow(window);
+	vkRenderer::getInstance()->Destroy();
 
-	glfwTerminate();
+	system("pause");
 
 	return 0;
 }
