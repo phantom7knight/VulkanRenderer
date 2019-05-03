@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "vkRenderer.h"
-
+#include "ValidationLayer.hpp"
 
 //Static variable declaration
 vkRenderer* vkRenderer::m_instance = nullptr;
@@ -44,6 +44,13 @@ bool vkRenderer::InitGLFW()
 
 bool vkRenderer::CreateInstance()
 {
+
+	if (enableValidationLayer && !checkValidationLayerSupport())
+	{
+		throw std::runtime_error("Validation layer requested but not available!");
+	}
+
+
 	VkApplicationInfo appInfo = {};
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -58,13 +65,19 @@ bool vkRenderer::CreateInstance()
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	createInfo.pApplicationInfo = &appInfo;
 
-	uint32_t glfwextentioncount = 0;
-	const char** glfwExtenstions;
+	auto extenstions = getRequiredExtensions();
+	createInfo.enabledExtensionCount = static_cast<uint32_t>(extenstions.size());
+	createInfo.ppEnabledExtensionNames = extenstions.data();
 
-	glfwExtenstions = glfwGetRequiredInstanceExtensions(&glfwextentioncount);
-	createInfo.enabledExtensionCount = glfwextentioncount;
-	createInfo.ppEnabledExtensionNames = glfwExtenstions;
-	createInfo.enabledLayerCount = 0;
+	if (enableValidationLayer)
+	{
+		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+		createInfo.ppEnabledLayerNames = validationLayers.data();
+	}
+	else
+	{
+		createInfo.enabledLayerCount = 0;
+	}
 
 	VkResult res = vkCreateInstance(&createInfo, nullptr, &m_VulkanInstance);
 

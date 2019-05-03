@@ -4,6 +4,8 @@
 #include <iostream>
 #include <stdlib.h>
 #include <memory.h>
+#include <vector>
+#include <cstring>
 
 
 #define GLFW_INCLUDE_VULKAN
@@ -16,6 +18,8 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include "../Dependencies/GLM/glm/glm/vec4.hpp"
 #include "../Dependencies/GLM/glm/glm/mat4x4.hpp"
+
+
 
 
 

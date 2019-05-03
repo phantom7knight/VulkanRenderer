@@ -8,7 +8,6 @@ int main()
 
 	vkRenderer::getInstance()->Init();
 
-
 	vkRenderer::getInstance()->mainloop();
 
 	vkRenderer::getInstance()->Destroy();

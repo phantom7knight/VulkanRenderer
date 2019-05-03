@@ -35,5 +35,8 @@
     <ClInclude Include="vkRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ValidationLayer.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
