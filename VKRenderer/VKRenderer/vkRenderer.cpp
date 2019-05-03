@@ -15,6 +15,16 @@ vkRenderer * vkRenderer::getInstance()
 	return m_instance;
 }
 
+VkInstance vkRenderer::getVulkanInstance()
+{
+	return m_VulkanInstance;
+}
+
+VkDebugUtilsMessengerEXT vkRenderer::getDebugMessenger()
+{
+	return m_debugMessenger;
+}
+
 
 vkRenderer::vkRenderer()
 {
@@ -90,14 +100,33 @@ bool vkRenderer::CreateInstance()
 	return true;
 }
 
+void vkRenderer::setupDebugMessenger()
+{
+	if (!enableValidationLayer)
+		return;
 
+	VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
+	
+	createInfo.sType			= VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+	createInfo.messageSeverity	= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+	createInfo.messageType		= VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+	createInfo.pfnUserCallback	= debugCallback;
+	createInfo.pUserData		= nullptr;
+
+	if (CreateDebugUtilsMessengerEXT(m_VulkanInstance, &createInfo, nullptr, &m_debugMessenger) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to setup debug messenger");
+	}
+
+
+}
 
 bool vkRenderer::InitVulkan()
 {
 	if (!CreateInstance())
 		return false;
 
-
+	setupDebugMessenger();
 
 	return true;
 }
@@ -132,27 +161,48 @@ void vkRenderer::Update()
 
 void vkRenderer::mainloop()
 {
-	/*Run();
-	Update();*/
+	
 
 	while (!glfwWindowShouldClose(m_window))
 	{
 		glfwPollEvents();
+
+
+		/*Run();
+		Update();*/
+
 	}
 
 }
 
+void vkRenderer::DestroyDebugUtilsMessengerEXT(
+	VkInstance instance,
+	VkDebugUtilsMessengerEXT debugMessenger,
+	const VkAllocationCallbacks* pAllocator )
+	{
+		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_VulkanInstance, "vkDestroyDebugUtilsMessengerEXT");
+		
+		if (func != nullptr)
+		{
+			func(instance, debugMessenger, pAllocator);
+		}
+	}
 
 
 void vkRenderer::Destroy()
 {
-
+	//==========================================
 	//Delete Vulkan related things
+	//==========================================
+	
+	if (enableValidationLayer)
+	{
+		DestroyDebugUtilsMessengerEXT(m_VulkanInstance, m_debugMessenger, nullptr);
+	}
+	
 	vkDestroyInstance(m_VulkanInstance,nullptr);
 
-
-
-
+	
 	glfwDestroyWindow(m_window);
 
 	glfwTerminate();

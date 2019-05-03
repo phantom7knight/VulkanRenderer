@@ -26,6 +26,12 @@ public:
 
 	//Vulkan Related Functions
 	bool CreateInstance();
+	void setupDebugMessenger();
+	VkInstance getVulkanInstance();
+	VkDebugUtilsMessengerEXT getDebugMessenger();
+	void DestroyDebugUtilsMessengerEXT(VkInstance instance,
+		VkDebugUtilsMessengerEXT debugMessenger,
+		const VkAllocationCallbacks* pAllocator);
 
 
 private:
@@ -36,6 +42,7 @@ private:
 
 	//Vulkan Related Parameters
 	VkInstance m_VulkanInstance;
+	VkDebugUtilsMessengerEXT m_debugMessenger;
 
 };
 
