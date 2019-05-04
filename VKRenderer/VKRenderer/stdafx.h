@@ -6,6 +6,8 @@
 #include <memory.h>
 #include <vector>
 #include <cstring>
+#include <optional>
+#include <map>
 
 
 #define GLFW_INCLUDE_VULKAN

@@ -1,4 +1,21 @@
 #pragma once
+
+
+
+struct QueueFamilyIndices
+{
+	std::optional<uint32_t> graphicsFamily;
+
+	bool isComplete()
+	{
+		return graphicsFamily.has_value();
+	}
+};
+
+
+
+
+
 class vkRenderer
 {
 public:
@@ -29,10 +46,9 @@ public:
 	void setupDebugMessenger();
 	VkInstance getVulkanInstance();
 	VkDebugUtilsMessengerEXT getDebugMessenger();
-	void DestroyDebugUtilsMessengerEXT(VkInstance instance,
-		VkDebugUtilsMessengerEXT debugMessenger,
-		const VkAllocationCallbacks* pAllocator);
-
+	void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
+	void pickPhysicalDevice();
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
 private:
 
@@ -43,6 +59,8 @@ private:
 	//Vulkan Related Parameters
 	VkInstance m_VulkanInstance;
 	VkDebugUtilsMessengerEXT m_debugMessenger;
+	VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
+	bool isDeviceSuitable(VkPhysicalDevice device);
 
 };
 

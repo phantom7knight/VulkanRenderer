@@ -2,6 +2,8 @@
 #include "vkRenderer.h"
 #include "ValidationLayer.hpp"
 
+
+
 //Static variable declaration
 vkRenderer* vkRenderer::m_instance = nullptr;
 
@@ -121,12 +123,86 @@ void vkRenderer::setupDebugMessenger()
 
 }
 
+bool vkRenderer::isDeviceSuitable(VkPhysicalDevice device)
+{
+	//VkPhysicalDeviceProperties deviceProperties;
+	//vkGetPhysicalDeviceProperties(device, &deviceProperties);
+	//
+	//VkPhysicalDeviceFeatures deviceFeatures;
+	//vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+	//
+	//return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && deviceFeatures.geometryShader;
+
+	QueueFamilyIndices indices = findQueueFamilies(device);
+	return indices.isComplete();
+	
+}
+
+void vkRenderer::pickPhysicalDevice()
+{
+	uint32_t deviceCount = 0;
+	vkEnumeratePhysicalDevices(m_VulkanInstance, &deviceCount, nullptr);
+
+	if (deviceCount == 0)
+	{
+		throw std::runtime_error("There are any GPU's which support Vulkan");//check if they support for Vulkan
+	}
+
+	std::vector<VkPhysicalDevice> devicesList(deviceCount);
+	vkEnumeratePhysicalDevices(m_VulkanInstance, &deviceCount, devicesList.data());
+
+	for (const auto& device : devicesList)
+	{
+		if (isDeviceSuitable(device))//Checks if they meet requirements of Vulkan
+		{
+			m_physicalDevice = device;
+			break;
+		}
+	}
+
+	if (m_physicalDevice == VK_NULL_HANDLE)
+	{
+		throw std::runtime_error("Couldn't find suitable GPU");
+	}
+
+}
+
+QueueFamilyIndices vkRenderer::findQueueFamilies(VkPhysicalDevice device)
+{
+	QueueFamilyIndices indices;
+
+	uint32_t queueFamilyCount = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+	std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+	int i = 0;
+	for (const auto& queueFamily : queueFamilies) {
+		if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+			indices.graphicsFamily = i;
+		}
+
+		if (indices.isComplete()) {
+			break;
+		}
+
+		i++;
+	}
+
+	return indices;
+}
+
+
 bool vkRenderer::InitVulkan()
 {
 	if (!CreateInstance())
 		return false;
 
 	setupDebugMessenger();
+
+	pickPhysicalDevice();
+	 
 
 	return true;
 }
@@ -189,12 +265,13 @@ void vkRenderer::DestroyDebugUtilsMessengerEXT(
 	}
 
 
+
 void vkRenderer::Destroy()
 {
 	//==========================================
 	//Delete Vulkan related things
 	//==========================================
-	
+
 	if (enableValidationLayer)
 	{
 		DestroyDebugUtilsMessengerEXT(m_VulkanInstance, m_debugMessenger, nullptr);
