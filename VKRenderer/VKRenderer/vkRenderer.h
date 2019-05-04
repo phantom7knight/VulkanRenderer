@@ -42,14 +42,14 @@ public:
 
 
 	//Vulkan Related Functions
-	bool CreateInstance();
-	void setupDebugMessenger();
 	VkInstance getVulkanInstance();
 	VkDebugUtilsMessengerEXT getDebugMessenger();
-	void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
-	void pickPhysicalDevice();
-	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+	VkQueue getGraphicsQueue()
+	{
+		return m_graphicsQueue;
+	}
 
+	
 private:
 
 	static vkRenderer* m_instance;
@@ -61,6 +61,19 @@ private:
 	VkDebugUtilsMessengerEXT m_debugMessenger;
 	VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
 	bool isDeviceSuitable(VkPhysicalDevice device);
+	VkDevice m_device;
+	VkQueue m_graphicsQueue;
+
+
+	//Vulkan Related Functions
+	bool CreateInstance();
+	void setupDebugMessenger();
+
+	void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
+	void pickPhysicalDevice();
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+	void CreateLogicalDevice();
+
 
 };
 

@@ -193,6 +193,56 @@ QueueFamilyIndices vkRenderer::findQueueFamilies(VkPhysicalDevice device)
 	return indices;
 }
 
+void vkRenderer::CreateLogicalDevice()
+{
+	QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
+
+	VkDeviceQueueCreateInfo queuecreateInfo = {};
+
+	queuecreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	queuecreateInfo.queueFamilyIndex = indices.graphicsFamily.value();
+	queuecreateInfo.queueCount = 1; //For now which can be later adjusted as per queue's requirements
+
+	float queueProirity = 1.0f;
+	queuecreateInfo.pQueuePriorities = &queueProirity;
+
+
+	//Features which we will be using
+	VkPhysicalDeviceFeatures deviceFeatures = {};
+
+	//Device Info
+	VkDeviceCreateInfo createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	createInfo.pQueueCreateInfos = &queuecreateInfo;
+	createInfo.queueCreateInfoCount = 1;
+	createInfo.pEnabledFeatures = &deviceFeatures;
+
+
+	createInfo.enabledExtensionCount = 0;
+
+	if (enableValidationLayer)
+	{
+		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+		createInfo.ppEnabledLayerNames = validationLayers.data();
+	}
+	else
+	{
+		createInfo.enabledLayerCount = 0;
+	}
+
+	//We now create Device
+
+	if (vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create Logical Device");
+	}
+
+	//Get the graphics queue
+	int index_here = 0;//Since we have only 1 queue we give index 0 to it for graphics queue that is
+	vkGetDeviceQueue(m_device, indices.graphicsFamily.value(), index_here, &m_graphicsQueue);
+
+}
+
 
 bool vkRenderer::InitVulkan()
 {
@@ -203,6 +253,7 @@ bool vkRenderer::InitVulkan()
 
 	pickPhysicalDevice();
 	 
+	CreateLogicalDevice();
 
 	return true;
 }
@@ -271,6 +322,8 @@ void vkRenderer::Destroy()
 	//==========================================
 	//Delete Vulkan related things
 	//==========================================
+
+	vkDestroyDevice(m_device,nullptr);
 
 	if (enableValidationLayer)
 	{
