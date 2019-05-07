@@ -243,11 +243,22 @@ void vkRenderer::CreateLogicalDevice()
 
 }
 
+void vkRenderer::CreateSurface()
+{
+	// GLFW provides functionality of vkCreateWin32SurfaceKHR in itself so we use this instead
+	if (glfwCreateWindowSurface(m_VulkanInstance, m_window, nullptr, &m_surface) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to set Windows Surface");
+	}
+
+}
 
 bool vkRenderer::InitVulkan()
 {
 	if (!CreateInstance())
 		return false;
+
+	CreateSurface();
 
 	setupDebugMessenger();
 
@@ -329,6 +340,8 @@ void vkRenderer::Destroy()
 	{
 		DestroyDebugUtilsMessengerEXT(m_VulkanInstance, m_debugMessenger, nullptr);
 	}
+
+	vkDestroySurfaceKHR(m_VulkanInstance, m_surface, nullptr);
 	
 	vkDestroyInstance(m_VulkanInstance,nullptr);
 

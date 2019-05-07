@@ -5,10 +5,11 @@
 struct QueueFamilyIndices
 {
 	std::optional<uint32_t> graphicsFamily;
+	std::optional<uint32_t> presentFamily;
 
 	bool isComplete()
 	{
-		return graphicsFamily.has_value();
+		return graphicsFamily.has_value() && presentFamily.has_value();
 	}
 };
 
@@ -63,7 +64,7 @@ private:
 	bool isDeviceSuitable(VkPhysicalDevice device);
 	VkDevice m_device;
 	VkQueue m_graphicsQueue;
-
+	VkSurfaceKHR m_surface; // This is for relating Windows and Vulkan
 
 	//Vulkan Related Functions
 	bool CreateInstance();
@@ -73,6 +74,7 @@ private:
 	void pickPhysicalDevice();
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 	void CreateLogicalDevice();
+	void CreateSurface();
 
 
 };
