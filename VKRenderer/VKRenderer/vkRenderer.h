@@ -58,13 +58,14 @@ private:
 
 
 	//Vulkan Related Parameters
-	VkInstance m_VulkanInstance;
-	VkDebugUtilsMessengerEXT m_debugMessenger;
-	VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
+	VkInstance					m_VulkanInstance;
+	VkDebugUtilsMessengerEXT	m_debugMessenger;
+	VkPhysicalDevice			m_physicalDevice = VK_NULL_HANDLE;
 	bool isDeviceSuitable(VkPhysicalDevice device);
-	VkDevice m_device;
-	VkQueue m_graphicsQueue;
-	VkSurfaceKHR m_surface; // This is for relating Windows and Vulkan
+	VkDevice		m_device;
+	VkQueue			m_graphicsQueue;
+	VkSurfaceKHR	m_surface; // This is for relating Windows and Vulkan
+	VkQueue			m_PresentQueue;
 
 	//Vulkan Related Functions
 	bool CreateInstance();
