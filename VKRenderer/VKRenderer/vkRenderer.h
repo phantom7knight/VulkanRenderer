@@ -13,8 +13,15 @@ struct QueueFamilyIndices
 	}
 };
 
+struct SwapChainSupportDetails 
+{
+	VkSurfaceCapabilitiesKHR capabilities;
+	
+	std::vector<VkSurfaceFormatKHR> formats;
+	
+	std::vector<VkPresentModeKHR> presentModes;
 
-
+};
 
 
 class vkRenderer
@@ -53,29 +60,30 @@ public:
 	
 private:
 
-	static vkRenderer* m_instance;
-	GLFWwindow* m_window;
+	static vkRenderer*			m_instance;
+	GLFWwindow*					m_window;
 
 
 	//Vulkan Related Parameters
 	VkInstance					m_VulkanInstance;
 	VkDebugUtilsMessengerEXT	m_debugMessenger;
 	VkPhysicalDevice			m_physicalDevice = VK_NULL_HANDLE;
-	bool isDeviceSuitable(VkPhysicalDevice device);
-	VkDevice		m_device;
-	VkQueue			m_graphicsQueue;
-	VkSurfaceKHR	m_surface; // This is for relating Windows and Vulkan
-	VkQueue			m_PresentQueue;
+
+	VkDevice					m_device;
+	VkQueue						m_graphicsQueue;
+	VkSurfaceKHR				m_surface; // This is for relating Windows and Vulkan
+	VkQueue						m_PresentQueue;
 
 	//Vulkan Related Functions
 	bool CreateInstance();
 	void setupDebugMessenger();
-
+	bool isDeviceSuitable(VkPhysicalDevice device);
 	void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
 	void pickPhysicalDevice();
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 	void CreateLogicalDevice();
 	void CreateSurface();
+	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice a_device);
 
 
 };

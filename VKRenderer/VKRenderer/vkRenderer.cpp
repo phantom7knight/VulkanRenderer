@@ -2,6 +2,8 @@
 #include "vkRenderer.h"
 #include "ValidationLayer.hpp"
 
+//We add Swap Chain Extenstion to the Current Device
+const std::vector<const char*> deviceExtenstion = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
 
 //Static variable declaration
@@ -123,18 +125,42 @@ void vkRenderer::setupDebugMessenger()
 
 }
 
-bool vkRenderer::isDeviceSuitable(VkPhysicalDevice device)
+//Here we check for the Swap Chain capabilities
+//If the device supports swap chain functionality
+bool checkDeviceExtenstionSupport(VkPhysicalDevice device)
 {
-	//VkPhysicalDeviceProperties deviceProperties;
-	//vkGetPhysicalDeviceProperties(device, &deviceProperties);
-	//
-	//VkPhysicalDeviceFeatures deviceFeatures;
-	//vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-	//
-	//return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && deviceFeatures.geometryShader;
+	uint32_t extensionCount;
+	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
 
-	QueueFamilyIndices indices = findQueueFamilies(device);
-	return indices.isComplete();
+	std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+	
+	std::set<std::string> requiredExtensions(deviceExtenstion.begin(), deviceExtenstion.end());
+
+	for (const auto& extension : availableExtensions)
+	{
+		requiredExtensions.erase(extension.extensionName);
+	}
+
+	return requiredExtensions.empty();
+}
+
+bool vkRenderer::isDeviceSuitable(VkPhysicalDevice a_device)
+{
+
+	QueueFamilyIndices indices = findQueueFamilies(a_device);
+
+	bool extensionSupported = checkDeviceExtenstionSupport(a_device);
+
+	bool isSwapChainSupported = false;
+
+	if (extensionSupported)
+	{
+		SwapChainSupportDetails swapChainSupport = querySwapChainSupport(a_device);
+		isSwapChainSupported = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+	}
+
+	return indices.isComplete() && extensionSupported && isSwapChainSupported;
 	
 }
 
@@ -232,9 +258,11 @@ void vkRenderer::CreateLogicalDevice()
 	createInfo.queueCreateInfoCount = static_cast<uint32_t>(queuecreateInfos.size());
 	createInfo.pQueueCreateInfos = queuecreateInfos.data();
 	createInfo.pEnabledFeatures = &deviceFeatures;
+	
+	//We mention the Swap Chain info to the device
+	createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtenstion.size());
+	createInfo.ppEnabledExtensionNames = deviceExtenstion.data();
 
-
-	createInfo.enabledExtensionCount = 0;
 
 	if (enableValidationLayer)
 	{
@@ -268,6 +296,39 @@ void vkRenderer::CreateSurface()
 		throw std::runtime_error("Failed to set Windows Surface");
 	}
 
+}
+
+SwapChainSupportDetails vkRenderer::querySwapChainSupport(VkPhysicalDevice a_device)
+{
+	SwapChainSupportDetails details;
+
+	//Get Capabilities
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(a_device, m_surface, &details.capabilities);
+
+	//Get Format
+	uint32_t formatCount;
+	vkGetPhysicalDeviceSurfaceFormatsKHR(a_device, m_surface, &formatCount, nullptr);
+
+	if (formatCount != 0)
+	{
+		details.formats.resize(formatCount);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(a_device, m_surface, &formatCount, details.formats.data());
+
+	}
+
+	//Get Surface Present Mode
+	uint32_t presentModeCount;
+	vkGetPhysicalDeviceSurfacePresentModesKHR(a_device, m_surface, &presentModeCount, nullptr);
+
+	if (presentModeCount != 0)
+	{
+		details.presentModes.resize(presentModeCount);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(a_device, m_surface, &presentModeCount, details.presentModes.data());
+
+	}
+
+
+	return details;
 }
 
 bool vkRenderer::InitVulkan()
