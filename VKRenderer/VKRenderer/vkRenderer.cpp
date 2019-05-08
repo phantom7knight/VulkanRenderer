@@ -34,7 +34,6 @@ vkRenderer::vkRenderer()
 {
 }
 
-
 vkRenderer::~vkRenderer()
 {
 }
@@ -55,7 +54,9 @@ bool vkRenderer::InitGLFW()
 	return true;
 }
 
-
+//===================================================================
+//Create Vulkan Instance
+//===================================================================
 bool vkRenderer::CreateInstance()
 {
 
@@ -103,6 +104,10 @@ bool vkRenderer::CreateInstance()
 
 	return true;
 }
+
+//===================================================================
+//Debug Related
+//===================================================================
 
 void vkRenderer::setupDebugMessenger()
 {
@@ -152,6 +157,7 @@ bool vkRenderer::isDeviceSuitable(VkPhysicalDevice a_device)
 
 	bool extensionSupported = checkDeviceExtenstionSupport(a_device);
 
+	//We check if the Physical Device supports Swap Chain
 	bool isSwapChainSupported = false;
 
 	if (extensionSupported)
@@ -228,6 +234,9 @@ QueueFamilyIndices vkRenderer::findQueueFamilies(VkPhysicalDevice device)
 	return indices;
 }
 
+//===================================================================
+//Logical Device
+//===================================================================
 void vkRenderer::CreateLogicalDevice()
 {
 	QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
@@ -288,6 +297,9 @@ void vkRenderer::CreateLogicalDevice()
 
 }
 
+//===================================================================
+//Create Surface
+//===================================================================
 void vkRenderer::CreateSurface()
 {
 	// GLFW provides functionality of vkCreateWin32SurfaceKHR in itself so we use this instead
@@ -298,6 +310,9 @@ void vkRenderer::CreateSurface()
 
 }
 
+//===================================================================
+//Swap Chain
+//===================================================================
 SwapChainSupportDetails vkRenderer::querySwapChainSupport(VkPhysicalDevice a_device)
 {
 	SwapChainSupportDetails details;
@@ -331,6 +346,67 @@ SwapChainSupportDetails vkRenderer::querySwapChainSupport(VkPhysicalDevice a_dev
 	return details;
 }
 
+
+//Here we set the swap surface format generally for color space
+VkSurfaceFormatKHR vkRenderer::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+{
+	//Set the default Color Space
+	if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED)
+	{
+		return { VK_FORMAT_B8G8R8A8_SNORM,VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
+	}
+
+	//Set the available combination as mentioned below
+	for (const auto& availableFormat : availableFormats)
+	{
+		if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) 
+		{
+			return availableFormat;
+		}
+	}
+	 
+	//else set the default case
+	return availableFormats[0];
+}
+
+VkPresentModeKHR vkRenderer::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+{
+	VkPresentModeKHR bestMode = VK_PRESENT_MODE_FIFO_KHR;
+
+	for (const auto& availablePresentMode : availablePresentModes) {
+		if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+			return availablePresentMode;
+		}
+		else if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
+			bestMode = availablePresentMode;
+		}
+	}
+
+	return bestMode;
+	
+}
+
+VkExtent2D vkRenderer::chooseSwapExtent(const VkSurfaceCapabilitiesKHR & capabilities)
+{
+	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) 
+	{
+		return capabilities.currentExtent;
+	}
+	else {
+		VkExtent2D actualExtent = { WIDTH, HEIGHT };
+
+		actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
+		actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
+
+		return actualExtent;
+	}
+}
+
+
+//===================================================================
+//Vulkan Initialization Function
+//===================================================================
+
 bool vkRenderer::InitVulkan()
 {
 	if (!CreateInstance())
@@ -347,6 +423,9 @@ bool vkRenderer::InitVulkan()
 	return true;
 }
 
+//===================================================================
+//Renderer Init
+//===================================================================
 
 void vkRenderer::Init()
 {
@@ -362,6 +441,10 @@ void vkRenderer::Init()
 	}
 
 }
+
+//===================================================================
+//Renderer each loop updation
+//===================================================================
 
 void vkRenderer::Run()
 {
@@ -390,6 +473,12 @@ void vkRenderer::mainloop()
 	}
 
 }
+
+
+
+//===================================================================
+//Deinitializers
+//===================================================================
 
 void vkRenderer::DestroyDebugUtilsMessengerEXT(
 	VkInstance instance,

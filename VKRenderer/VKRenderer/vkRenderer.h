@@ -83,8 +83,11 @@ private:
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 	void CreateLogicalDevice();
 	void CreateSurface();
-	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice a_device);
 
+	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice a_device);
+	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector< VkSurfaceFormatKHR >& availableFormats);
+	VkPresentModeKHR chooseSwapPresentMode(const std::vector< VkPresentModeKHR >& availablePresentModes);
+	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& a_capabilities);
 
 };
 
