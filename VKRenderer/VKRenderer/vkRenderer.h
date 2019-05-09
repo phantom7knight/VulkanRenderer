@@ -74,6 +74,11 @@ private:
 	VkSurfaceKHR				m_surface; // This is for relating Windows and Vulkan
 	VkQueue						m_PresentQueue;
 
+	VkSwapchainKHR				m_swapChain;
+	std::vector<VkImage>		m_SwapChainImages;
+	VkFormat					m_swapChainFormat;
+	VkExtent2D					m_swapChainExtent;
+
 	//Vulkan Related Functions
 	bool CreateInstance();
 	void setupDebugMessenger();
@@ -88,6 +93,7 @@ private:
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector< VkSurfaceFormatKHR >& availableFormats);
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector< VkPresentModeKHR >& availablePresentModes);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& a_capabilities);
+	void CreateSwapChain();
 
 };
 

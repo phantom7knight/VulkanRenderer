@@ -346,7 +346,6 @@ SwapChainSupportDetails vkRenderer::querySwapChainSupport(VkPhysicalDevice a_dev
 	return details;
 }
 
-
 //Here we set the swap surface format generally for color space
 VkSurfaceFormatKHR vkRenderer::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
@@ -369,6 +368,7 @@ VkSurfaceFormatKHR vkRenderer::chooseSwapSurfaceFormat(const std::vector<VkSurfa
 	return availableFormats[0];
 }
 
+//Here we set the swap present mode
 VkPresentModeKHR vkRenderer::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
 {
 	VkPresentModeKHR bestMode = VK_PRESENT_MODE_FIFO_KHR;
@@ -386,6 +386,7 @@ VkPresentModeKHR vkRenderer::chooseSwapPresentMode(const std::vector<VkPresentMo
 	
 }
 
+//Here we set the swap extent
 VkExtent2D vkRenderer::chooseSwapExtent(const VkSurfaceCapabilitiesKHR & capabilities)
 {
 	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) 
@@ -400,6 +401,77 @@ VkExtent2D vkRenderer::chooseSwapExtent(const VkSurfaceCapabilitiesKHR & capabil
 
 		return actualExtent;
 	}
+}
+
+//Create Swap Chain itself
+void vkRenderer::CreateSwapChain()
+{
+	SwapChainSupportDetails swapChainSupport = querySwapChainSupport(m_physicalDevice);
+
+	VkSurfaceFormatKHR surfaceFormat	= chooseSwapSurfaceFormat(swapChainSupport.formats);
+	VkPresentModeKHR presentMode		= chooseSwapPresentMode(swapChainSupport.presentModes);
+	VkExtent2D swapExtent				= chooseSwapExtent(swapChainSupport.capabilities);
+
+	//We set how many back buffer images we need
+	uint32_t imageCount = IMAGE_COUNT;// swapChainSupport.capabilities.minImageCount;
+
+	//check
+	if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
+	{
+		//Set the most possible count
+		imageCount = swapChainSupport.capabilities.maxImageCount;
+	}
+
+	VkSwapchainCreateInfoKHR createInfo = {};
+	
+	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+	createInfo.surface = m_surface;
+	createInfo.minImageCount = imageCount;
+	createInfo.imageFormat = surfaceFormat.format;
+	createInfo.imageColorSpace = surfaceFormat.colorSpace;
+	createInfo.imageExtent = swapExtent;
+	createInfo.imageArrayLayers = 1;
+	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+	QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
+	uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+
+	if (indices.graphicsFamily != indices.presentFamily)
+	{
+		createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+		createInfo.queueFamilyIndexCount = 2;
+		createInfo.pQueueFamilyIndices = queueFamilyIndices;
+	}
+	else 
+	{
+		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		createInfo.queueFamilyIndexCount = 0; // Optional
+		createInfo.pQueueFamilyIndices = nullptr; // Optional
+	}
+
+	createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
+	createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+	createInfo.presentMode = presentMode;
+	createInfo.clipped = VK_TRUE;
+	createInfo.oldSwapchain = VK_NULL_HANDLE;
+
+
+	//Create Swap Chain
+
+	if (vkCreateSwapchainKHR(m_device, &createInfo, nullptr, &m_swapChain) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable/Failed to create Swap Chain");
+	}
+
+	vkGetSwapchainImagesKHR(m_device, m_swapChain, &imageCount, nullptr);
+	m_SwapChainImages.resize(imageCount);
+	vkGetSwapchainImagesKHR(m_device, m_swapChain, &imageCount, m_SwapChainImages.data());
+
+	//store in mem variables
+	m_swapChainFormat = surfaceFormat.format;
+	m_swapChainExtent = swapExtent;
+
+
 }
 
 
@@ -419,6 +491,8 @@ bool vkRenderer::InitVulkan()
 	pickPhysicalDevice();
 	 
 	CreateLogicalDevice();
+
+	CreateSwapChain();
 
 	return true;
 }
@@ -500,6 +574,8 @@ void vkRenderer::Destroy()
 	//==========================================
 	//Delete Vulkan related things
 	//==========================================
+
+	vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
 
 	vkDestroyDevice(m_device,nullptr);
 
