@@ -79,6 +79,8 @@ private:
 	VkFormat					m_swapChainFormat;
 	VkExtent2D					m_swapChainExtent;
 
+	std::vector<VkImageView>	m_SwapChainImageViews;
+
 	//Vulkan Related Functions
 	bool CreateInstance();
 	void setupDebugMessenger();
@@ -94,6 +96,10 @@ private:
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector< VkPresentModeKHR >& availablePresentModes);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& a_capabilities);
 	void CreateSwapChain();
+
+	void CreateImageView();
+
+
 
 };
 
