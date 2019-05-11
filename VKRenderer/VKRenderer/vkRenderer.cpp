@@ -510,6 +510,14 @@ void vkRenderer::CreateImageView()
 
 }
 
+
+//===================================================================
+//Create Graphics Pipeline
+//===================================================================
+void vkRenderer::CreateGraphicsPipeline()
+{
+}
+
 //===================================================================
 //Vulkan Initialization Function
 //===================================================================
@@ -530,6 +538,8 @@ bool vkRenderer::InitVulkan()
 	CreateSwapChain();
 
 	CreateImageView();
+
+	CreateGraphicsPipeline();
 
 	return true;
 }

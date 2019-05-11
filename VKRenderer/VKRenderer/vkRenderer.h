@@ -99,6 +99,8 @@ private:
 
 	void CreateImageView();
 
+	void CreateGraphicsPipeline();
+
 
 
 };
