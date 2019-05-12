@@ -47,7 +47,10 @@ public:
 	{
 		return m_window;
 	}
-
+	const VkDevice& getDevice()
+	{
+		return m_device;
+	}
 
 	//Vulkan Related Functions
 	VkInstance getVulkanInstance();
@@ -100,7 +103,7 @@ private:
 	void CreateImageView();
 
 	void CreateGraphicsPipeline();
-
+	VkShaderModule createShaderModule(const std::vector<char>& shaderCode);
 
 
 };

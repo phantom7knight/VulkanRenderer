@@ -473,6 +473,8 @@ void vkRenderer::CreateSwapChain()
 
 
 }
+
+
 //===================================================================
 // Creating Image Views[Used to view Images]
 //===================================================================
@@ -512,10 +514,78 @@ void vkRenderer::CreateImageView()
 
 
 //===================================================================
-//Create Graphics Pipeline
+//Create Graphics Pipeline and Shader Related Functions
 //===================================================================
+
+static std::vector<char> readFile(const std::string& filename)
+{
+	std::ifstream file(filename, std::ios::ate | std::ios::binary);
+
+	if (!file.is_open())
+	{
+		throw std::runtime_error("Failed to read file");
+	}
+
+	size_t fileSize = (size_t)file.tellg();
+	std::vector<char> buffer(fileSize);
+
+	file.seekg(0);
+	file.read(buffer.data(), fileSize);
+
+	file.close();
+
+	return buffer;
+}
+
+
+VkShaderModule vkRenderer::createShaderModule(const std::vector<char>& shaderCode)
+{
+	VkShaderModuleCreateInfo createInfo = {};
+
+	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	createInfo.codeSize = shaderCode.size();
+	createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode.data());
+
+	VkShaderModule shaderModule;
+
+	if (vkCreateShaderModule(m_device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create Shader Module");
+	}
+
+	return shaderModule;
+
+}
+
 void vkRenderer::CreateGraphicsPipeline()
 {
+	auto VertexShaderCode = readFile("Shaders/Basic.vs");
+	auto PixelShaderCode = readFile("Shaders/Basic.fs");
+
+	VkShaderModule vertexShaderModule = createShaderModule(VertexShaderCode);
+	VkShaderModule pixelShaderModule = createShaderModule(PixelShaderCode);
+
+	//Vertex Shader Pipeline
+	VkPipelineShaderStageCreateInfo vertexShaderCreateInfo = {};
+
+	vertexShaderCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	vertexShaderCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	vertexShaderCreateInfo.module = vertexShaderModule;
+	vertexShaderCreateInfo.pName = "main";
+
+	//Pixel Shader Pipeline
+	VkPipelineShaderStageCreateInfo pixelShaderCreateInfo = {};
+
+	pixelShaderCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	pixelShaderCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	pixelShaderCreateInfo.module = pixelShaderModule;
+	pixelShaderCreateInfo.pName = "main";
+
+	VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderCreateInfo ,pixelShaderCreateInfo };
+
+	vkDestroyShaderModule(m_device, vertexShaderModule, nullptr);
+	vkDestroyShaderModule(m_device, pixelShaderModule, nullptr);
+
 }
 
 //===================================================================

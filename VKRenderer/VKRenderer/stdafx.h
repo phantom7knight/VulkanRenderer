@@ -10,6 +10,7 @@
 #include <map>
 #include <set>
 #include <algorithm>
+#include <fstream>
 
 #define GLFW_INCLUDE_VULKAN
 #include "../Dependencies/GLFW/include/GLFW/glfw3.h"
