@@ -583,6 +583,74 @@ void vkRenderer::CreateGraphicsPipeline()
 
 	VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderCreateInfo ,pixelShaderCreateInfo };
 
+
+	// Vertex Input
+	VkPipelineVertexInputStateCreateInfo VertexInputInfo = {};
+
+	VertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	VertexInputInfo.vertexAttributeDescriptionCount = 0;
+	VertexInputInfo.pVertexBindingDescriptions = nullptr;
+	VertexInputInfo.vertexAttributeDescriptionCount = 0;
+	VertexInputInfo.pVertexAttributeDescriptions = nullptr;
+
+	//Input Assembly
+	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
+
+	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;//TODO :This can be configurable by user
+	inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+	//View Ports
+	VkViewport viewPort = {};//TODO :This can be configurable by user
+	
+	viewPort.x = 0.0f;
+	viewPort.y = 0.0f;
+	viewPort.width = (float)m_swapChainExtent.width;
+	viewPort.height = (float)m_swapChainExtent.height;
+	viewPort.minDepth = 0.0f;
+	viewPort.maxDepth = 1.0f;
+
+	//Scissors
+	VkRect2D scissor = {};
+
+	scissor.offset = { 0,0 };
+	scissor.extent = m_swapChainExtent;
+
+	VkPipelineViewportStateCreateInfo viewPortState = {};
+
+	viewPortState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	viewPortState.viewportCount = 1;
+	viewPortState.pViewports = &viewPort;
+	viewPortState.scissorCount = 1;
+	viewPortState.pScissors = &scissor;
+
+	//Rasterizer
+	VkPipelineRasterizationStateCreateInfo rasterizer = {};
+
+	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+	rasterizer.depthClampEnable = VK_FALSE;
+	rasterizer.rasterizerDiscardEnable = VK_FALSE;
+	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;//TODO :This can be configurable by user
+	rasterizer.lineWidth = 1.0f;//TODO :This can be configurable by user
+	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	rasterizer.depthBiasEnable = VK_FALSE;
+	rasterizer.depthBiasConstantFactor = 0.0f;	//TODO: look into this later since these are optional
+	rasterizer.depthBiasClamp = 0.0f;			//TODO: look into this later since these are optional
+	rasterizer.depthBiasSlopeFactor = 0.0f;		//TODO: look into this later since these are optional
+
+
+	//Multisampling
+	VkPipelineMultisampleStateCreateInfo multiSampling = {};
+
+	multiSampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+	multiSampling.sampleShadingEnable = VK_FALSE;
+	multiSampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+	multiSampling.minSampleShading = 1.0f;
+	multiSampling.pSampleMask = nullptr;
+	multiSampling.alphaToCoverageEnable = VK_FALSE;
+	multiSampling.alphaToOneEnable = VK_FALSE;
+
 	vkDestroyShaderModule(m_device, vertexShaderModule, nullptr);
 	vkDestroyShaderModule(m_device, pixelShaderModule, nullptr);
 
@@ -609,7 +677,7 @@ bool vkRenderer::InitVulkan()
 
 	CreateImageView();
 
-	CreateGraphicsPipeline();
+	CreateGraphicsPipeline();	//Make this programmable from outside later[this is similar to what TheForge does when they make Pipeline]
 
 	return true;
 }
