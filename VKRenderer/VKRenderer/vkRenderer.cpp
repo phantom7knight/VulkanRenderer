@@ -559,8 +559,8 @@ VkShaderModule vkRenderer::createShaderModule(const std::vector<char>& shaderCod
 
 void vkRenderer::CreateGraphicsPipeline()
 {
-	auto VertexShaderCode = readFile("Shaders/Basic.vs");
-	auto PixelShaderCode = readFile("Shaders/Basic.fs");
+	auto VertexShaderCode = readFile("Shaders/BasicVS.spv");
+	auto PixelShaderCode = readFile("Shaders/BasicFS.spv");
 
 	VkShaderModule vertexShaderModule = createShaderModule(VertexShaderCode);
 	VkShaderModule pixelShaderModule = createShaderModule(PixelShaderCode);
@@ -650,6 +650,46 @@ void vkRenderer::CreateGraphicsPipeline()
 	multiSampling.pSampleMask = nullptr;
 	multiSampling.alphaToCoverageEnable = VK_FALSE;
 	multiSampling.alphaToOneEnable = VK_FALSE;
+
+	//Depth Testing and Stencil Testing
+	VkPipelineDepthStencilStateCreateInfo depthStencilInfo = {};
+
+	//Color Blending
+	VkPipelineColorBlendAttachmentState colorBlendAttachment = {};//For individual attached frame buffer settings
+
+	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorBlendAttachment.blendEnable = VK_FALSE;//TODO : This can be changed later look at the website
+	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+
+	VkPipelineColorBlendStateCreateInfo colorBlending = {};
+
+	colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	colorBlending.logicOpEnable = VK_FALSE;
+	colorBlending.logicOp = VK_LOGIC_OP_COPY;
+	colorBlending.attachmentCount = 1;
+	colorBlending.pAttachments = &colorBlendAttachment;
+	colorBlending.blendConstants[0] = 0.0f;
+	colorBlending.blendConstants[1] = 0.0f;
+	colorBlending.blendConstants[2] = 0.0f;
+	colorBlending.blendConstants[3] = 0.0f;
+
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+
+	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutInfo.setLayoutCount = 0;
+	pipelineLayoutInfo.pSetLayouts = nullptr;
+	pipelineLayoutInfo.pushConstantRangeCount = 0;
+	pipelineLayoutInfo.pPushConstantRanges = nullptr;
+
+	if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr,&m_pipelineLayout) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create Pipeline Layout");
+	}
 
 	vkDestroyShaderModule(m_device, vertexShaderModule, nullptr);
 	vkDestroyShaderModule(m_device, pixelShaderModule, nullptr);
@@ -759,6 +799,8 @@ void vkRenderer::Destroy()
 	//==========================================
 	//Delete Vulkan related things
 	//==========================================
+
+	vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
 
 	for (auto views : m_SwapChainImageViews)
 	{

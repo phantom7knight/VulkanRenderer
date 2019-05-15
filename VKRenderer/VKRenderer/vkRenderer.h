@@ -84,6 +84,8 @@ private:
 
 	std::vector<VkImageView>	m_SwapChainImageViews;
 
+	VkPipelineLayout			m_pipelineLayout;//TODO : This has to be per Shader/Obj [Look into it]
+
 	//Vulkan Related Functions
 	bool CreateInstance();
 	void setupDebugMessenger();
