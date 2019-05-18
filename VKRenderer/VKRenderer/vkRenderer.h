@@ -88,6 +88,9 @@ private:
 	VkPipelineLayout			m_pipelineLayout;//TODO : This has to be per Shader/Obj [Look into it]
 	VkPipeline					m_graphicsPipeline;
 
+	std::vector<VkFramebuffer>	m_swapChainFrameBuffer;
+
+
 	//Vulkan Related Functions
 	bool CreateInstance();
 	void setupDebugMessenger();
@@ -111,6 +114,6 @@ private:
 
 	void CreateRenderPass();
 
-
+	void CreateFrameBuffers();
 };
 

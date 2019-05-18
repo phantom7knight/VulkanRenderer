@@ -781,6 +781,37 @@ void vkRenderer::CreateRenderPass()
 }
 
 //===================================================================
+//Creating Frame Buffers
+//===================================================================
+void vkRenderer::CreateFrameBuffers()
+{
+	m_swapChainFrameBuffer.resize(m_SwapChainImageViews.size());
+
+	for (uint32_t i = 0; i < m_SwapChainImageViews.size(); ++i)
+	{
+		VkImageView attachments[] = { m_SwapChainImageViews[i] };
+
+		VkFramebufferCreateInfo fbcreateInfo = {};
+
+		fbcreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		fbcreateInfo.renderPass = m_renderPass;
+		fbcreateInfo.attachmentCount = 1;
+		fbcreateInfo.pAttachments = attachments;
+		fbcreateInfo.width = m_swapChainExtent.width;
+		fbcreateInfo.height = m_swapChainExtent.height;
+		fbcreateInfo.layers = 1;
+
+		if (vkCreateFramebuffer(m_device, &fbcreateInfo, nullptr, &m_swapChainFrameBuffer[i]) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Unable to create Frame Buffer");
+		}
+	}
+
+}
+
+
+
+//===================================================================
 //Vulkan Initialization Function
 //===================================================================
 
@@ -804,6 +835,8 @@ bool vkRenderer::InitVulkan()
 	CreateRenderPass();
 
 	CreateGraphicsPipeline();	//Make this programmable from outside later[this is similar to what TheForge does when they make Pipeline]
+
+	CreateFrameBuffers();
 
 	return true;
 }
@@ -885,6 +918,12 @@ void vkRenderer::Destroy()
 	//==========================================
 	//Delete Vulkan related things
 	//==========================================
+
+
+	for (uint32_t i = 0; i < m_swapChainFrameBuffer.size(); ++i)
+	{
+		vkDestroyFramebuffer(m_device, m_swapChainFrameBuffer[i], nullptr);
+	}
 
 	vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
 
