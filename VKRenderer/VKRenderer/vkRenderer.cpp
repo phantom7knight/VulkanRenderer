@@ -810,6 +810,26 @@ void vkRenderer::CreateFrameBuffers()
 }
 
 
+//===================================================================
+//Command Pool
+//===================================================================
+
+void vkRenderer::CreateCommandPool()
+{
+	QueueFamilyIndices queuefamilyindeces = findQueueFamilies(m_physicalDevice);
+
+	VkCommandPoolCreateInfo createInfo = {};
+
+	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	createInfo.queueFamilyIndex = queuefamilyindeces.graphicsFamily.value();
+	createInfo.flags = 0;
+
+	if (vkCreateCommandPool(m_device, &createInfo, nullptr, &m_CommandPool) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to create Command Pool");
+	}
+}
+
 
 //===================================================================
 //Vulkan Initialization Function
@@ -837,6 +857,8 @@ bool vkRenderer::InitVulkan()
 	CreateGraphicsPipeline();	//Make this programmable from outside later[this is similar to what TheForge does when they make Pipeline]
 
 	CreateFrameBuffers();
+
+	CreateCommandPool();
 
 	return true;
 }
@@ -919,6 +941,7 @@ void vkRenderer::Destroy()
 	//Delete Vulkan related things
 	//==========================================
 
+	vkDestroyCommandPool(m_device, m_CommandPool, nullptr);
 
 	for (uint32_t i = 0; i < m_swapChainFrameBuffer.size(); ++i)
 	{

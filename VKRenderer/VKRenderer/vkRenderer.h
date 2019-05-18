@@ -90,6 +90,8 @@ private:
 
 	std::vector<VkFramebuffer>	m_swapChainFrameBuffer;
 
+	VkCommandPool				m_CommandPool;
+
 
 	//Vulkan Related Functions
 	bool CreateInstance();
@@ -115,5 +117,7 @@ private:
 	void CreateRenderPass();
 
 	void CreateFrameBuffers();
+
+	void CreateCommandPool();
 };
 
