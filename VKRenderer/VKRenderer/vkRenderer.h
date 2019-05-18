@@ -36,8 +36,8 @@ public:
 	bool InitVulkan();
 
 	void mainloop();
-	void Run();
 	void Update();
+	void Draw();
 
 	void Destroy();
 
@@ -84,7 +84,9 @@ private:
 
 	std::vector<VkImageView>	m_SwapChainImageViews;
 
+	VkRenderPass				m_renderPass;//TODO : This can be modified later
 	VkPipelineLayout			m_pipelineLayout;//TODO : This has to be per Shader/Obj [Look into it]
+	VkPipeline					m_graphicsPipeline;
 
 	//Vulkan Related Functions
 	bool CreateInstance();
@@ -106,6 +108,8 @@ private:
 
 	void CreateGraphicsPipeline();
 	VkShaderModule createShaderModule(const std::vector<char>& shaderCode);
+
+	void CreateRenderPass();
 
 
 };

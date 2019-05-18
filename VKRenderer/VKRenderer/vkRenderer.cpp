@@ -678,6 +678,7 @@ void vkRenderer::CreateGraphicsPipeline()
 	colorBlending.blendConstants[2] = 0.0f;
 	colorBlending.blendConstants[3] = 0.0f;
 
+	//Create Pipeline Layout b4 creating Graphics Pipeline
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -691,8 +692,91 @@ void vkRenderer::CreateGraphicsPipeline()
 		throw std::runtime_error("Failed to create Pipeline Layout");
 	}
 
+	//Finally create the Graphics Pipeline
+	VkGraphicsPipelineCreateInfo createGraphicsPipelineInfo = {};
+
+	createGraphicsPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	createGraphicsPipelineInfo.stageCount = 2;
+	createGraphicsPipelineInfo.pStages = shaderStages;
+	createGraphicsPipelineInfo.pVertexInputState = &VertexInputInfo;
+	createGraphicsPipelineInfo.pInputAssemblyState = &inputAssembly;
+	createGraphicsPipelineInfo.pViewportState = &viewPortState;
+	createGraphicsPipelineInfo.pRasterizationState = &rasterizer;
+	createGraphicsPipelineInfo.pMultisampleState = &multiSampling;
+	createGraphicsPipelineInfo.pDepthStencilState = nullptr;
+	createGraphicsPipelineInfo.pColorBlendState = &colorBlending;
+	createGraphicsPipelineInfo.pDynamicState = nullptr;
+	createGraphicsPipelineInfo.layout = m_pipelineLayout;
+	createGraphicsPipelineInfo.renderPass = m_renderPass;
+	createGraphicsPipelineInfo.subpass = 0;
+
+	createGraphicsPipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+	createGraphicsPipelineInfo.basePipelineIndex = -1;
+
+	//TODO: Make this Generic for creating Pipeline's
+	if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &createGraphicsPipelineInfo, nullptr, &m_graphicsPipeline) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to Create Graphics Pipeline");
+	}
+
+
 	vkDestroyShaderModule(m_device, vertexShaderModule, nullptr);
 	vkDestroyShaderModule(m_device, pixelShaderModule, nullptr);
+
+}
+
+//===================================================================
+//Creating Render Pass
+//TODO :Can be made generic
+//===================================================================
+
+void vkRenderer::CreateRenderPass()
+{
+	VkAttachmentDescription colorAttachment = {};
+	
+	colorAttachment.format = m_swapChainFormat;
+	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;//TODO : Programmable
+
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass shud start with
+	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;		//How render pass final image shud translate at end of render pass
+
+
+	//Each renderpass can have multiple sub-passes
+	//which will help or can be used for the Post-Processing,...etc
+
+	VkAttachmentReference colorAttachmentRef = {};
+
+	colorAttachmentRef.attachment = 0;
+	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription subpassInfo = {};
+	
+	subpassInfo.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpassInfo.colorAttachmentCount = 1;					//layout(location = 0) out vec4 outColor this is where it will be referenced
+	subpassInfo.pColorAttachments = &colorAttachmentRef;
+
+		
+	//Render Pass Info
+
+	VkRenderPassCreateInfo renderpassInfo = {};
+
+	renderpassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	renderpassInfo.attachmentCount = 1;
+	renderpassInfo.pAttachments = &colorAttachment;
+	renderpassInfo.subpassCount = 1;
+	renderpassInfo.pSubpasses = &subpassInfo;
+
+	if (vkCreateRenderPass(m_device, &renderpassInfo, nullptr, &m_renderPass) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to create Render Pass");
+	}
+
 
 }
 
@@ -716,6 +800,8 @@ bool vkRenderer::InitVulkan()
 	CreateSwapChain();
 
 	CreateImageView();
+
+	CreateRenderPass();
 
 	CreateGraphicsPipeline();	//Make this programmable from outside later[this is similar to what TheForge does when they make Pipeline]
 
@@ -745,7 +831,7 @@ void vkRenderer::Init()
 //Renderer each loop updation
 //===================================================================
 
-void vkRenderer::Run()
+void vkRenderer::Draw()
 {
 
 
@@ -766,8 +852,8 @@ void vkRenderer::mainloop()
 		glfwPollEvents();
 
 
-		/*Run();
-		Update();*/
+		/*Update();
+		Draw();*/
 
 	}
 
@@ -800,7 +886,11 @@ void vkRenderer::Destroy()
 	//Delete Vulkan related things
 	//==========================================
 
+	vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
+
 	vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
+
+	vkDestroyRenderPass(m_device, m_renderPass, nullptr);
 
 	for (auto views : m_SwapChainImageViews)
 	{
