@@ -559,8 +559,8 @@ VkShaderModule vkRenderer::createShaderModule(const std::vector<char>& shaderCod
 
 void vkRenderer::CreateGraphicsPipeline()
 {
-	auto VertexShaderCode = readFile("Shaders/BasicVS.spv");
-	auto PixelShaderCode = readFile("Shaders/BasicFS.spv");
+	auto VertexShaderCode	= readFile("Shaders/BinaryCode/Basic.vert.spv");
+	auto PixelShaderCode	= readFile("Shaders/BinaryCode/Basic.frag.spv");
 
 	VkShaderModule vertexShaderModule = createShaderModule(VertexShaderCode);
 	VkShaderModule pixelShaderModule = createShaderModule(PixelShaderCode);
