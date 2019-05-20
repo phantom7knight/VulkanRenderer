@@ -1039,8 +1039,7 @@ void vkRenderer::Draw()
 
 	vkQueuePresentKHR(m_PresentQueue, &presentInfo);
 
-	vkDeviceWaitIdle(m_PresentQueue);
-
+	vkQueueWaitIdle(m_PresentQueue);
 
 }
 
@@ -1064,7 +1063,8 @@ void vkRenderer::mainloop()
 
 	}
 
-	
+	vkDeviceWaitIdle(m_device);
+
 
 }
 
