@@ -761,6 +761,16 @@ void vkRenderer::CreateRenderPass()
 	subpassInfo.colorAttachmentCount = 1;					//layout(location = 0) out vec4 outColor this is where it will be referenced
 	subpassInfo.pColorAttachments = &colorAttachmentRef;
 
+	VkSubpassDependency dependency = {};
+
+	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	dependency.dstSubpass = 0;
+	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.srcAccessMask = 0;
+	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+
 		
 	//Render Pass Info
 
@@ -771,6 +781,8 @@ void vkRenderer::CreateRenderPass()
 	renderpassInfo.pAttachments = &colorAttachment;
 	renderpassInfo.subpassCount = 1;
 	renderpassInfo.pSubpasses = &subpassInfo;
+	renderpassInfo.dependencyCount = 1;
+	renderpassInfo.pDependencies = &dependency;
 
 	if (vkCreateRenderPass(m_device, &renderpassInfo, nullptr, &m_renderPass) != VK_SUCCESS)
 	{
@@ -909,7 +921,7 @@ void vkRenderer::CreateSemaphores()
 
 
 	if (vkCreateSemaphore(m_device, &createSemaphoreInfo, nullptr, &m_imageAvailableSemaphore) != VK_SUCCESS ||
-		vkCreateSemaphore(m_device, &createSemaphoreInfo, nullptr, &m_imageAvailableSemaphore) != VK_SUCCESS)
+		vkCreateSemaphore(m_device, &createSemaphoreInfo, nullptr, &m_renderFinishedSemaphore) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create Semaphore");
 	}
@@ -987,6 +999,7 @@ void vkRenderer::Draw()
 
 	vkAcquireNextImageKHR(m_device, m_swapChain, std::numeric_limits<uint64_t>::max(), m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
+	//Subit info of which semaphores are being used for Queue
 	VkSubmitInfo submitInfo = {};
 
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1000,7 +1013,7 @@ void vkRenderer::Draw()
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &m_commandBuffers[imageIndex];
 
-	VkSemaphore signalSemaphores[] = {m_renderFinishedSemaphore};
+	VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphore };
 
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = signalSemaphores;
@@ -1009,7 +1022,25 @@ void vkRenderer::Draw()
 	{
 		throw std::runtime_error("Failed to submit Command Buffers");
 	}
-	
+
+
+	VkPresentInfoKHR presentInfo = {};
+
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = signalSemaphores;
+
+	VkSwapchainKHR swapChains[] = { m_swapChain };
+
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = swapChains;
+	presentInfo.pImageIndices = &imageIndex;
+	presentInfo.pResults = nullptr;
+
+	vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+
+	vkDeviceWaitIdle(m_PresentQueue);
+
 
 }
 
@@ -1032,6 +1063,8 @@ void vkRenderer::mainloop()
 		Draw();
 
 	}
+
+	
 
 }
 
