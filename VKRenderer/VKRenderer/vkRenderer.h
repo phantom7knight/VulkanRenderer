@@ -94,8 +94,15 @@ private:
 
 	std::vector<VkCommandBuffer>		m_commandBuffers;
 
-	VkSemaphore							m_imageAvailableSemaphore;
-	VkSemaphore							m_renderFinishedSemaphore;
+	std::vector<VkSemaphore>			m_imageAvailableSemaphore;
+	std::vector<VkSemaphore>			m_renderFinishedSemaphore;
+
+	std::vector<VkFence>				m_inflightFences;
+
+	size_t								m_currentFrame = 0;
+
+	
+	
 
 
 	//Vulkan Related Functions
@@ -127,6 +134,6 @@ private:
 
 	void CreateCommandBuffers();
 
-	void CreateSemaphores();
+	void CreateSemaphoresandFences();
 };
 
