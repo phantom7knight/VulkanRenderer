@@ -63,34 +63,39 @@ public:
 	
 private:
 
-	static vkRenderer*			m_instance;
-	GLFWwindow*					m_window;
+	static vkRenderer*					m_instance;
+	GLFWwindow*							m_window;
 
 
 	//Vulkan Related Parameters
-	VkInstance					m_VulkanInstance;
-	VkDebugUtilsMessengerEXT	m_debugMessenger;
-	VkPhysicalDevice			m_physicalDevice = VK_NULL_HANDLE;
+	VkInstance							m_VulkanInstance;
+	VkDebugUtilsMessengerEXT			m_debugMessenger;
+	VkPhysicalDevice					m_physicalDevice = VK_NULL_HANDLE;
 
-	VkDevice					m_device;
-	VkQueue						m_graphicsQueue;
-	VkSurfaceKHR				m_surface; // This is for relating Windows and Vulkan
-	VkQueue						m_PresentQueue;
+	VkDevice							m_device;
+	VkQueue								m_graphicsQueue;
+	VkSurfaceKHR						m_surface; // This is for relating Windows and Vulkan
+	VkQueue								m_PresentQueue;
 
-	VkSwapchainKHR				m_swapChain;
-	std::vector<VkImage>		m_SwapChainImages;
-	VkFormat					m_swapChainFormat;
-	VkExtent2D					m_swapChainExtent;
+	VkSwapchainKHR						m_swapChain;
+	std::vector<VkImage>				m_SwapChainImages;
+	VkFormat							m_swapChainFormat;
+	VkExtent2D							m_swapChainExtent;
 
-	std::vector<VkImageView>	m_SwapChainImageViews;
+	std::vector<VkImageView>			m_SwapChainImageViews;
 
-	VkRenderPass				m_renderPass;//TODO : This can be modified later
-	VkPipelineLayout			m_pipelineLayout;//TODO : This has to be per Shader/Obj [Look into it]
-	VkPipeline					m_graphicsPipeline;
+	VkRenderPass						m_renderPass;//TODO : This can be modified later
+	VkPipelineLayout					m_pipelineLayout;//TODO : This has to be per Shader/Obj [Look into it]
+	VkPipeline							m_graphicsPipeline;
 
-	std::vector<VkFramebuffer>	m_swapChainFrameBuffer;
+	std::vector<VkFramebuffer>			m_swapChainFrameBuffer;
 
-	VkCommandPool				m_CommandPool;
+	VkCommandPool						m_CommandPool;
+
+	std::vector<VkCommandBuffer>		m_commandBuffers;
+
+	VkSemaphore							m_imageAvailableSemaphore;
+	VkSemaphore							m_renderFinishedSemaphore;
 
 
 	//Vulkan Related Functions
@@ -119,5 +124,9 @@ private:
 	void CreateFrameBuffers();
 
 	void CreateCommandPool();
+
+	void CreateCommandBuffers();
+
+	void CreateSemaphores();
 };
 
