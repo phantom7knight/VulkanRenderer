@@ -27,6 +27,12 @@ struct SwapChainSupportDetails
 class vkRenderer
 {
 public:
+
+	//Variables
+	bool								m_frameBufferResized = false;
+
+
+	//Functions
 	vkRenderer();
 	~vkRenderer();
 
@@ -135,5 +141,12 @@ private:
 	void CreateCommandBuffers();
 
 	void CreateSemaphoresandFences();
+
+	void ReCreateSwapChain();
+
+	void CleanUpSwapChain();
+
+	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+
 };
 

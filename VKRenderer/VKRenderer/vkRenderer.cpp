@@ -38,6 +38,13 @@ vkRenderer::~vkRenderer()
 {
 }
 
+void vkRenderer::framebufferResizeCallback(GLFWwindow* window, int width, int height)
+{
+	vkRenderer* temp = vkRenderer::getInstance();
+	(glfwGetWindowUserPointer(window));
+	temp->m_frameBufferResized = true;
+}
+
 bool vkRenderer::InitGLFW()
 {
 
@@ -47,6 +54,7 @@ bool vkRenderer::InitGLFW()
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 	m_window = glfwCreateWindow(WIDTH, HEIGHT, "VkRenderer", nullptr, nullptr);
+	glfwSetFramebufferSizeCallback(m_window, framebufferResizeCallback);
 
 	if (!m_window)
 		return false;
@@ -389,18 +397,26 @@ VkPresentModeKHR vkRenderer::chooseSwapPresentMode(const std::vector<VkPresentMo
 //Here we set the swap extent
 VkExtent2D vkRenderer::chooseSwapExtent(const VkSurfaceCapabilitiesKHR & capabilities)
 {
-	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) 
-	{
+
+	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
 		return capabilities.currentExtent;
 	}
-	else {
-		VkExtent2D actualExtent = { WIDTH, HEIGHT };
+	else 
+	{
+		int width, height;
+		glfwGetFramebufferSize(m_window, &width, &height);
 
+		VkExtent2D actualExtent = {
+			static_cast<uint32_t>(width),
+			static_cast<uint32_t>(height)
+		};
+		
 		actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
 		actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
 
 		return actualExtent;
 	}
+
 }
 
 //Create Swap Chain itself
@@ -946,6 +962,44 @@ void vkRenderer::CreateSemaphoresandFences()
 
 
 //===================================================================
+//Recreating Swap Chains
+//===================================================================
+
+
+void vkRenderer::ReCreateSwapChain()
+{
+
+	int width = 0, height = 0;
+	while (width == 0 || height == 0)
+	{
+		glfwGetFramebufferSize(m_window, &width, &height);
+		glfwWaitEvents();
+	}
+
+
+
+	vkDeviceWaitIdle(m_device);
+
+	CleanUpSwapChain();
+
+	CreateSwapChain();
+
+	CreateImageView();
+
+	CreateRenderPass();
+
+	CreateGraphicsPipeline(); 
+
+	CreateFrameBuffers();
+
+	CreateCommandPool();
+
+	CreateCommandBuffers();
+
+
+}
+
+//===================================================================
 //Vulkan Initialization Function
 //===================================================================
 
@@ -1026,7 +1080,17 @@ void vkRenderer::Draw()
 
 	uint32_t imageIndex;
 
-	vkAcquireNextImageKHR(m_device, m_swapChain, std::numeric_limits<uint64_t>::max(), m_imageAvailableSemaphore[m_currentFrame], VK_NULL_HANDLE, &imageIndex);
+	VkResult result = vkAcquireNextImageKHR(m_device, m_swapChain, std::numeric_limits<uint64_t>::max(), m_imageAvailableSemaphore[m_currentFrame], VK_NULL_HANDLE, &imageIndex);
+
+	if (result == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+		ReCreateSwapChain();
+		return;
+	}
+	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+	{
+		throw std::runtime_error("Failed to acquire swap chain image");
+	}
 
 	//Subit info of which semaphores are being used for Queue
 	VkSubmitInfo submitInfo = {};
@@ -1047,6 +1111,8 @@ void vkRenderer::Draw()
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
+	vkResetFences(m_device, 1, &m_inflightFences[m_currentFrame]);
+
 	if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inflightFences[m_currentFrame]) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to submit Draw Command Buffers");
@@ -1066,9 +1132,17 @@ void vkRenderer::Draw()
 	presentInfo.pImageIndices = &imageIndex;
 	presentInfo.pResults = nullptr;
 
-	vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+	result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
 
-	vkQueueWaitIdle(m_PresentQueue);
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_frameBufferResized)
+	{
+		m_frameBufferResized = false;
+		ReCreateSwapChain();
+	}
+	else if (result != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to present Swap Chain image!");
+	}
 
 	m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
@@ -1113,12 +1187,40 @@ void vkRenderer::DestroyDebugUtilsMessengerEXT(
 	}
 
 
+void vkRenderer::CleanUpSwapChain()
+{
+
+	for (size_t i = 0; i < m_swapChainFrameBuffer.size(); ++i)
+	{
+		vkDestroyFramebuffer(m_device, m_swapChainFrameBuffer[i], nullptr);
+	}
+
+	vkFreeCommandBuffers(m_device, m_CommandPool, static_cast<uint32_t>(m_commandBuffers.size()), m_commandBuffers.data());
+
+	vkDestroyCommandPool(m_device, m_CommandPool, nullptr);
+	
+	vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
+
+	vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
+
+	vkDestroyRenderPass(m_device, m_renderPass, nullptr);
+
+	for (size_t i = 0; i < m_SwapChainImageViews.size(); ++i)
+	{
+		vkDestroyImageView(m_device, m_SwapChainImageViews[i], nullptr);
+	}
+
+	vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
+}
+
 
 void vkRenderer::Destroy()
 {
 	//==========================================
 	//Delete Vulkan related things
 	//==========================================
+
+	CleanUpSwapChain();
 
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
@@ -1128,26 +1230,8 @@ void vkRenderer::Destroy()
 		vkDestroyFence(m_device, m_inflightFences[i], nullptr);
 	}
 
-	vkDestroyCommandPool(m_device, m_CommandPool, nullptr);
 
-	for (uint32_t i = 0; i < m_swapChainFrameBuffer.size(); ++i)
-	{
-		vkDestroyFramebuffer(m_device, m_swapChainFrameBuffer[i], nullptr);
-	}
-
-	vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
-
-	vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
-
-	vkDestroyRenderPass(m_device, m_renderPass, nullptr);
-
-	for (auto views : m_SwapChainImageViews)
-	{
-		vkDestroyImageView(m_device, views, nullptr);
-	}
-
-	vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
-
+		
 	vkDestroyDevice(m_device,nullptr);
 
 	if (enableValidationLayer)
