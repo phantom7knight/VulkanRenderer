@@ -80,7 +80,7 @@ bool vkRenderer::CreateInstance()
 	appInfo.pApplicationName = "Hello World!!";
 	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 	appInfo.pEngineName = "VkRenderer";
-	appInfo.apiVersion = VK_API_VERSION_1_0;
+	appInfo.apiVersion = VK_MAKE_VERSION(1, 0, VK_HEADER_VERSION);// VK_API_VERSION_1_1;
 
 
 	//Used to mention the validation layers which we want to use
@@ -178,35 +178,6 @@ bool vkRenderer::isDeviceSuitable(VkPhysicalDevice a_device)
 	
 }
 
-void vkRenderer::pickPhysicalDevice()
-{
-	uint32_t deviceCount = 0;
-	vkEnumeratePhysicalDevices(m_VulkanInstance, &deviceCount, nullptr);
-
-	if (deviceCount == 0)
-	{
-		throw std::runtime_error("There are any GPU's which support Vulkan");//check if they support for Vulkan
-	}
-
-	std::vector<VkPhysicalDevice> devicesList(deviceCount);
-	vkEnumeratePhysicalDevices(m_VulkanInstance, &deviceCount, devicesList.data());
-
-	for (const auto& device : devicesList)
-	{
-		if (isDeviceSuitable(device))//Checks if they meet requirements of Vulkan
-		{
-			m_physicalDevice = device;
-			break;
-		}
-	}
-
-	if (m_physicalDevice == VK_NULL_HANDLE)
-	{
-		throw std::runtime_error("Couldn't find suitable GPU");
-	}
-
-}
-
 QueueFamilyIndices vkRenderer::findQueueFamilies(VkPhysicalDevice device)
 {
 	QueueFamilyIndices indices;
@@ -218,7 +189,7 @@ QueueFamilyIndices vkRenderer::findQueueFamilies(VkPhysicalDevice device)
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
 	int i = 0;
-	for (const auto& queueFamily : queueFamilies) 
+	for (const auto& queueFamily : queueFamilies)
 	{
 		if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
 			indices.graphicsFamily = i;
@@ -241,6 +212,41 @@ QueueFamilyIndices vkRenderer::findQueueFamilies(VkPhysicalDevice device)
 
 	return indices;
 }
+
+//===================================================================
+//Physical Device
+//===================================================================
+
+void vkRenderer::pickPhysicalDevice()
+{
+	uint32_t deviceCount = 0;
+	vkEnumeratePhysicalDevices(m_VulkanInstance, &deviceCount, nullptr);
+
+	if (deviceCount == 0)
+	{
+		//check if they support for Vulkan
+		throw std::runtime_error("There aren't any GPU's which support Vulkan");
+	}
+
+	std::vector<VkPhysicalDevice> devicesList(deviceCount);
+	vkEnumeratePhysicalDevices(m_VulkanInstance, &deviceCount, devicesList.data());
+
+	for (const auto& device : devicesList)
+	{
+		if (isDeviceSuitable(device))//Checks if they meet requirements of Vulkan
+		{
+			m_physicalDevice = device;
+			break;
+		}
+	}
+
+	if (m_physicalDevice == VK_NULL_HANDLE)
+	{
+		throw std::runtime_error("Couldn't find suitable GPU");
+	}
+
+}
+
 
 //===================================================================
 //Logical Device
