@@ -12,7 +12,7 @@
 #include <set>
 #include <algorithm>
 #include <fstream>
-//#include <timeapi.h>
+#include <array>
 
 #define GLFW_INCLUDE_VULKAN
 #include "../Dependencies/GLFW/include/GLFW/glfw3.h"
@@ -23,6 +23,7 @@
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include "../Dependencies/GLM/glm/glm/glm.hpp"
 #include "../Dependencies/GLM/glm/glm/vec4.hpp"
 #include "../Dependencies/GLM/glm/glm/mat4x4.hpp"
 

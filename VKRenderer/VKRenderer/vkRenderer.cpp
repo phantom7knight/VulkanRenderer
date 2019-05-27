@@ -3,9 +3,79 @@
 #include "ValidationLayer.hpp"
 #include "vkTimer.h"
 
+
+
+//===================================================================
+//Vertex Buffer Use
+//===================================================================
+
+struct Vertex
+{
+	glm::vec3 Position;
+	glm::vec3 Normals;
+	glm::vec2 TexCoords;
+
+
+	//Set Vertex Binding Desc i.e like setting VAO in OpenGL
+
+	static VkVertexInputBindingDescription getBindingDescription()
+	{
+		VkVertexInputBindingDescription bindingDesc = {};
+
+		bindingDesc.binding = 0;	//Since we are using only one array for the data that is Triangle_vertices we have 1 binding and order starts from 0
+		bindingDesc.stride = sizeof(Vertex);
+		bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+		return bindingDesc;
+	}
+
+
+	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptionsofTriangle()
+	{
+		std::array<VkVertexInputAttributeDescription, 3> attributeDesc = {};
+
+		//Position
+		attributeDesc[0].binding = 0;
+		attributeDesc[0].location = 0;		//Binding number which corresponds to layout(location = NO_) this "NO_" number
+		attributeDesc[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+		attributeDesc[0].offset = offsetof(Vertex, Position);
+
+		//Normals
+		attributeDesc[1].binding = 0;
+		attributeDesc[1].location = 1;		//Binding number which corresponds to layout(location = NO_) this "NO_" number
+		attributeDesc[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+		attributeDesc[1].offset = offsetof(Vertex, Normals);
+
+		//TexCoords
+		attributeDesc[1].binding = 0;
+		attributeDesc[1].location = 2;		//Binding number which corresponds to layout(location = NO_) this "NO_" number
+		attributeDesc[1].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDesc[1].offset = offsetof(Vertex, TexCoords);
+
+
+		return attributeDesc;
+	}
+
+
+
+};
+
+
+const std::vector<Vertex> Triangle_vertices = {
+	{	{0.0,-0.5,0.0},		{0.0,0.0,1.0},		{0.0,0.0}	},
+	{	{0.5, 0.5,0.0},		{0.0,0.0,1.0},		{0.0,0.0}	},
+	{	{-0.5,0.5,0.0},		{0.0,0.0,1.0},		{0.0,0.0}	}
+};
+
+
+
+//===================================================================
+
+
+
+
 //We add Swap Chain Extenstion to the Current Device
 const std::vector<const char*> deviceExtenstion = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-
 
 //Static variable declaration
 vkRenderer* vkRenderer::m_instance = nullptr;
@@ -612,10 +682,15 @@ void vkRenderer::CreateGraphicsPipeline()
 	VkPipelineVertexInputStateCreateInfo VertexInputInfo = {};
 
 	VertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	VertexInputInfo.vertexAttributeDescriptionCount = 0;
-	VertexInputInfo.pVertexBindingDescriptions = nullptr;
-	VertexInputInfo.vertexAttributeDescriptionCount = 0;
-	VertexInputInfo.pVertexAttributeDescriptions = nullptr;
+
+	auto bindingDesc = Vertex::getBindingDescription();
+	auto attributeDesc = Vertex::getAttributeDescriptionsofTriangle();
+
+	VertexInputInfo.vertexBindingDescriptionCount = 1;
+	VertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDesc.size());
+	VertexInputInfo.pVertexBindingDescriptions = &bindingDesc;
+	VertexInputInfo.pVertexAttributeDescriptions = attributeDesc.data();
+
 
 	//Input Assembly
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
@@ -1006,6 +1081,7 @@ void vkRenderer::ReCreateSwapChain()
 
 
 }
+
 
 //===================================================================
 //Vulkan Initialization Function
