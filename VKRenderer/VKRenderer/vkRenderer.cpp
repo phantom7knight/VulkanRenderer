@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "vkRenderer.h"
 #include "ValidationLayer.hpp"
+#include "vkTimer.h"
 
 //We add Swap Chain Extenstion to the Current Device
 const std::vector<const char*> deviceExtenstion = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
@@ -454,6 +455,7 @@ void vkRenderer::CreateSwapChain()
 	createInfo.imageExtent = swapExtent;
 	createInfo.imageArrayLayers = 1;
 	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+	//createInfo.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 
 	QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
 	uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
@@ -1064,7 +1066,7 @@ void vkRenderer::Init()
 //Renderer each loop updation
 //===================================================================
 
-void vkRenderer::Update()
+void vkRenderer::Update(float deltaTime)
 {
 	//Does Nothing as of now
 
@@ -1160,10 +1162,18 @@ void vkRenderer::mainloop()
 
 	while (!glfwWindowShouldClose(m_window))
 	{
+		//Frame Rate Manager Init
+		float deltaTime = vkTimer::getInstance()->FrameStart(true) / 1000.0f;
+		
+		if (deltaTime > 0.15f)
+		{
+			deltaTime = 0.5f;
+		}
+
 		glfwPollEvents();
 
 
-		Update();
+		Update(deltaTime);
 		Draw();
 
 	}

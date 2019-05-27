@@ -1,6 +1,7 @@
 #pragma once
 
 //Library Includes
+#include <windows.h>
 #include <iostream>
 #include <stdlib.h>
 #include <memory.h>
@@ -11,6 +12,7 @@
 #include <set>
 #include <algorithm>
 #include <fstream>
+//#include <timeapi.h>
 
 #define GLFW_INCLUDE_VULKAN
 #include "../Dependencies/GLFW/include/GLFW/glfw3.h"
