@@ -107,6 +107,12 @@ private:
 
 	size_t								m_currentFrame = 0;
 
+	VkBuffer							m_TriangleVertexBuffer;
+
+	//VkBuffer							m_vertexBuffer;
+
+	VkDeviceMemory						m_vertexBufferMemory;
+
 	
 	
 
@@ -147,6 +153,10 @@ private:
 	void CleanUpSwapChain();
 
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+
+	void CreateVertexBuffer();
+
+	uint32_t findMemoryType(uint32_t typeFiler, VkMemoryPropertyFlags properties);
 
 };
 

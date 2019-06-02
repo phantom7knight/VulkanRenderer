@@ -47,10 +47,10 @@ struct Vertex
 		attributeDesc[1].offset = offsetof(Vertex, Normals);
 
 		//TexCoords
-		attributeDesc[1].binding = 0;
-		attributeDesc[1].location = 2;		//Binding number which corresponds to layout(location = NO_) this "NO_" number
-		attributeDesc[1].format = VK_FORMAT_R32G32_SFLOAT;
-		attributeDesc[1].offset = offsetof(Vertex, TexCoords);
+		attributeDesc[2].binding = 0;
+		attributeDesc[2].location = 2;		//Binding number which corresponds to layout(location = NO_) this "NO_" number
+		attributeDesc[2].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDesc[2].offset = offsetof(Vertex, TexCoords);
 
 
 		return attributeDesc;
@@ -66,7 +66,6 @@ const std::vector<Vertex> Triangle_vertices = {
 	{	{0.5, 0.5,0.0},		{0.0,0.0,1.0},		{0.0,0.0}	},
 	{	{-0.5,0.5,0.0},		{0.0,0.0,1.0},		{0.0,0.0}	}
 };
-
 
 
 //===================================================================
@@ -985,7 +984,7 @@ void vkRenderer::CreateCommandBuffers()
 		renderpassBeginInfo.renderArea.extent = m_swapChainExtent;
 
 
-		//Clear Color
+		//Clear Color//
 		VkClearValue clearColor = { 0.0,0.0,0.0,1.0 };
 		renderpassBeginInfo.clearValueCount = 1;
 		renderpassBeginInfo.pClearValues = &clearColor;
@@ -995,7 +994,11 @@ void vkRenderer::CreateCommandBuffers()
 
 		vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
 
-		vkCmdDraw(m_commandBuffers[i], 3, 1, 0, 0);
+		VkBuffer vertexBuffers[] = { m_TriangleVertexBuffer };
+		VkDeviceSize offset = { 0 };
+		vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_TriangleVertexBuffer, &offset);
+
+		vkCmdDraw(m_commandBuffers[i], static_cast<uint32_t>(Triangle_vertices.size()), 1, 0, 0);
 
 		vkCmdEndRenderPass(m_commandBuffers[i]);
 
@@ -1082,6 +1085,67 @@ void vkRenderer::ReCreateSwapChain()
 
 }
 
+//===================================================================
+//Creaate Vertex Buffer
+//===================================================================
+
+uint32_t vkRenderer::findMemoryType(uint32_t typeFiler, VkMemoryPropertyFlags properties)
+{
+	VkPhysicalDeviceMemoryProperties memProperties;
+	vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memProperties);
+
+	for (uint32_t i = 0; i < memProperties.memoryTypeCount; ++i)
+	{
+		if (typeFiler&(1 << i) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+		{
+			return i;
+		}
+	}
+
+	throw std::runtime_error("Failed to find suitable memory type!");
+
+
+}
+
+
+void vkRenderer::CreateVertexBuffer()//Make this Generic
+{
+	//Buffer for the coordinates of Triangle which are being sent to the VS
+	VkBufferCreateInfo bufferCreateInfo = {};
+
+	bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferCreateInfo.size = sizeof(Triangle_vertices[0]) * Triangle_vertices.size();
+	bufferCreateInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (vkCreateBuffer(m_device, &bufferCreateInfo, nullptr, &m_TriangleVertexBuffer) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to Create Vertex Buffer");
+	}
+
+	VkMemoryRequirements memRequirements;
+	vkGetBufferMemoryRequirements(m_device, m_TriangleVertexBuffer, &memRequirements);
+	
+	VkMemoryAllocateInfo allocateInfo = {};
+
+	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocateInfo.allocationSize = memRequirements.size;
+	allocateInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	
+	//Allocated memory for the Vertex Buffer
+	if (vkAllocateMemory(m_device, &allocateInfo, nullptr, &m_vertexBufferMemory) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to allocate memory for the Vertex Buffer");
+	}
+	vkBindBufferMemory(m_device, m_TriangleVertexBuffer, m_vertexBufferMemory, 0);
+
+	void* data;
+	vkMapMemory(m_device, m_vertexBufferMemory, 0, bufferCreateInfo.size, 0, &data);
+	memcpy(data, Triangle_vertices.data(), (size_t)bufferCreateInfo.size);
+	vkUnmapMemory(m_device , m_vertexBufferMemory);
+
+
+}
 
 //===================================================================
 //Vulkan Initialization Function
@@ -1111,6 +1175,8 @@ bool vkRenderer::InitVulkan()
 	CreateFrameBuffers();
 
 	CreateCommandPool();
+
+	CreateVertexBuffer();
 
 	CreateCommandBuffers();
 
@@ -1314,6 +1380,9 @@ void vkRenderer::Destroy()
 
 	CleanUpSwapChain();
 
+	vkDestroyBuffer(m_device, m_TriangleVertexBuffer, nullptr);
+
+	vkFreeMemory(m_device, m_vertexBufferMemory, nullptr);
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 	{
@@ -1321,8 +1390,6 @@ void vkRenderer::Destroy()
 		vkDestroySemaphore(m_device, m_imageAvailableSemaphore[i], nullptr);
 		vkDestroyFence(m_device, m_inflightFences[i], nullptr);
 	}
-
-
 		
 	vkDestroyDevice(m_device,nullptr);
 
