@@ -158,5 +158,9 @@ private:
 
 	uint32_t findMemoryType(uint32_t typeFiler, VkMemoryPropertyFlags properties);
 
+	void CreateBuffer(VkDeviceSize a_size, VkBufferUsageFlags a_usage, VkMemoryPropertyFlags a_properties, VkBuffer& a_buffer, VkDeviceMemory& a_bufferMemory);
+
+	void CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDeviceSize a_size);
+
 };
 
