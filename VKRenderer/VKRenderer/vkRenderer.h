@@ -109,11 +109,11 @@ private:
 
 	VkBuffer							m_TriangleVertexBuffer;
 
-	//VkBuffer							m_vertexBuffer;
-
 	VkDeviceMemory						m_vertexBufferMemory;
 
-	
+	VkBuffer							m_RectangleIndexBuffer;
+
+	VkDeviceMemory						m_IndexBufferMemory;
 	
 
 
@@ -161,6 +161,8 @@ private:
 	void CreateBuffer(VkDeviceSize a_size, VkBufferUsageFlags a_usage, VkMemoryPropertyFlags a_properties, VkBuffer& a_buffer, VkDeviceMemory& a_bufferMemory);
 
 	void CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDeviceSize a_size);
+
+	void CreateIndexBuffer();
 
 };
 

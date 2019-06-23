@@ -30,7 +30,7 @@ struct Vertex
 	}
 
 
-	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptionsofTriangle()
+	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptionsofVertex()
 	{
 		std::array<VkVertexInputAttributeDescription, 3> attributeDesc = {};
 
@@ -67,6 +67,17 @@ const std::vector<Vertex> Triangle_vertices = {
 	{	{-0.5,0.5,0.0},		{0.0,0.0,1.0},		{0.0,0.0}	}
 };
 
+const std::vector<Vertex> Rectangle_vertices = {
+	{	{-0.5,-0.5,0.0},		{0.0,0.0,1.0},		{0.0,0.0}	},
+	{	{0.5, -0.5,0.0},		{0.0,0.0,1.0},		{0.0,0.0}	},
+	{	{0.5,0.5,0.0},			{0.0,0.0,1.0},		{0.0,0.0}	},
+	{	{-0.5,0.5,0.0},			{0.0,0.0,1.0},		{0.0,0.0}	}
+};
+
+const std::vector<uint16_t> Rectangle_Indices = {
+	0,1,2,2,3,0
+};
+ 
 
 //===================================================================
 
@@ -683,7 +694,7 @@ void vkRenderer::CreateGraphicsPipeline()
 	VertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
 	auto bindingDesc = Vertex::getBindingDescription();
-	auto attributeDesc = Vertex::getAttributeDescriptionsofTriangle();
+	auto attributeDesc = Vertex::getAttributeDescriptionsofVertex();
 
 	VertexInputInfo.vertexBindingDescriptionCount = 1;
 	VertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDesc.size());
@@ -992,13 +1003,17 @@ void vkRenderer::CreateCommandBuffers()
 
 		vkCmdBeginRenderPass(m_commandBuffers[i], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
+			vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
 
-		VkBuffer vertexBuffers[] = { m_TriangleVertexBuffer };
-		VkDeviceSize offset = { 0 };
-		vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_TriangleVertexBuffer, &offset);
+			VkBuffer vertexBuffers[] = { m_TriangleVertexBuffer };
+			VkDeviceSize offset = { 0 };
+			vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_TriangleVertexBuffer, &offset);
 
-		vkCmdDraw(m_commandBuffers[i], static_cast<uint32_t>(Triangle_vertices.size()), 1, 0, 0);
+			vkCmdBindIndexBuffer(m_commandBuffers[i], m_RectangleIndexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+			//vkCmdDraw(m_commandBuffers[i], static_cast<uint32_t>(Triangle_vertices.size()), 1, 0, 0);
+
+			vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(Rectangle_Indices.size()), 1, 0, 0, 0);
 
 		vkCmdEndRenderPass(m_commandBuffers[i]);
 
@@ -1111,7 +1126,7 @@ uint32_t vkRenderer::findMemoryType(uint32_t typeFiler, VkMemoryPropertyFlags pr
 void vkRenderer::CreateVertexBuffer()//Make this Generic
 {
 
-	VkDeviceSize bufferSize = sizeof(Triangle_vertices[0]) * Triangle_vertices.size();
+	VkDeviceSize bufferSize = sizeof(Rectangle_vertices[0]) * Rectangle_vertices.size();
 
 	//Create Staging Buffer before transfering
 	VkBuffer stagingBuffer;
@@ -1122,7 +1137,7 @@ void vkRenderer::CreateVertexBuffer()//Make this Generic
 
 	void* data;
 	vkMapMemory(m_device, stagingBufferMemory, 0, bufferSize, 0, &data);
-		memcpy(data, Triangle_vertices.data(), (size_t)bufferSize);
+		memcpy(data, Rectangle_vertices.data(), (size_t)bufferSize);
 	vkUnmapMemory(m_device, stagingBufferMemory);
 
 
@@ -1136,6 +1151,36 @@ void vkRenderer::CreateVertexBuffer()//Make this Generic
 	vkFreeMemory(m_device, stagingBufferMemory, nullptr);
 	
 	
+}
+
+//===================================================================
+//Creaate Index Buffer
+//===================================================================
+void vkRenderer::CreateIndexBuffer()
+{
+	VkDeviceSize bufferSize = sizeof(Rectangle_Indices[0]) * Rectangle_Indices.size();
+
+	//Create Staging Buffer before transfering
+	VkBuffer stagingBuffer;
+	VkDeviceMemory stagingBufferMemory;
+	CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		stagingBuffer, stagingBufferMemory);
+
+
+	void* data;
+	vkMapMemory(m_device, stagingBufferMemory, 0, bufferSize, 0, &data);
+		memcpy(data, Rectangle_Indices.data(), (size_t)bufferSize);
+	vkUnmapMemory(m_device, stagingBufferMemory);
+
+
+	CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		m_RectangleIndexBuffer, m_IndexBufferMemory);
+
+	CopyBuffer(stagingBuffer, m_RectangleIndexBuffer, bufferSize);
+
+	//Get rid of the staging buffers
+	vkDestroyBuffer(m_device, stagingBuffer, nullptr);
+	vkFreeMemory(m_device, stagingBufferMemory, nullptr);
 }
 
 //=====================================================================================================================
@@ -1251,6 +1296,8 @@ bool vkRenderer::InitVulkan()
 	CreateCommandPool();
 
 	CreateVertexBuffer();
+
+	CreateIndexBuffer();
 
 	CreateCommandBuffers();
 
@@ -1453,6 +1500,10 @@ void vkRenderer::Destroy()
 	//==========================================
 
 	CleanUpSwapChain();
+
+	vkDestroyBuffer(m_device, m_RectangleIndexBuffer, nullptr);
+
+	vkFreeMemory(m_device, m_IndexBufferMemory, nullptr);
 
 	vkDestroyBuffer(m_device, m_TriangleVertexBuffer, nullptr);
 
