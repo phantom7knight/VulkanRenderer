@@ -641,7 +641,6 @@ static std::vector<char> readFile(const std::string& filename)
 	return buffer;
 }
 
-
 VkShaderModule vkRenderer::createShaderModule(const std::vector<char>& shaderCode)
 {
 	VkShaderModuleCreateInfo createInfo = {};
@@ -663,9 +662,20 @@ VkShaderModule vkRenderer::createShaderModule(const std::vector<char>& shaderCod
 
 void vkRenderer::CreateGraphicsPipeline()
 {
+
+	//=============================================
+	//generate binary code
+
+	//Compile Shader
+
+
+	//=============================================
+
+	//Read Shader Binary Code
 	auto VertexShaderCode	= readFile("Shaders/BinaryCode/Basic.vert.spv");
 	auto PixelShaderCode	= readFile("Shaders/BinaryCode/Basic.frag.spv");
 
+	//Generate respective Shader Modules
 	VkShaderModule vertexShaderModule = createShaderModule(VertexShaderCode);
 	VkShaderModule pixelShaderModule = createShaderModule(PixelShaderCode);
 
