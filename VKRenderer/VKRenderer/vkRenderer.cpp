@@ -2,6 +2,7 @@
 #include "vkRenderer.h"
 #include "ValidationLayer.hpp"
 #include "vkTimer.h"
+#include "ResourceLoader.h"
 
 
 
