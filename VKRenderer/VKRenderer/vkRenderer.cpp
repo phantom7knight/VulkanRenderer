@@ -1346,7 +1346,7 @@ void vkRenderer::Update(float deltaTime)
 
 }
 
-void vkRenderer::Draw()
+void vkRenderer::Draw(float deltaTime)
 {
 
 	vkWaitForFences(m_device, 1, &m_inflightFences[m_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
@@ -1448,7 +1448,7 @@ void vkRenderer::mainloop()
 
 
 		Update(deltaTime);
-		Draw();
+		Draw(deltaTime);
 
 	}
 
