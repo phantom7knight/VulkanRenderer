@@ -79,6 +79,13 @@ const std::vector<uint16_t> Rectangle_Indices = {
 };
  
 
+struct UniformBufferObject
+{
+	glm::mat4 ModelViewProjectionMatrix;
+};
+
+
+
 //===================================================================
 
 
@@ -754,9 +761,9 @@ void vkRenderer::CreateGraphicsPipeline()
 	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
 	rasterizer.depthBiasEnable = VK_FALSE;
-	rasterizer.depthBiasConstantFactor = 0.0f;	//TODO: look into this later since these are optional
-	rasterizer.depthBiasClamp = 0.0f;			//TODO: look into this later since these are optional
-	rasterizer.depthBiasSlopeFactor = 0.0f;		//TODO: look into this later since these are optional
+	rasterizer.depthBiasConstantFactor = 0.0f;	//TODO: look into this later, since these are optional
+	rasterizer.depthBiasClamp = 0.0f;			//TODO: look into this later, since these are optional
+	rasterizer.depthBiasSlopeFactor = 0.0f;		//TODO: look into this later, since these are optional
 
 
 	//Multisampling
