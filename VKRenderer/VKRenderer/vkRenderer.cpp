@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "vkRenderer.h"
 #include "ValidationLayer.hpp"
-#include "vkTimer.h"
 #include "ResourceLoader.h"
 
 
@@ -1430,30 +1429,12 @@ void vkRenderer::Draw(float deltaTime)
 
 }
 
-void vkRenderer::mainloop()
+void vkRenderer::RenderLoop(float deltaTime)
 {
 	
-
-	while (!glfwWindowShouldClose(m_window))
-	{
-		//Frame Rate Manager Init
-		float deltaTime = vkTimer::getInstance()->FrameStart(true) / 1000.0f;
-		
-		if (deltaTime > 0.15f)
-		{
-			deltaTime = 0.5f;
-		}
-
-		glfwPollEvents();
-
-
-		Update(deltaTime);
-		Draw(deltaTime);
-
-	}
-
-	vkDeviceWaitIdle(m_device);
-
+	Update(deltaTime);
+	Draw(deltaTime);
+	
 
 }
 

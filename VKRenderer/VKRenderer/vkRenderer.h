@@ -41,7 +41,7 @@ public:
 	bool InitGLFW();
 	bool InitVulkan();
 
-	void mainloop();
+	void RenderLoop(float deltaTime);
 	void Update(float deltaTime);
 	void Draw(float deltaTime);
 
