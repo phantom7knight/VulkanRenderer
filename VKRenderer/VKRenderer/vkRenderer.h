@@ -114,7 +114,16 @@ private:
 	VkBuffer							m_RectangleIndexBuffer;
 
 	VkDeviceMemory						m_IndexBufferMemory;
-	
+
+	VkDescriptorSetLayout				m_descriptorSetLayout;
+
+	std::vector<VkBuffer>				m_uniformBuffers;
+
+	std::vector<VkDeviceMemory>			m_uniformBuffersMemory;
+
+	VkDescriptorPool					m_DescriptorPool;
+
+	std::vector<VkDescriptorSet>		m_DescriptorSets;
 
 
 	//Vulkan Related Functions
@@ -163,6 +172,16 @@ private:
 	void CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDeviceSize a_size);
 
 	void CreateIndexBuffer();
+
+	void CreateDescriptorSetLayout();
+
+	void CreateUniformBuffer();
+
+	void UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime);
+
+	void CreateDescriptorPool();
+
+	void CreateDesciptorSets();
 
 };
 

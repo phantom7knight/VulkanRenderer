@@ -21,6 +21,7 @@ Current Pipeline plans
 11. Text Rendering
 12. Reading Framebuffers getting familiar with it[See Sascha Willems's post]
 12. Bump Mapping
+13. Shadows Basic
 
 
 
@@ -34,16 +35,17 @@ Current Pipeline plans
 Tentative Project Plans
 ----------------------------------------------
 
-1. Make Post Processing Pipeline
-2. Vulkan Ray Tracing
-3. Deferred Shading
-4. Shadows Basic
-5. Shadows Advanced
-6. Implement Compute Shaders	[Implement something based on Sascha Willems]
-7. Implement Geometry Shader	[ ""			""							]
-8. Implement Tesselation Shader	[ ""			""							]
-9. Reflection
+1.	Make Post Processing Pipeline
+2.	Vulkan Ray Tracing
+3.	Deferred Shading
+4.	FXAA or TXAA
+5.	Shadows Advanced
+6.	Implement Compute Shaders		[Implement something based on Sascha Willems]
+7.	Implement Geometry Shader		[ ""			""			""     ""   	]
+8.	Implement Tesselation Shader	[ ""			""			""     ""   	]
+9.	Reflection
 10. Offscreen Rendering[Look at Sascha Willems example]
+11. Culling Techniques
 
 
 
