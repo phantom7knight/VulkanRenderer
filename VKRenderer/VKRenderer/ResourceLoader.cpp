@@ -4,4 +4,11 @@
 
 void CompileShader()
 {
+
+}
+
+
+void LoadAllShaders()
+{
+
 }
