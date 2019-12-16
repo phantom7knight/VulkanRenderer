@@ -1554,10 +1554,6 @@ void vkRenderer::Init()
 
 void vkRenderer::SetUpSwapChain()
 {
-	//querySwapChainSupport(m_physicalDevice);
-	//chooseSwapSurfaceFormat(const std::vector< VkSurfaceFormatKHR > & availableFormats);
-	//chooseSwapPresentMode(const std::vector< VkPresentModeKHR > & availablePresentModes);
-	//chooseSwapExtent(const VkSurfaceCapabilitiesKHR & a_capabilities);
 	CreateSwapChain();
 }
 

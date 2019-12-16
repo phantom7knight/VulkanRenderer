@@ -76,8 +76,5 @@ int main()
 	//clean up the pointer
 	delete rendererExample;
 
-#ifdef _DEBUG
-	system("pause");
-#endif
 	return 0;
 }

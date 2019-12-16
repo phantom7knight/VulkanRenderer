@@ -886,7 +886,50 @@ void Triangle::CreateDesciptorSets()
 }
 
 
+//===================================================================
+//Recreating Swap Chains
+//===================================================================
 
+//TODO: Fix this
+
+void Triangle::ReCreateSwapChain()
+{
+
+	int width = 0, height = 0;
+	while (width == 0 || height == 0)
+	{
+		glfwGetFramebufferSize(m_window, &width, &height);
+		glfwWaitEvents();
+	}
+
+
+
+	vkDeviceWaitIdle(m_device);
+
+	CleanUpSwapChain();
+
+	CreateSwapChain();
+
+	CreateImageView();
+
+	CreateRenderPass();
+
+	CreateGraphicsPipeline();
+
+	CreateFrameBuffers();
+
+	CreateUniformBuffer();
+
+	CreateCommandBuffers();
+
+	//CreateDescriptorPool();
+	//
+	//CreateDesciptorSets();
+
+	CreateCommandPool();
+
+
+}
 
 
 void Triangle::PrepareApp()
@@ -947,7 +990,7 @@ void Triangle::Draw(float deltaTime)
 	if (result == VK_ERROR_OUT_OF_DATE_KHR)
 	{
 		//TODO: need to fix it
-		//ReCreateSwapChain();
+		ReCreateSwapChain();
 		return;
 	}
 	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
@@ -1004,7 +1047,7 @@ void Triangle::Draw(float deltaTime)
 	{
 		m_frameBufferResized = false;
 		//TODO: need to fix it
-		//ReCreateSwapChain();
+		ReCreateSwapChain();
 	}
 	else if (result != VK_SUCCESS)
 	{

@@ -10,8 +10,7 @@ class Triangle : public vkRenderer
 {
 
 private:
-
-
+	
 	void CreateRenderPass();
 
 	void CreateGraphicsPipeline();
@@ -37,6 +36,8 @@ private:
 	void CreateDesciptorSets();
 	
 	void UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime);
+
+	void ReCreateSwapChain();
 
 public:
 
