@@ -593,6 +593,7 @@ void vkRenderer::CreateSwapChain()
 //===================================================================
 // Creating Image Views[Used to view Images]
 //===================================================================
+
 void vkRenderer::CreateImageView()
 {
 	m_SwapChainImageViews.resize(m_SwapChainImages.size());
@@ -632,35 +633,35 @@ void vkRenderer::CreateImageView()
 // Create and Set Descriptor Layouts[maybe generalize?]
 //===================================================================
 
-void vkRenderer::CreateDescriptorSetLayout()
-{
-	VkDescriptorSetLayoutBinding layoutBinding = {};
-
-	layoutBinding.binding = 0;
-	layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	layoutBinding.descriptorCount = 1;
-	layoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	layoutBinding.pImmutableSamplers = nullptr;
-
-	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = 1;
-	layoutInfo.pBindings = &layoutBinding;
-
-	if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_descriptorSetLayout) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create Descriptor Set Layout");
-	}
-	   
-}
+//void vkRenderer::CreateDescriptorSetLayout()
+//{
+//	VkDescriptorSetLayoutBinding layoutBinding = {};
+//
+//	layoutBinding.binding = 0;
+//	layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+//	layoutBinding.descriptorCount = 1;
+//	layoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+//	layoutBinding.pImmutableSamplers = nullptr;
+//
+//	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+//
+//	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+//	layoutInfo.bindingCount = 1;
+//	layoutInfo.pBindings = &layoutBinding;
+//
+//	if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_descriptorSetLayout) != VK_SUCCESS)
+//	{
+//		throw std::runtime_error("Failed to create Descriptor Set Layout");
+//	}
+//	   
+//}
 
 
 //===================================================================
 //Create Graphics Pipeline and Shader Related Functions
 //===================================================================
 
-static std::vector<char> readFile(const std::string& filename)
+/*static std::vector<char> readFile(const std::string& filename)
 {
 	std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
@@ -678,9 +679,9 @@ static std::vector<char> readFile(const std::string& filename)
 	file.close();
 
 	return buffer;
-}
+}*/
 
-VkShaderModule vkRenderer::createShaderModule(const std::vector<char>& shaderCode)
+/*VkShaderModule vkRenderer::createShaderModule(const std::vector<char>& shaderCode)
 {
 	VkShaderModuleCreateInfo createInfo = {};
 
@@ -697,9 +698,9 @@ VkShaderModule vkRenderer::createShaderModule(const std::vector<char>& shaderCod
 
 	return shaderModule;
 
-}
+}*/
 
-void vkRenderer::CreateGraphicsPipeline()
+/*void vkRenderer::CreateGraphicsPipeline()
 {
 
 	//=============================================
@@ -883,236 +884,237 @@ void vkRenderer::CreateGraphicsPipeline()
 	vkDestroyShaderModule(m_device, vertexShaderModule, nullptr);
 	vkDestroyShaderModule(m_device, pixelShaderModule, nullptr);
 
-}
+}*/
 
 //===================================================================
 //Creating Render Pass
 //TODO :Can be made generic
 //===================================================================
 
-void vkRenderer::CreateRenderPass()
-{
-	VkAttachmentDescription colorAttachment = {};
-	
-	colorAttachment.format = m_swapChainFormat;
-	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;//TODO : Programmable
-
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-
-	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-
-	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass shud start with
-	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;		//How render pass final image shud translate at end of render pass
-
-
-	//Each renderpass can have multiple sub-passes
-	//which will help or can be used for the Post-Processing,...etc
-
-	VkAttachmentReference colorAttachmentRef = {};
-
-	colorAttachmentRef.attachment = 0;
-	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-	VkSubpassDescription subpassInfo = {};
-	
-	subpassInfo.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpassInfo.colorAttachmentCount = 1;					//layout(location = 0) out vec4 outColor this is where it will be referenced
-	subpassInfo.pColorAttachments = &colorAttachmentRef;
-
-	VkSubpassDependency dependency = {};
-
-	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	dependency.dstSubpass = 0;
-	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependency.srcAccessMask = 0;
-	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-
-		
-	//Render Pass Info
-
-	VkRenderPassCreateInfo renderpassInfo = {};
-
-	renderpassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderpassInfo.attachmentCount = 1;
-	renderpassInfo.pAttachments = &colorAttachment;
-	renderpassInfo.subpassCount = 1;
-	renderpassInfo.pSubpasses = &subpassInfo;
-	renderpassInfo.dependencyCount = 1;
-	renderpassInfo.pDependencies = &dependency;
-
-	if (vkCreateRenderPass(m_device, &renderpassInfo, nullptr, &m_renderPass) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to create Render Pass");
-	}
-
-
-}
+//void vkRenderer::CreateRenderPass()
+//{
+//	VkAttachmentDescription colorAttachment = {};
+//	
+//	colorAttachment.format = m_swapChainFormat;
+//	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;//TODO : Programmable
+//
+//	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+//	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+//
+//	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+//	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+//
+//	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass shud start with
+//	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;		//How render pass final image shud translate at end of render pass
+//
+//
+//	//Each renderpass can have multiple sub-passes
+//	//which will help or can be used for the Post-Processing,...etc
+//
+//	VkAttachmentReference colorAttachmentRef = {};
+//
+//	colorAttachmentRef.attachment = 0;
+//	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+//
+//	VkSubpassDescription subpassInfo = {};
+//	
+//	subpassInfo.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+//	subpassInfo.colorAttachmentCount = 1;					//layout(location = 0) out vec4 outColor this is where it will be referenced
+//	subpassInfo.pColorAttachments = &colorAttachmentRef;
+//
+//	VkSubpassDependency dependency = {};
+//
+//	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+//	dependency.dstSubpass = 0;
+//	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+//	dependency.srcAccessMask = 0;
+//	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+//	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+//
+//
+//		
+//	//Render Pass Info
+//
+//	VkRenderPassCreateInfo renderpassInfo = {};
+//
+//	renderpassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+//	renderpassInfo.attachmentCount = 1;
+//	renderpassInfo.pAttachments = &colorAttachment;
+//	renderpassInfo.subpassCount = 1;
+//	renderpassInfo.pSubpasses = &subpassInfo;
+//	renderpassInfo.dependencyCount = 1;
+//	renderpassInfo.pDependencies = &dependency;
+//
+//	if (vkCreateRenderPass(m_device, &renderpassInfo, nullptr, &m_renderPass) != VK_SUCCESS)
+//	{
+//		throw std::runtime_error("Unable to create Render Pass");
+//	}
+//
+//
+//}
 
 //===================================================================
 //Creating Frame Buffers
 //===================================================================
-void vkRenderer::CreateFrameBuffers()
-{
-	m_swapChainFrameBuffer.resize(m_SwapChainImageViews.size());
 
-	for (uint32_t i = 0; i < m_SwapChainImageViews.size(); ++i)
-	{
-		VkImageView attachments[] = { m_SwapChainImageViews[i] };
-
-		VkFramebufferCreateInfo fbcreateInfo = {};
-
-		fbcreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		fbcreateInfo.renderPass = m_renderPass;
-		fbcreateInfo.attachmentCount = 1;
-		fbcreateInfo.pAttachments = attachments;
-		fbcreateInfo.width = m_swapChainExtent.width;
-		fbcreateInfo.height = m_swapChainExtent.height;
-		fbcreateInfo.layers = 1;
-
-		if (vkCreateFramebuffer(m_device, &fbcreateInfo, nullptr, &m_swapChainFrameBuffer[i]) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Unable to create Frame Buffer");
-		}
-	}
-
-}
-
+//void vkRenderer::CreateFrameBuffers()
+//{
+//	m_swapChainFrameBuffer.resize(m_SwapChainImageViews.size());
+//
+//	for (uint32_t i = 0; i < m_SwapChainImageViews.size(); ++i)
+//	{
+//		VkImageView attachments[] = { m_SwapChainImageViews[i] };
+//
+//		VkFramebufferCreateInfo fbcreateInfo = {};
+//
+//		fbcreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+//		fbcreateInfo.renderPass = m_renderPass;
+//		fbcreateInfo.attachmentCount = 1;
+//		fbcreateInfo.pAttachments = attachments;
+//		fbcreateInfo.width = m_swapChainExtent.width;
+//		fbcreateInfo.height = m_swapChainExtent.height;
+//		fbcreateInfo.layers = 1;
+//
+//		if (vkCreateFramebuffer(m_device, &fbcreateInfo, nullptr, &m_swapChainFrameBuffer[i]) != VK_SUCCESS)
+//		{
+//			throw std::runtime_error("Unable to create Frame Buffer");
+//		}
+//	}
+//
+//}
+//
 
 //===================================================================
 //Command Pool
 //===================================================================
 
-void vkRenderer::CreateCommandPool()
-{
-	QueueFamilyIndices queuefamilyindeces = findQueueFamilies(m_physicalDevice);
-
-	VkCommandPoolCreateInfo createInfo = {};
-
-	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	createInfo.queueFamilyIndex = queuefamilyindeces.graphicsFamily.value();
-	createInfo.flags = 0;
-
-	if (vkCreateCommandPool(m_device, &createInfo, nullptr, &m_CommandPool) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to create Command Pool");
-	}
-}
+//void vkRenderer::CreateCommandPool()
+//{
+//	QueueFamilyIndices queuefamilyindeces = findQueueFamilies(m_physicalDevice);
+//
+//	VkCommandPoolCreateInfo createInfo = {};
+//
+//	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+//	createInfo.queueFamilyIndex = queuefamilyindeces.graphicsFamily.value();
+//	createInfo.flags = 0;
+//
+//	if (vkCreateCommandPool(m_device, &createInfo, nullptr, &m_CommandPool) != VK_SUCCESS)
+//	{
+//		throw std::runtime_error("Unable to create Command Pool");
+//	}
+//}
 
 //===================================================================
 //Command Buffers
 //===================================================================
 
-void vkRenderer::CreateCommandBuffers()
-{
-	m_commandBuffers.resize(m_swapChainFrameBuffer.size());
-
-	VkCommandBufferAllocateInfo createInfo = {};
-
-	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	createInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	createInfo.commandPool = m_CommandPool;
-	createInfo.commandBufferCount = (uint32_t)m_commandBuffers.size();
-
-
-	if (vkAllocateCommandBuffers(m_device, &createInfo,m_commandBuffers.data()) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to create Command Buffers");
-	}
-
-	//Record Command Buffer data
-	for (size_t i = 0; i < m_commandBuffers.size(); ++i)
-	{
-		VkCommandBufferBeginInfo beginInfo = {};
-
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-		beginInfo.pInheritanceInfo = nullptr;
-
-		if (vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Unable to begin recording Command Buffer");
-		}
-
-		VkRenderPassBeginInfo renderpassBeginInfo = {};
-		
-		renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderpassBeginInfo.renderPass = m_renderPass;
-		renderpassBeginInfo.framebuffer = m_swapChainFrameBuffer[i];
-		renderpassBeginInfo.renderArea.offset = { 0,0 };
-		renderpassBeginInfo.renderArea.extent = m_swapChainExtent;
-
-
-		//Clear Color//
-		VkClearValue clearColor = { 0.0,0.0,0.0,1.0 };
-		renderpassBeginInfo.clearValueCount = 1;
-		renderpassBeginInfo.pClearValues = &clearColor;
-		
-
-		vkCmdBeginRenderPass(m_commandBuffers[i], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-			vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
-
-			VkBuffer vertexBuffers[] = { m_TriangleVertexBuffer };
-			VkDeviceSize offset = { 0 };
-			vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_TriangleVertexBuffer, &offset);
-
-			vkCmdBindIndexBuffer(m_commandBuffers[i], m_RectangleIndexBuffer, 0, VK_INDEX_TYPE_UINT16);
-
-			//vkCmdDraw(m_commandBuffers[i], static_cast<uint32_t>(Triangle_vertices.size()), 1, 0, 0);
-
-			vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
-
-			vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(Rectangle_Indices.size()), 1, 0, 0, 0);
-
-		vkCmdEndRenderPass(m_commandBuffers[i]);
-
-		if (vkEndCommandBuffer(m_commandBuffers[i]) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Failed to record Command Buffer");
-		}
-	
-	}
-}
-
+//void vkRenderer::CreateCommandBuffers()
+//{
+//	m_commandBuffers.resize(m_swapChainFrameBuffer.size());
+//
+//	VkCommandBufferAllocateInfo createInfo = {};
+//
+//	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+//	createInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+//	createInfo.commandPool = m_CommandPool;
+//	createInfo.commandBufferCount = (uint32_t)m_commandBuffers.size();
+//
+//
+//	if (vkAllocateCommandBuffers(m_device, &createInfo,m_commandBuffers.data()) != VK_SUCCESS)
+//	{
+//		throw std::runtime_error("Unable to create Command Buffers");
+//	}
+//
+//	//Record Command Buffer data
+//	for (size_t i = 0; i < m_commandBuffers.size(); ++i)
+//	{
+//		VkCommandBufferBeginInfo beginInfo = {};
+//
+//		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+//		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+//		beginInfo.pInheritanceInfo = nullptr;
+//
+//		if (vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo) != VK_SUCCESS)
+//		{
+//			throw std::runtime_error("Unable to begin recording Command Buffer");
+//		}
+//
+//		VkRenderPassBeginInfo renderpassBeginInfo = {};
+//		
+//		renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+//		renderpassBeginInfo.renderPass = m_renderPass;
+//		renderpassBeginInfo.framebuffer = m_swapChainFrameBuffer[i];
+//		renderpassBeginInfo.renderArea.offset = { 0,0 };
+//		renderpassBeginInfo.renderArea.extent = m_swapChainExtent;
+//
+//
+//		//Clear Color//
+//		VkClearValue clearColor = { 0.0,0.0,0.0,1.0 };
+//		renderpassBeginInfo.clearValueCount = 1;
+//		renderpassBeginInfo.pClearValues = &clearColor;
+//		
+//
+//		vkCmdBeginRenderPass(m_commandBuffers[i], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+//
+//			vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
+//
+//			VkBuffer vertexBuffers[] = { m_TriangleVertexBuffer };
+//			VkDeviceSize offset = { 0 };
+//			vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_TriangleVertexBuffer, &offset);
+//
+//			vkCmdBindIndexBuffer(m_commandBuffers[i], m_RectangleIndexBuffer, 0, VK_INDEX_TYPE_UINT16);
+//
+//			//vkCmdDraw(m_commandBuffers[i], static_cast<uint32_t>(Triangle_vertices.size()), 1, 0, 0);
+//
+//			vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
+//
+//			vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(Rectangle_Indices.size()), 1, 0, 0, 0);
+//
+//		vkCmdEndRenderPass(m_commandBuffers[i]);
+//
+//		if (vkEndCommandBuffer(m_commandBuffers[i]) != VK_SUCCESS)
+//		{
+//			throw std::runtime_error("Failed to record Command Buffer");
+//		}
+//	
+//	}
+//}
+//
 
 //===================================================================
 // Semaphore
 //===================================================================
 
-void vkRenderer::CreateSemaphoresandFences()
-{
-
-	m_imageAvailableSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
-	m_renderFinishedSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
-	m_inflightFences.resize(MAX_FRAMES_IN_FLIGHT);
-
-
-	VkSemaphoreCreateInfo createSemaphoreInfo = {};
-
-	createSemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-	VkFenceCreateInfo createFenceInfo = {};
-
-	createFenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-	createFenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
-	{
-		if (vkCreateSemaphore(m_device, &createSemaphoreInfo, nullptr, &m_imageAvailableSemaphore[i]) != VK_SUCCESS ||
-			vkCreateSemaphore(m_device, &createSemaphoreInfo, nullptr, &m_renderFinishedSemaphore[i]) != VK_SUCCESS ||
-			vkCreateFence(m_device, &createFenceInfo, nullptr, &m_inflightFences[i]) != VK_SUCCESS )
-		{
-			throw std::runtime_error("Failed to create Semaphore");
-		}
-	}
-
-	
-
-}
+//void vkRenderer::CreateSemaphoresandFences()
+//{
+//
+//	m_imageAvailableSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
+//	m_renderFinishedSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
+//	m_inflightFences.resize(MAX_FRAMES_IN_FLIGHT);
+//
+//
+//	VkSemaphoreCreateInfo createSemaphoreInfo = {};
+//
+//	createSemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+//
+//	VkFenceCreateInfo createFenceInfo = {};
+//
+//	createFenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+//	createFenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+//
+//	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+//	{
+//		if (vkCreateSemaphore(m_device, &createSemaphoreInfo, nullptr, &m_imageAvailableSemaphore[i]) != VK_SUCCESS ||
+//			vkCreateSemaphore(m_device, &createSemaphoreInfo, nullptr, &m_renderFinishedSemaphore[i]) != VK_SUCCESS ||
+//			vkCreateFence(m_device, &createFenceInfo, nullptr, &m_inflightFences[i]) != VK_SUCCESS )
+//		{
+//			throw std::runtime_error("Failed to create Semaphore");
+//		}
+//	}
+//
+//	
+//
+//}
 
 
 //===================================================================
@@ -1120,44 +1122,45 @@ void vkRenderer::CreateSemaphoresandFences()
 //===================================================================
 
 //TODO: Fix this
-void vkRenderer::ReCreateSwapChain()
-{
 
-	int width = 0, height = 0;
-	while (width == 0 || height == 0)
-	{
-		glfwGetFramebufferSize(m_window, &width, &height);
-		glfwWaitEvents();
-	}
-
-
-
-	vkDeviceWaitIdle(m_device);
-
-	CleanUpSwapChain();
-
-	CreateSwapChain();
-
-	CreateImageView();
-
-	CreateRenderPass();
-
-	CreateGraphicsPipeline(); 
-
-	CreateFrameBuffers();
-	
-	CreateUniformBuffer();
-
-	CreateCommandBuffers();
-
-	//CreateDescriptorPool();
-	//
-	//CreateDesciptorSets();
-
-	CreateCommandPool();
-	
-
-}
+//void vkRenderer::ReCreateSwapChain()
+//{
+//
+//	int width = 0, height = 0;
+//	while (width == 0 || height == 0)
+//	{
+//		glfwGetFramebufferSize(m_window, &width, &height);
+//		glfwWaitEvents();
+//	}
+//
+//
+//
+//	vkDeviceWaitIdle(m_device);
+//
+//	CleanUpSwapChain();
+//
+//	CreateSwapChain();
+//
+//	CreateImageView();
+//
+//	CreateRenderPass();
+//
+//	CreateGraphicsPipeline(); 
+//
+//	CreateFrameBuffers();
+//	
+//	CreateUniformBuffer();
+//
+//	CreateCommandBuffers();
+//
+//	//CreateDescriptorPool();
+//	//
+//	//CreateDesciptorSets();
+//
+//	CreateCommandPool();
+//	
+//
+//}
 
 //===================================================================
 //Creaate Vertex Buffer
@@ -1249,50 +1252,50 @@ void vkRenderer::ReCreateSwapChain()
 //Create & Update Uniform Buffer[Generalize this]
 //=====================================================================================================================
 
-void vkRenderer::CreateUniformBuffer()
-{
-	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+//void vkRenderer::CreateUniformBuffer()
+//{
+//	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+//
+//	m_uniformBuffers.resize(m_SwapChainImages.size());
+//	m_uniformBuffersMemory.resize(m_SwapChainImages.size());
+//
+//	for (int i = 0; i < m_SwapChainImages.size(); ++i)
+//	{
+//		CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uniformBuffers[i],
+//					 m_uniformBuffersMemory[i]);
+//	}
+//
+//
+//}
+// 
 
-	m_uniformBuffers.resize(m_SwapChainImages.size());
-	m_uniformBuffersMemory.resize(m_SwapChainImages.size());
-
-	for (int i = 0; i < m_SwapChainImages.size(); ++i)
-	{
-		CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uniformBuffers[i],
-					 m_uniformBuffersMemory[i]);
-	}
-
-
-}
- 
-
-void vkRenderer::UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime)
-{
-	UniformBufferObject mvp_UBO = {};
-
-	//Model Matrix
-	mvp_UBO.ModelMatrix = glm::rotate(glm::mat4(1.0f), a_deltaTime * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-
-
-	//View Matrix
-	mvp_UBO.ViewMatrix = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-
-
-	//Projection Matrix
-	mvp_UBO.ProjectionMatrix = glm::perspective(glm::radians(45.0f), m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 10.0f);
-	mvp_UBO.ProjectionMatrix[1][1] *= -1;
-
-
-	//Copy the data
-
-	void* data;
-
-	vkMapMemory(m_device, m_uniformBuffersMemory[a_imageIndex], 0, sizeof(mvp_UBO), 0, &data);
-		memcpy(data, &mvp_UBO, sizeof(mvp_UBO));
-	vkUnmapMemory(m_device, m_uniformBuffersMemory[a_imageIndex]);
-
-
-}
+//void vkRenderer::UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime)
+//{
+//	UniformBufferObject mvp_UBO = {};
+//
+//	//Model Matrix
+//	mvp_UBO.ModelMatrix = glm::rotate(glm::mat4(1.0f), a_deltaTime * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+//
+//
+//	//View Matrix
+//	mvp_UBO.ViewMatrix = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+//
+//
+//	//Projection Matrix
+//	mvp_UBO.ProjectionMatrix = glm::perspective(glm::radians(45.0f), m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 10.0f);
+//	mvp_UBO.ProjectionMatrix[1][1] *= -1;
+//
+//
+//	//Copy the data
+//
+//	void* data;
+//
+//	vkMapMemory(m_device, m_uniformBuffersMemory[a_imageIndex], 0, sizeof(mvp_UBO), 0, &data);
+//		memcpy(data, &mvp_UBO, sizeof(mvp_UBO));
+//	vkUnmapMemory(m_device, m_uniformBuffersMemory[a_imageIndex]);
+//
+//
+//}
 
 
 
@@ -1463,20 +1466,20 @@ void vkRenderer::UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime)
 
 //bool vkRenderer::InitVulkan()
 //{
-//	if (!CreateInstance())
+//	if (!CreateInstance())d
 //		return false;
 //
-//	CreateSurface();
+//	CreateSurface();D
 //
-//	setupDebugMessenger();
+//	setupDebugMessenger();D
 //
-//	pickPhysicalDevice();
+//	pickPhysicalDevice();D
 //	 
-//	CreateLogicalDevice();
+//	CreateLogicalDevice();D
 //
-//	CreateSwapChain();
+//	CreateSwapChain();D
 //
-//	CreateImageView();
+//	CreateImageView();D
 //
 //	CreateRenderPass();
 //
@@ -1551,11 +1554,11 @@ void vkRenderer::Init()
 
 void vkRenderer::SetUpSwapChain()
 {
-	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice a_device);
-	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector< VkSurfaceFormatKHR > & availableFormats);
-	VkPresentModeKHR chooseSwapPresentMode(const std::vector< VkPresentModeKHR > & availablePresentModes);
-	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR & a_capabilities);
-	void CreateSwapChain();
+	//querySwapChainSupport(m_physicalDevice);
+	//chooseSwapSurfaceFormat(const std::vector< VkSurfaceFormatKHR > & availableFormats);
+	//chooseSwapPresentMode(const std::vector< VkPresentModeKHR > & availablePresentModes);
+	//chooseSwapExtent(const VkSurfaceCapabilitiesKHR & a_capabilities);
+	CreateSwapChain();
 }
 
 

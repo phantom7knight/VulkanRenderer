@@ -147,7 +147,7 @@ public:
 	void CreateGraphicsPipeline();
 	VkShaderModule createShaderModule(const std::vector<char>& shaderCode);
 
-	void CreateRenderPass();
+	/*void CreateRenderPass();
 
 	void CreateFrameBuffers();
 
@@ -155,15 +155,15 @@ public:
 
 	void CreateCommandBuffers();
 
-	void CreateSemaphoresandFences();
+	void CreateSemaphoresandFences();*/
 
-	void ReCreateSwapChain();
+	//void ReCreateSwapChain();
 
 	void CleanUpSwapChain();
 
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
-	void CreateVertexBuffer();
+	//void CreateVertexBuffer();
 
 	uint32_t findMemoryType(uint32_t typeFiler, VkMemoryPropertyFlags properties);
 
@@ -171,13 +171,13 @@ public:
 
 	void CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDeviceSize a_size);
 
-	void CreateIndexBuffer();
+	//void CreateIndexBuffer();
 
-	void CreateDescriptorSetLayout();
-
-	void CreateUniformBuffer();
-
-	void UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime);
+	//void CreateDescriptorSetLayout();
+	//
+	//void CreateUniformBuffer();
+	//
+	//void UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime);
 
 	//void CreateDescriptorPool();
 	//
