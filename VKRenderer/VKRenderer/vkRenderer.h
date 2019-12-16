@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include "stdafx.h"
 
 struct QueueFamilyIndices
 {
@@ -29,25 +29,25 @@ class vkRenderer
 public:
 
 	//Variables
-	bool								m_frameBufferResized = false;
+	bool m_frameBufferResized = false;
 
 
 	//Functions
 	vkRenderer();
-	~vkRenderer();
+	virtual ~vkRenderer();
 
 
-	void Init();
+	//void Init();
 	bool InitGLFW();
-	bool InitVulkan();
+	//bool InitVulkan();
 
-	void RenderLoop(float deltaTime);
-	void Update(float deltaTime);
-	void Draw(float deltaTime);
+	//void RenderLoop(float deltaTime);
+	//void Update(float deltaTime);
+	//void Draw(float deltaTime);
 
-	void Destroy();
+	//void Destroy();
 
-	static vkRenderer* getInstance();
+	//static vkRenderer* getInstance();
  
 	GLFWwindow* getWindow()
 	{
@@ -67,9 +67,9 @@ public:
 	}
 
 	
-private:
+public:
 
-	static vkRenderer*					m_instance;
+	//static vkRenderer*					m_instance;
 	GLFWwindow*							m_window;
 
 
@@ -89,7 +89,7 @@ private:
 	VkExtent2D							m_swapChainExtent;
 
 	std::vector<VkImageView>			m_SwapChainImageViews;
-
+	
 	VkRenderPass						m_renderPass;//TODO : This can be modified later
 	VkPipelineLayout					m_pipelineLayout;//TODO : This has to be per Shader/Obj [Look into it]
 	VkPipeline							m_graphicsPipeline;
@@ -179,9 +179,29 @@ private:
 
 	void UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime);
 
-	void CreateDescriptorPool();
+	//void CreateDescriptorPool();
+	//
+	//void CreateDesciptorSets();
 
-	void CreateDesciptorSets();
 
+	
+
+
+	void SetUpSwapChain();
+	
+
+	
+	void Init();
+
+	void InitializeVulkan();
+	
+	//Pure Virtual so that the inherited class can override.
+	virtual void PrepareApp();
+	
+	//Pure Virtual
+	virtual void Draw(float deltaTime) = 0;
+	virtual void Update(float deltaTime) = 0;
+	
+	virtual void Destroy();
 };
 

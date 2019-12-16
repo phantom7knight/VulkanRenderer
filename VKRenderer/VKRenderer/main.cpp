@@ -1,25 +1,26 @@
 #include "stdafx.h"
 
-#include "vkTimer.h"
+//#include "vkTimer.h"
 #include "vkRenderer.h"
+#include "../Applications/Triangle/Triangle.h"
 
 
 void Initialize()
 {
 	//Renderer Init
-	vkRenderer::getInstance()->Init();
+	//vkRenderer::getInstance()->Init();
 }
 
 
 
 
-void MainLoop()
+void MainLoop(vkRenderer* rendererExample)
 {
 	
-	while (!glfwWindowShouldClose(vkRenderer::getInstance()->getWindow()))
+	while (!glfwWindowShouldClose(rendererExample->getWindow()))
 	{
 		//Frame Rate Manager Init
-		float deltaTime = vkTimer::getInstance()->FrameStart(true) / 1000.0f;
+		float deltaTime = 0.0f;// vkTimer::getInstance()->FrameStart(true) / 1000.0f;
 
 		if (deltaTime > 0.15f)
 		{
@@ -30,41 +31,53 @@ void MainLoop()
 
 
 		//Renderer Update
-		vkRenderer::getInstance()->RenderLoop(deltaTime);
+		rendererExample->Update(deltaTime);
+		
+		rendererExample->Draw(deltaTime);
+
+
 		
 
 		//Add other updates here
 
 
-
-
 	}
 
-	vkDeviceWaitIdle(vkRenderer::getInstance()->getDevice());
 
-
-
+	vkDeviceWaitIdle(rendererExample->getDevice());
 
 }
 
 
-void Destroy()
+void Destroy(vkRenderer * rendererExample)
 {
 	//Renderer destroy
-	vkRenderer::getInstance()->Destroy();
+	rendererExample->Destroy();
+	
 }
 
 
 int main() 
 {
 
-	Initialize();
+	
+	//Init a base class
+	vkRenderer* rendererExample = new Triangle();
 
-	MainLoop();
+	//Initalize Vulkan and GLFW for window.
+	rendererExample->Init(); 
 
-	Destroy();
+	rendererExample->PrepareApp();
 
+	MainLoop(rendererExample);
+	
+	Destroy(rendererExample);
+
+	//clean up the pointer
+	delete rendererExample;
+
+#ifdef _DEBUG
 	system("pause");
-
+#endif
 	return 0;
 }
