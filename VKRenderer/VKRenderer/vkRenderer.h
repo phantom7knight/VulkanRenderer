@@ -145,19 +145,8 @@ public:
 	void CreateImageView();
 
 	void CreateGraphicsPipeline();
+
 	VkShaderModule createShaderModule(const std::vector<char>& shaderCode);
-
-	/*void CreateRenderPass();
-
-	void CreateFrameBuffers();
-
-	void CreateCommandPool();
-
-	void CreateCommandBuffers();
-
-	void CreateSemaphoresandFences();*/
-
-	//void ReCreateSwapChain();
 
 	void CleanUpSwapChain();
 
@@ -171,25 +160,8 @@ public:
 
 	void CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDeviceSize a_size);
 
-	//void CreateIndexBuffer();
-
-	//void CreateDescriptorSetLayout();
-	//
-	//void CreateUniformBuffer();
-	//
-	//void UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime);
-
-	//void CreateDescriptorPool();
-	//
-	//void CreateDesciptorSets();
-
-
-	
-
 
 	void SetUpSwapChain();
-	
-
 	
 	void Init();
 

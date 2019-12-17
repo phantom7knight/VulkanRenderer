@@ -39,6 +39,10 @@ private:
 
 	void ReCreateSwapChain();
 
+
+
+	//variables
+
 public:
 
 	

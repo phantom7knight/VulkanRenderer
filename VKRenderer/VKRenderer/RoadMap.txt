@@ -8,7 +8,7 @@
 Current Pipeline plans
 ----------------------------------------------
 
-1.	Implement Uniform Buffers
+1.	Implement Uniform Buffers -Done
 2.	Add Texture through Resource Loader
 3.	Generate Shaders through Resource Loader and integrate generation of ByteCode.
 4.	Make Model Loader.
@@ -22,6 +22,7 @@ Current Pipeline plans
 12. Reading Framebuffers getting familiar with it[See Sascha Willems's post]
 12. Bump Mapping
 13. Shadows Basic
+14. Implement Pipeline cache
 
 
 
@@ -40,9 +41,9 @@ Tentative Project Plans
 3.	Deferred Shading
 4.	FXAA or TXAA
 5.	Shadows Advanced
-6.	Implement Compute Shaders		[Implement something based on Sascha Willems]
-7.	Implement Geometry Shader		[ ""			""			""     ""   	]
-8.	Implement Tesselation Shader	[ ""			""			""     ""   	]
+6.	Implement Compute Shaders		[Implement some simulation	]
+7.	Implement Geometry Shader		[ ""		""		""		]
+8.	Implement Tesselation Shader	[ ""		""		""		]
 9.	Reflection
 10. Offscreen Rendering[Look at Sascha Willems example]
 11. Culling Techniques

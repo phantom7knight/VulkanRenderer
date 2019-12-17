@@ -96,18 +96,6 @@ struct UniformBufferObject
 //We add Swap Chain Extenstion to the Current Device
 const std::vector<const char*> deviceExtenstion = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-////Static variable declaration
-//vkRenderer* vkRenderer::m_instance = nullptr;
-//
-//vkRenderer * vkRenderer::getInstance()
-//{
-//	if (m_instance == nullptr)
-//	{
-//		m_instance = new vkRenderer();
-//	}
-//
-//	return m_instance;
-//}
 
 VkInstance vkRenderer::getVulkanInstance()
 {

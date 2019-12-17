@@ -572,44 +572,46 @@ void Triangle::CreateCommandBuffers()
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 		beginInfo.pInheritanceInfo = nullptr;
 
+		//Start Recording
 		if (vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo) != VK_SUCCESS)
 		{
 			throw std::runtime_error("Unable to begin recording Command Buffer");
 		}
 
-		VkRenderPassBeginInfo renderpassBeginInfo = {};
+			VkRenderPassBeginInfo renderpassBeginInfo = {};
 
-		renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderpassBeginInfo.renderPass = m_renderPass;
-		renderpassBeginInfo.framebuffer = m_swapChainFrameBuffer[i];
-		renderpassBeginInfo.renderArea.offset = { 0,0 };
-		renderpassBeginInfo.renderArea.extent = m_swapChainExtent;
-
-
-		//Clear Color//
-		VkClearValue clearColor = { 0.0,0.0,0.0,1.0 };
-		renderpassBeginInfo.clearValueCount = 1;
-		renderpassBeginInfo.pClearValues = &clearColor;
+			renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+			renderpassBeginInfo.renderPass = m_renderPass;
+			renderpassBeginInfo.framebuffer = m_swapChainFrameBuffer[i];
+			renderpassBeginInfo.renderArea.offset = { 0,0 };
+			renderpassBeginInfo.renderArea.extent = m_swapChainExtent;
 
 
-		vkCmdBeginRenderPass(m_commandBuffers[i], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+			//Clear Color//
+			VkClearValue clearColor = { 0.0,0.0,0.0,1.0 };
+			renderpassBeginInfo.clearValueCount = 1;
+			renderpassBeginInfo.pClearValues = &clearColor;
 
-		vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
 
-		VkBuffer vertexBuffers[] = { m_TriangleVertexBuffer };
-		VkDeviceSize offset = { 0 };
-		vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_TriangleVertexBuffer, &offset);
+			vkCmdBeginRenderPass(m_commandBuffers[i], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		vkCmdBindIndexBuffer(m_commandBuffers[i], m_RectangleIndexBuffer, 0, VK_INDEX_TYPE_UINT16);
+				vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
 
-		//vkCmdDraw(m_commandBuffers[i], static_cast<uint32_t>(Triangle_vertices.size()), 1, 0, 0);
+				VkBuffer vertexBuffers[] = { m_TriangleVertexBuffer };
+				VkDeviceSize offset = { 0 };
+				vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_TriangleVertexBuffer, &offset);
 
-		vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
+				vkCmdBindIndexBuffer(m_commandBuffers[i], m_RectangleIndexBuffer, 0, VK_INDEX_TYPE_UINT16);
 
-		vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(Rectangle_Indices.size()), 1, 0, 0, 0);
+				//vkCmdDraw(m_commandBuffers[i], static_cast<uint32_t>(Triangle_vertices.size()), 1, 0, 0);
 
-		vkCmdEndRenderPass(m_commandBuffers[i]);
+				vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
 
+				vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(Rectangle_Indices.size()), 1, 0, 0, 0);
+
+			vkCmdEndRenderPass(m_commandBuffers[i]);
+
+		//End Recording
 		if (vkEndCommandBuffer(m_commandBuffers[i]) != VK_SUCCESS)
 		{
 			throw std::runtime_error("Failed to record Command Buffer");
@@ -922,9 +924,9 @@ void Triangle::ReCreateSwapChain()
 
 	CreateCommandBuffers();
 
-	//CreateDescriptorPool();
-	//
-	//CreateDesciptorSets();
+	CreateDescriptorPool();
+	
+	CreateDesciptorSets();
 
 	CreateCommandPool();
 
