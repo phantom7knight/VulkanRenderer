@@ -31,45 +31,6 @@ public:
 	//Variables
 	bool m_frameBufferResized = false;
 
-
-	//Functions
-	vkRenderer();
-	virtual ~vkRenderer();
-
-
-	//void Init();
-	bool InitGLFW();
-	//bool InitVulkan();
-
-	//void RenderLoop(float deltaTime);
-	//void Update(float deltaTime);
-	//void Draw(float deltaTime);
-
-	//void Destroy();
-
-	//static vkRenderer* getInstance();
- 
-	GLFWwindow* getWindow()
-	{
-		return m_window;
-	}
-	const VkDevice& getDevice()
-	{
-		return m_device;
-	}
-
-	//Vulkan Related Functions
-	VkInstance getVulkanInstance();
-	VkDebugUtilsMessengerEXT getDebugMessenger();
-	VkQueue getGraphicsQueue()
-	{
-		return m_graphicsQueue;
-	}
-
-	
-public:
-
-	//static vkRenderer*					m_instance;
 	GLFWwindow*							m_window;
 
 
@@ -125,6 +86,28 @@ public:
 
 	std::vector<VkDescriptorSet>		m_DescriptorSets;
 
+	//Functions
+	vkRenderer();
+	virtual ~vkRenderer();
+	
+	GLFWwindow* getWindow()
+	{
+		return m_window;
+	}
+	const VkDevice& getDevice()
+	{
+		return m_device;
+	}
+
+	//Vulkan Related Functions
+	VkInstance getVulkanInstance();
+	VkDebugUtilsMessengerEXT getDebugMessenger();
+	VkQueue getGraphicsQueue()
+	{
+		return m_graphicsQueue;
+	}
+
+
 
 	//Vulkan Related Functions
 	bool CreateInstance();
@@ -144,8 +127,6 @@ public:
 
 	void CreateImageView();
 
-	void CreateGraphicsPipeline();
-
 	VkShaderModule createShaderModule(const std::vector<char>& shaderCode);
 
 	void CleanUpSwapChain();
@@ -161,9 +142,12 @@ public:
 	void CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDeviceSize a_size);
 
 
-	void SetUpSwapChain();
 	
 	void Init();
+
+	void SetUpSwapChain();
+
+	bool InitGLFW();
 
 	void InitializeVulkan();
 	
@@ -175,5 +159,6 @@ public:
 	virtual void Update(float deltaTime) = 0;
 	
 	virtual void Destroy();
+
 };
 

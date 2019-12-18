@@ -892,7 +892,6 @@ void Triangle::CreateDesciptorSets()
 //Recreating Swap Chains
 //===================================================================
 
-//TODO: Fix this
 
 void Triangle::ReCreateSwapChain()
 {
@@ -968,6 +967,8 @@ void Triangle::PrepareApp()
 
 void Triangle::Update(float deltaTime)
 {
+
+
 	return;
 }
 
