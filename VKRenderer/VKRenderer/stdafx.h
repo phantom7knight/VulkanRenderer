@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <fstream>
 #include <array>
+#include <direct.h>
 
 #define GLFW_INCLUDE_VULKAN
 #include "../Dependencies/GLFW/include/GLFW/glfw3.h"
@@ -35,3 +36,4 @@
 
 //File Includes
 #include "Constans.hpp"
+#include "ResourceLoader.h"

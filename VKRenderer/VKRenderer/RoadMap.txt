@@ -10,7 +10,7 @@ Current Pipeline plans
 
 1.	Implement Uniform Buffers -Done
 2.	Add Texture through Resource Loader
-3.	Generate Shaders through Resource Loader and integrate generation of ByteCode.
+3.	Generate Shaders through Resource Loader and integrate generation of ByteCode. - Done
 4.	Make Model Loader.
 5.	Generate Scene Heirarchy.
 6.	Generalize Graphics/Compute Pipeline addition to the Command Buffers

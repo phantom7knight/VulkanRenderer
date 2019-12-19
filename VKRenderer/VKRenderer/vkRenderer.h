@@ -31,6 +31,8 @@ public:
 	//Variables
 	bool m_frameBufferResized = false;
 
+	ResourceLoader rsrcLdr;
+
 	GLFWwindow*							m_window;
 
 

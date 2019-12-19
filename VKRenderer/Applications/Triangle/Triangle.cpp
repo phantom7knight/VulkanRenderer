@@ -236,12 +236,18 @@ VkShaderModule vkRenderer::createShaderModule(const std::vector<char>& shaderCod
 
 void Triangle::CreateGraphicsPipeline()
 {
-
+	//TODO: Check if the spir-v files already exist if
+	//		they do then don't execute.
 	//=============================================
-	//generate binary code
+	//generate SPIRV binary code
+	std::vector<std::string> ShaderFileNames;
 
-	//Compile Shader
+	ShaderFileNames.resize(2);
 
+	ShaderFileNames[0] = "Basic.vert";
+	ShaderFileNames[1] = "Basic.frag";
+
+	rsrcLdr.GenerateSPIRVShaders(ShaderFileNames);
 
 	//=============================================
 

@@ -5,15 +5,6 @@
 #include "../Applications/Triangle/Triangle.h"
 
 
-void Initialize()
-{
-	//Renderer Init
-	//vkRenderer::getInstance()->Init();
-}
-
-
-
-
 void MainLoop(vkRenderer* rendererExample)
 {
 	
@@ -34,10 +25,7 @@ void MainLoop(vkRenderer* rendererExample)
 		rendererExample->Update(deltaTime);
 		
 		rendererExample->Draw(deltaTime);
-
-
 		
-
 		//Add other updates here
 
 
