@@ -75,7 +75,9 @@ bool IfFileExists(const char* filename)
 
 void ResourceLoader::GenerateBatchFile(std::vector<std::string> fileNames)
 {
-	std::ofstream file{ "CompileShaders.Bat" };
+	std::ofstream file;
+
+	file.open("CompileShaders.Bat");
 	
 	const std::string vulkansdk_name =  getenv("VULKAN_SDK");
 	
@@ -93,7 +95,7 @@ void ResourceLoader::GenerateBatchFile(std::vector<std::string> fileNames)
 	//Generate SPIR-V files for all the mentioned Shader file names
 	for (int i = 0; i < fileNames.size(); ++i)
 	{
-		file << vulkansdk_name_replaced + "/Bin/glslangValidator.exe -V " + "Shaders/" + fileNames[i] + " -o Shaders/BinaryCode/" + fileNames[i] + ".spv\n";
+		file << vulkansdk_name_replaced + "/Bin/glslangValidator.exe -V Shaders/" + fileNames[i] + " -o Shaders/BinaryCode/" + fileNames[i] + ".spv\n";
 	}
 		
 	file.close();
