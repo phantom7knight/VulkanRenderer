@@ -30,7 +30,10 @@ class ResourceLoader
 {
 
 public:
-	ResourceLoader() {}
+	ResourceLoader() : m_bGeneratedSPIRV(false)
+	{
+
+	}
 	~ResourceLoader() {}
 	
 	//Shader Related
@@ -50,4 +53,9 @@ private:
 	bool CreateDirectoryFolder(std::string pathName);
 	bool checkIfCharacterExists(const std::string a_string, char a_toSearch);
 	std::string get_current_dir();
+	bool CheckifSPIRVGenerated(std::vector<std::string> ShaderFileNames);
+
+	//Bool to check if the SPIR-V files have been generated
+	bool m_bGeneratedSPIRV;
+
 };

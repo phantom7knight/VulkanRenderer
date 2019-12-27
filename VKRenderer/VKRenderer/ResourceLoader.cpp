@@ -22,6 +22,81 @@ std::vector<char> ResourceLoader::readFile(const std::string& filename)
 	return buffer;
 }
 
+bool ResourceLoader::checkIfCharacterExists(const std::string a_string, char a_toSearch)
+{
+	if (a_string.find(a_toSearch))
+	{
+		return true;
+	}
+
+	return false;
+}
+
+std::string ReplaceCharacter(const std::string a_str, char a_toReplaceWith, char a_toSearchFor)
+{
+	std::string res = a_str;
+
+
+	for (unsigned i = 0; i < (unsigned)res.length(); ++i)
+	{
+		if (res[i] == a_toSearchFor)
+			res[i] = a_toReplaceWith;
+	}
+
+
+	return res;
+}
+
+
+bool IfFileExists(const char* filename)
+{
+	std::ifstream ifile(filename);
+	return (bool)ifile;
+}
+
+
+FILE* OpenFile(std::string a_FileName,const char* flags)
+{
+	FILE* fp;
+	fopen_s(&fp, a_FileName.c_str(), flags);
+	return fp;
+}
+
+long TellFile(FILE* file)
+{
+	long result = ftell(file);
+	return result;
+}
+
+bool SeekFIle(FILE* fp, long offset, int origin)
+{
+	return fseek(fp, offset, origin) == 0;
+}
+
+unsigned GetFileSize(std::string a_FileName)
+{
+	//Open File and get Handle
+	FILE* fp = OpenFile(a_FileName, "r");
+	if (!fp)
+		return 0;
+
+	long curPos = TellFile(fp);
+	SeekFIle(fp, 0, SEEK_END);
+	size_t length = TellFile(fp);
+	SeekFIle(fp, curPos, SEEK_SET);
+	return (unsigned)length;
+}
+
+std::string ResourceLoader::get_current_dir()
+{
+	char buff[FILENAME_MAX]; //create string buffer to hold path
+	_getcwd(buff, FILENAME_MAX);
+	std::string current_working_dir(buff);
+	return current_working_dir;
+}
+
+#pragma region Shader-Loading
+
 VkShaderModule ResourceLoader::createShaderModule(ShaderDesc desc)
 {
 	VkShaderModuleCreateInfo createInfo = {};
@@ -41,36 +116,30 @@ VkShaderModule ResourceLoader::createShaderModule(ShaderDesc desc)
 
 }
 
-bool ResourceLoader::checkIfCharacterExists(const std::string a_string, char a_toSearch)
+
+
+bool ResourceLoader::CheckifSPIRVGenerated(std::vector<std::string> a_fileNames)
 {
-	if (a_string.find(a_toSearch))
+	//check for the shader bytecode file existence
+	for (int i = 0; i < a_fileNames.size(); ++i)
 	{
-		return true;
+		std::string file_name = "Shaders/BinaryCode/" + a_fileNames[i] + ".spv";
+		//First check if file exists
+		if (!IfFileExists(file_name.c_str()))
+		{
+			std::cout << "ByteCode for the file " + a_fileNames[i] + " doesn't exist \n";;
+			return false;
+		}
+
+		//Secondly check the size of the file
+		if (GetFileSize(file_name) == 0)
+		{
+			std::cout << "Filesize for the file " + a_fileNames[i] + " was 0 \n";
+			return false;
+		}
 	}
 
-	return false;
-}
-
-std::string ReplaceCharacter(const std::string a_str, char a_toReplace, char a_toSearch)
-{
-	std::string res = a_str;
-
-
-	for (unsigned i = 0; i < (unsigned)res.length(); ++i)
-	{
-		if (res[i] == a_toSearch)
-			res[i] = a_toReplace;
-	}
-
-
-	return res;
-}
-
-
-bool IfFileExists(const char* filename)
-{
-	std::ifstream ifile(filename);
-	return (bool)ifile;
+	return true;
 }
 
 void ResourceLoader::GenerateBatchFile(std::vector<std::string> fileNames)
@@ -120,21 +189,11 @@ bool ResourceLoader::CreateDirectoryFolder(std::string a_pathName)
 	return true;
 }
 
-std::string ResourceLoader::get_current_dir() 
-{
-	char buff[FILENAME_MAX]; //create string buffer to hold path
-	_getcwd(buff, FILENAME_MAX);
-	std::string current_working_dir(buff);
-	return current_working_dir;
-}
-
 
 void ResourceLoader::CreateFolderForSPIRV(std::string a_pathName)
 {
 	CreateDirectoryFolder(a_pathName);
 }
-
-
 
 void ResourceLoader::RunShaderBatchFile()
 {
@@ -153,13 +212,34 @@ void ResourceLoader::RunShaderBatchFile()
 
 void ResourceLoader::GenerateSPIRVShaders(std::vector<std::string> ShaderFileNames)
 {
-	//Generate a batch file with the glslvalidator
-	GenerateBatchFile(ShaderFileNames);
+	if (CheckifSPIRVGenerated(ShaderFileNames))
+	{
+		m_bGeneratedSPIRV = true;
+	}
 
-	//Create A directory for the Binary Code to be stored
-	CreateFolderForSPIRV("Shaders/BinaryCode");
+	if (!m_bGeneratedSPIRV)
+	{
+		//Generate a batch file with the glslvalidator
+		GenerateBatchFile(ShaderFileNames);
 
-	//Run the Batch File to generate shader code
-	RunShaderBatchFile();
+		//Create A directory for the Binary Code to be stored
+		CreateFolderForSPIRV("Shaders/BinaryCode");
 
+		//Run the Batch File to generate shader code
+		RunShaderBatchFile();
+	}
+	
 }
+
+
+
+#pragma endregion
+
+
+
+
+#pragma region Model-Loading
+
+
+
+#pragma endregion
