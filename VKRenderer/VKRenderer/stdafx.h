@@ -3,16 +3,19 @@
 //Library Includes
 #include <windows.h>
 #include <iostream>
+#include <fstream>
 #include <stdlib.h>
 #include <memory.h>
 #include <vector>
 #include <cstring>
+#include <string>
+#include <string.h>
 #include <optional>
 #include <map>
 #include <set>
 #include <algorithm>
-#include <fstream>
 #include <array>
+#include <direct.h>
 
 #define GLFW_INCLUDE_VULKAN
 #include "../Dependencies/GLFW/include/GLFW/glfw3.h"
@@ -35,3 +38,4 @@
 
 //File Includes
 #include "Constans.hpp"
+#include "ResourceLoader.h"

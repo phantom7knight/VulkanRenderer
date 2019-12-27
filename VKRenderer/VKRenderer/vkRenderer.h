@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include "stdafx.h"
 
 struct QueueFamilyIndices
 {
@@ -29,47 +29,10 @@ class vkRenderer
 public:
 
 	//Variables
-	bool								m_frameBufferResized = false;
+	bool m_frameBufferResized = false;
 
+	ResourceLoader rsrcLdr;
 
-	//Functions
-	vkRenderer();
-	~vkRenderer();
-
-
-	void Init();
-	bool InitGLFW();
-	bool InitVulkan();
-
-	void RenderLoop(float deltaTime);
-	void Update(float deltaTime);
-	void Draw(float deltaTime);
-
-	void Destroy();
-
-	static vkRenderer* getInstance();
- 
-	GLFWwindow* getWindow()
-	{
-		return m_window;
-	}
-	const VkDevice& getDevice()
-	{
-		return m_device;
-	}
-
-	//Vulkan Related Functions
-	VkInstance getVulkanInstance();
-	VkDebugUtilsMessengerEXT getDebugMessenger();
-	VkQueue getGraphicsQueue()
-	{
-		return m_graphicsQueue;
-	}
-
-	
-private:
-
-	static vkRenderer*					m_instance;
 	GLFWwindow*							m_window;
 
 
@@ -89,7 +52,7 @@ private:
 	VkExtent2D							m_swapChainExtent;
 
 	std::vector<VkImageView>			m_SwapChainImageViews;
-
+	
 	VkRenderPass						m_renderPass;//TODO : This can be modified later
 	VkPipelineLayout					m_pipelineLayout;//TODO : This has to be per Shader/Obj [Look into it]
 	VkPipeline							m_graphicsPipeline;
@@ -125,6 +88,28 @@ private:
 
 	std::vector<VkDescriptorSet>		m_DescriptorSets;
 
+	//Functions
+	vkRenderer();
+	virtual ~vkRenderer();
+	
+	GLFWwindow* getWindow()
+	{
+		return m_window;
+	}
+	const VkDevice& getDevice()
+	{
+		return m_device;
+	}
+
+	//Vulkan Related Functions
+	VkInstance getVulkanInstance();
+	VkDebugUtilsMessengerEXT getDebugMessenger();
+	VkQueue getGraphicsQueue()
+	{
+		return m_graphicsQueue;
+	}
+
+
 
 	//Vulkan Related Functions
 	bool CreateInstance();
@@ -144,26 +129,13 @@ private:
 
 	void CreateImageView();
 
-	void CreateGraphicsPipeline();
 	VkShaderModule createShaderModule(const std::vector<char>& shaderCode);
-
-	void CreateRenderPass();
-
-	void CreateFrameBuffers();
-
-	void CreateCommandPool();
-
-	void CreateCommandBuffers();
-
-	void CreateSemaphoresandFences();
-
-	void ReCreateSwapChain();
 
 	void CleanUpSwapChain();
 
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
-	void CreateVertexBuffer();
+	//void CreateVertexBuffer();
 
 	uint32_t findMemoryType(uint32_t typeFiler, VkMemoryPropertyFlags properties);
 
@@ -171,17 +143,24 @@ private:
 
 	void CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDeviceSize a_size);
 
-	void CreateIndexBuffer();
 
-	void CreateDescriptorSetLayout();
+	
+	void Init();
 
-	void CreateUniformBuffer();
+	void SetUpSwapChain();
 
-	void UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime);
+	bool InitGLFW();
 
-	void CreateDescriptorPool();
-
-	void CreateDesciptorSets();
+	void InitializeVulkan();
+	
+	//Pure Virtual so that the inherited class can override.
+	virtual void PrepareApp();
+	
+	//Pure Virtual
+	virtual void Draw(float deltaTime) = 0;
+	virtual void Update(float deltaTime) = 0;
+	
+	virtual void Destroy();
 
 };
 
