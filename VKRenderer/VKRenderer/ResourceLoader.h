@@ -5,7 +5,11 @@
 //==================================
 
 static std::vector<char> readFile(const std::string& filename);
-
+bool IfFileExists(const char* filename);
+FILE* OpenFile(std::string a_FileName, const char* flags);
+long TellFile(FILE* file);
+bool SeekFIle(FILE* fp, long offset, int origin);
+unsigned GetFileSize(std::string a_FileName);
 
 //==================================
 

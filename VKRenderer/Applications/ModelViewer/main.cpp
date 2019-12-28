@@ -1,8 +1,7 @@
-#include "stdafx.h"
+#include "../../VKRenderer/stdafx.h"
+#include "../../VKRenderer/vkRenderer.h"
+#include "ModelViewer.h"
 
-//#include "vkTimer.h"
-#include "vkRenderer.h"
-#include "../Applications/Triangle/Triangle.h"
 
 
 void MainLoop(vkRenderer* rendererExample)
@@ -50,7 +49,7 @@ int main()
 
 	
 	//Init a base class
-	vkRenderer* rendererExample = new Triangle();
+	vkRenderer* rendererExample = new ModelViewer();
 
 	//Initalize Vulkan and GLFW for window.
 	rendererExample->Init(); 
