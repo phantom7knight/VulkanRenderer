@@ -6,7 +6,7 @@
 //Vertex Buffer Use
 //===================================================================
 
-struct Vertex
+struct TriangleVertex
 {
 	glm::vec3 Position;
 	glm::vec3 Normals;
@@ -20,7 +20,7 @@ struct Vertex
 		VkVertexInputBindingDescription bindingDesc = {};
 
 		bindingDesc.binding = 0;	//Since we are using only one array for the data that is Triangle_vertices we have 1 binding and order starts from 0
-		bindingDesc.stride = sizeof(Vertex);
+		bindingDesc.stride = sizeof(TriangleVertex);
 		bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 		return bindingDesc;
@@ -35,19 +35,19 @@ struct Vertex
 		attributeDesc[0].binding = 0;
 		attributeDesc[0].location = 0;		//Binding number which corresponds to layout(location = NO_) this "NO_" number
 		attributeDesc[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-		attributeDesc[0].offset = offsetof(Vertex, Position);
+		attributeDesc[0].offset = offsetof(TriangleVertex, Position);
 
 		//Normals
 		attributeDesc[1].binding = 0;
 		attributeDesc[1].location = 1;		//Binding number which corresponds to layout(location = NO_) this "NO_" number
 		attributeDesc[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
-		attributeDesc[1].offset = offsetof(Vertex, Normals);
+		attributeDesc[1].offset = offsetof(TriangleVertex, Normals);
 
 		//TexCoords
 		attributeDesc[2].binding = 0;
 		attributeDesc[2].location = 2;		//Binding number which corresponds to layout(location = NO_) this "NO_" number
 		attributeDesc[2].format = VK_FORMAT_R32G32_SFLOAT;
-		attributeDesc[2].offset = offsetof(Vertex, TexCoords);
+		attributeDesc[2].offset = offsetof(TriangleVertex, TexCoords);
 
 
 		return attributeDesc;
@@ -58,13 +58,13 @@ struct Vertex
 };
 
 
-const std::vector<Vertex> Triangle_vertices = {
+const std::vector<TriangleVertex> Triangle_vertices = {
 	{	{0.0,-0.5,0.0},		{0.0,0.0,1.0},		{0.0,0.0}	},
 	{	{0.5, 0.5,0.0},		{0.0,0.0,1.0},		{0.0,0.0}	},
 	{	{-0.5,0.5,0.0},		{0.0,0.0,1.0},		{0.0,0.0}	}
 };
 
-const std::vector<Vertex> Rectangle_vertices = {
+const std::vector<TriangleVertex> Rectangle_vertices = {
 	{	{-0.5,-0.5,0.0},		{0.0,0.0,1.0},		{0.0,0.0}	},
 	{	{0.5, -0.5,0.0},		{0.0,0.0,1.0},		{0.0,0.0}	},
 	{	{0.5,0.5,0.0},			{0.0,0.0,1.0},		{0.0,0.0}	},
@@ -195,27 +195,7 @@ void vkRenderer::CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDevice
 //Create Graphics Pipeline and Shader Related Functions
 //===================================================================
 
-static std::vector<char> readFile(const std::string& filename)
-{
-	std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-	if (!file.is_open())
-	{
-		throw std::runtime_error("Failed to read file");
-	}
-
-	size_t fileSize = (size_t)file.tellg();
-	std::vector<char> buffer(fileSize);
-
-	file.seekg(0);
-	file.read(buffer.data(), fileSize);
-
-	file.close();
-
-	return buffer;
-}
-
-VkShaderModule vkRenderer::createShaderModule(const std::vector<char>& shaderCode)
+/*VkShaderModule vkRenderer::createShaderModule(const std::vector<char>& shaderCode)
 {
 	VkShaderModuleCreateInfo createInfo = {};
 
@@ -232,13 +212,11 @@ VkShaderModule vkRenderer::createShaderModule(const std::vector<char>& shaderCod
 
 	return shaderModule;
 
-}
+}*/
 
 void Triangle::CreateGraphicsPipeline()
 {
-	//TODO: Check if the spir-v files already exist if
-	//		they do then don't execute.
-	//=============================================
+
 	//generate SPIRV binary code
 	std::vector<std::string> ShaderFileNames;
 
@@ -252,12 +230,21 @@ void Triangle::CreateGraphicsPipeline()
 	//=============================================
 
 	//Read Shader Binary Code
-	auto VertexShaderCode = readFile("Shaders/BinaryCode/Basic.vert.spv");
-	auto PixelShaderCode = readFile("Shaders/BinaryCode/Basic.frag.spv");
+	auto VertexShaderCode	= rsrcLdr.getFileOperationobj().readFile("Shaders/BinaryCode/Basic.vert.spv");
+	auto PixelShaderCode	= rsrcLdr.getFileOperationobj().readFile("Shaders/BinaryCode/Basic.frag.spv");
 
 	//Generate respective Shader Modules
-	VkShaderModule vertexShaderModule = createShaderModule(VertexShaderCode);
-	VkShaderModule pixelShaderModule = createShaderModule(PixelShaderCode);
+	ShaderDesc shader_info = {};
+	
+	shader_info.a_device = m_device;
+	
+	//Vertex shader module
+	shader_info.shaderCode = &VertexShaderCode;
+	VkShaderModule vertexShaderModule = rsrcLdr.createShaderModule(shader_info);
+
+	//pixel shader module
+	shader_info.shaderCode = &PixelShaderCode;
+	VkShaderModule pixelShaderModule = rsrcLdr.createShaderModule(shader_info);
 
 	//Vertex Shader Pipeline
 	VkPipelineShaderStageCreateInfo vertexShaderCreateInfo = {};
@@ -283,8 +270,8 @@ void Triangle::CreateGraphicsPipeline()
 
 	VertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-	auto bindingDesc = Vertex::getBindingDescription();
-	auto attributeDesc = Vertex::getAttributeDescriptionsofVertex();
+	auto bindingDesc = TriangleVertex::getBindingDescription();
+	auto attributeDesc = TriangleVertex::getAttributeDescriptionsofVertex();
 
 	VertexInputInfo.vertexBindingDescriptionCount = 1;
 	VertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDesc.size());
@@ -1073,4 +1060,3 @@ void Triangle::Destroy()
 {
 
 }
-

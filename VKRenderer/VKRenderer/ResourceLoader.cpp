@@ -2,7 +2,7 @@
 #include "ResourceLoader.h"
 
 //if error then add "static" keyword for this function
-std::vector<char> ResourceLoader::readFile(const std::string& filename)
+std::vector<char, std::allocator<char>> FileOperations::readFile(const std::string& filename)
 {
 	std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
@@ -32,7 +32,7 @@ bool ResourceLoader::checkIfCharacterExists(const std::string a_string, char a_t
 	return false;
 }
 
-std::string ReplaceCharacter(const std::string a_str, char a_toReplaceWith, char a_toSearchFor)
+std::string FileOperations::ReplaceCharacter(const std::string a_str, char a_toReplaceWith, char a_toSearchFor)
 {
 	std::string res = a_str;
 
@@ -48,32 +48,32 @@ std::string ReplaceCharacter(const std::string a_str, char a_toReplaceWith, char
 }
 
 
-bool IfFileExists(const char* filename)
+bool FileOperations::IfFileExists(const char* filename)
 {
 	std::ifstream ifile(filename);
 	return (bool)ifile;
 }
 
 
-FILE* OpenFile(std::string a_FileName,const char* flags)
+FILE* FileOperations::OpenFile(std::string a_FileName,const char* flags)
 {
 	FILE* fp;
 	fopen_s(&fp, a_FileName.c_str(), flags);
 	return fp;
 }
 
-long TellFile(FILE* file)
+long FileOperations::TellFile(FILE* file)
 {
 	long result = ftell(file);
 	return result;
 }
 
-bool SeekFIle(FILE* fp, long offset, int origin)
+bool FileOperations::SeekFIle(FILE* fp, long offset, int origin)
 {
 	return fseek(fp, offset, origin) == 0;
 }
 
-unsigned GetFileSize(std::string a_FileName)
+unsigned FileOperations::GetFileSize(std::string a_FileName)
 {
 	//Open File and get Handle
 	FILE* fp = OpenFile(a_FileName, "r");
@@ -102,8 +102,8 @@ VkShaderModule ResourceLoader::createShaderModule(ShaderDesc desc)
 	VkShaderModuleCreateInfo createInfo = {};
 
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	createInfo.codeSize = desc.shaderCode.size();
-	createInfo.pCode = reinterpret_cast<const uint32_t*>(desc.shaderCode.data());
+	createInfo.codeSize = desc.shaderCode->size();
+	createInfo.pCode = reinterpret_cast<const uint32_t*>(desc.shaderCode->data());
 
 	VkShaderModule shaderModule;
 
@@ -116,8 +116,6 @@ VkShaderModule ResourceLoader::createShaderModule(ShaderDesc desc)
 
 }
 
-
-
 bool ResourceLoader::CheckifSPIRVGenerated(std::vector<std::string> a_fileNames)
 {
 	//check for the shader bytecode file existence
@@ -125,14 +123,14 @@ bool ResourceLoader::CheckifSPIRVGenerated(std::vector<std::string> a_fileNames)
 	{
 		std::string file_name = "Shaders/BinaryCode/" + a_fileNames[i] + ".spv";
 		//First check if file exists
-		if (!IfFileExists(file_name.c_str()))
+		if (!m_fileOpsObj.IfFileExists(file_name.c_str()))
 		{
 			std::cout << "ByteCode for the file " + a_fileNames[i] + " doesn't exist \n";;
 			return false;
 		}
 
 		//Secondly check the size of the file
-		if (GetFileSize(file_name) == 0)
+		if (m_fileOpsObj.GetFileSize(file_name) == 0)
 		{
 			std::cout << "Filesize for the file " + a_fileNames[i] + " was 0 \n";
 			return false;
@@ -154,7 +152,7 @@ void ResourceLoader::GenerateBatchFile(std::vector<std::string> fileNames)
 
 	if (checkIfCharacterExists(vulkansdk_name, '\\'))
 	{
-		vulkansdk_name_replaced = ReplaceCharacter(vulkansdk_name, '/', '\\' );
+		vulkansdk_name_replaced = m_fileOpsObj.ReplaceCharacter(vulkansdk_name, '/', '\\' );
 	}
 	else
 	{
@@ -189,7 +187,6 @@ bool ResourceLoader::CreateDirectoryFolder(std::string a_pathName)
 	return true;
 }
 
-
 void ResourceLoader::CreateFolderForSPIRV(std::string a_pathName)
 {
 	CreateDirectoryFolder(a_pathName);
@@ -208,7 +205,6 @@ void ResourceLoader::RunShaderBatchFile()
 	std::cout << "================================================ \n";
 	
 }
-
 
 void ResourceLoader::GenerateSPIRVShaders(std::vector<std::string> ShaderFileNames)
 {
@@ -230,8 +226,6 @@ void ResourceLoader::GenerateSPIRVShaders(std::vector<std::string> ShaderFileNam
 	}
 	
 }
-
-
 
 #pragma endregion
 
