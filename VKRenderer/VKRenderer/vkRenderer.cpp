@@ -29,8 +29,6 @@ vkRenderer::~vkRenderer()
 {
 }
 
-
-
 void vkRenderer::framebufferResizeCallback(GLFWwindow* window, int width, int height)
 {
 	auto app = reinterpret_cast<vkRenderer*>(glfwGetWindowUserPointer(window));
@@ -53,6 +51,109 @@ bool vkRenderer::InitGLFW()
 
 	return true;
 }
+
+//===================================================================
+//Buffer Description
+//===================================================================
+
+uint32_t vkRenderer::findMemoryType(uint32_t typeFiler, VkMemoryPropertyFlags properties)
+{
+	VkPhysicalDeviceMemoryProperties memProperties;
+	vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memProperties);
+
+	for (uint32_t i = 0; i < memProperties.memoryTypeCount; ++i)
+	{
+		if (typeFiler & (1 << i) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+		{
+			return i;
+		}
+	}
+
+	throw std::runtime_error("Failed to find suitable memory type!");
+
+
+}
+
+
+void vkRenderer::CreateBuffer(VkDeviceSize a_size, VkBufferUsageFlags a_usage, VkMemoryPropertyFlags a_properties, VkBuffer& a_buffer, VkDeviceMemory& a_bufferMemory)
+{
+	/////For EX: Buffer for the coordinates of Triangle which are being sent to the VS
+	VkBufferCreateInfo bufferCreateInfo = {};
+
+	bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferCreateInfo.size = a_size;
+	bufferCreateInfo.usage = a_usage;
+	bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (vkCreateBuffer(m_device, &bufferCreateInfo, nullptr, &a_buffer) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to Create Buffer");
+	}
+
+	VkMemoryRequirements memRequirements;
+	vkGetBufferMemoryRequirements(m_device, a_buffer, &memRequirements);
+
+	VkMemoryAllocateInfo allocateInfo = {};
+
+	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocateInfo.allocationSize = memRequirements.size;
+	allocateInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, a_properties);// VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	//Allocated memory for the Vertex Buffer
+	if (vkAllocateMemory(m_device, &allocateInfo, nullptr, &a_bufferMemory) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to allocate memory for the Buffer");
+	}
+	vkBindBufferMemory(m_device, a_buffer, a_bufferMemory, 0);
+
+
+}
+
+
+void vkRenderer::CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDeviceSize a_size)
+{
+	VkCommandBufferAllocateInfo allocInfo = {};
+
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandPool = m_CommandPool;
+	allocInfo.commandBufferCount = 1;
+
+	VkCommandBuffer commandBuffer;
+	vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer);
+
+	//Start recording Command Buffer
+
+	VkCommandBufferBeginInfo bufferBeginInfo = {};
+
+	bufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	bufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	vkBeginCommandBuffer(commandBuffer, &bufferBeginInfo);
+
+	VkBufferCopy copyRegion = {};
+
+	copyRegion.srcOffset = 0;
+	copyRegion.dstOffset = 0;
+	copyRegion.size = a_size;
+
+	vkCmdCopyBuffer(commandBuffer, a_srcBuffer, a_dstBuffer, 1, &copyRegion);
+
+	vkEndCommandBuffer(commandBuffer);
+
+	VkSubmitInfo submitInfo = {};
+
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+
+	vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(m_graphicsQueue);
+	vkFreeCommandBuffers(m_device, m_CommandPool, 1, &commandBuffer);
+
+
+}
+
 
 //===================================================================
 //Create Vulkan Instance
@@ -260,9 +361,6 @@ void vkRenderer::CreateLogicalDevice()
 		queuecreateInfo.pQueuePriorities = &queueProirity;
 		queuecreateInfos.push_back(queuecreateInfo);
 	}
-
-	
-
 
 	//Features which we will be using
 	VkPhysicalDeviceFeatures deviceFeatures = {};
@@ -617,8 +715,6 @@ void vkRenderer::SetUpSwapChain()
 	CreateSwapChain();
 }
 
-
-
 void vkRenderer::PrepareApp()
 {
 	SetUpSwapChain();
@@ -670,8 +766,8 @@ void vkRenderer::CleanUpSwapChain()
 
 	for (size_t i = 0; i < m_SwapChainImages.size(); ++i)
 	{
-		vkDestroyBuffer(m_device, m_uniformBuffers[i], nullptr);
-		vkFreeMemory(m_device, m_uniformBuffersMemory[i], nullptr);
+		vkDestroyBuffer(m_device, m_TriangleUniformBuffer[i].Buffer, nullptr);
+		vkFreeMemory(m_device, m_TriangleUniformBuffer[i].BufferMemory, nullptr);
 	}
 
 	vkDestroyDescriptorPool(m_device, m_DescriptorPool, nullptr);
@@ -690,12 +786,13 @@ void vkRenderer::Destroy()
 
 	vkDestroyDescriptorSetLayout(m_device, m_descriptorSetLayout, nullptr);
 
-	vkDestroyBuffer(m_device, m_RectangleIndexBuffer, nullptr);
-	vkFreeMemory(m_device, m_IndexBufferMemory, nullptr);
+	//Destroy Rectangle Index Buffer
+	vkDestroyBuffer(m_device, m_RectangleIndexBuffer.Buffer, nullptr);
+	vkFreeMemory(m_device, m_RectangleIndexBuffer.BufferMemory, nullptr);
 
-
-	vkDestroyBuffer(m_device, m_TriangleVertexBuffer, nullptr);
-	vkFreeMemory(m_device, m_vertexBufferMemory, nullptr);
+	//Destroy Triangle Index Buffer
+	vkDestroyBuffer(m_device, m_TriangleVertexBuffer.Buffer, nullptr);
+	vkFreeMemory(m_device, m_TriangleVertexBuffer.BufferMemory, nullptr);
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 	{

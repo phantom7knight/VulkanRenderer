@@ -24,6 +24,13 @@ struct SwapChainSupportDetails
 };
 
 
+typedef struct BufferDesc
+{
+	VkBuffer		Buffer;
+
+	VkDeviceMemory	BufferMemory;
+}Buffer;
+
 class vkRenderer
 {
 public:
@@ -70,19 +77,13 @@ public:
 
 	size_t								m_currentFrame = 0;
 
-	VkBuffer							m_TriangleVertexBuffer;
+	BufferDesc							m_TriangleVertexBuffer;
 
-	VkDeviceMemory						m_vertexBufferMemory;
+	BufferDesc							m_RectangleIndexBuffer;
 
-	VkBuffer							m_RectangleIndexBuffer;
-
-	VkDeviceMemory						m_IndexBufferMemory;
+	std::vector<BufferDesc>				m_TriangleUniformBuffer;
 
 	VkDescriptorSetLayout				m_descriptorSetLayout;
-
-	std::vector<VkBuffer>				m_uniformBuffers;
-
-	std::vector<VkDeviceMemory>			m_uniformBuffersMemory;
 
 	VkDescriptorPool					m_DescriptorPool;
 
@@ -129,13 +130,9 @@ public:
 
 	void CreateImageView();
 
-	VkShaderModule createShaderModule(const std::vector<char>& shaderCode);
-
 	void CleanUpSwapChain();
 
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
-
-	//void CreateVertexBuffer();
 
 	uint32_t findMemoryType(uint32_t typeFiler, VkMemoryPropertyFlags properties);
 
