@@ -4,6 +4,10 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+//#include "../Dependencies/ASSIMP/Include/assimp/Importer.hpp"
+//#include "../Dependencies/ASSIMP/Include/assimp/scene.h"
+//#include "../Dependencies/ASSIMP/Include/assimp/postprocess.h"
+
 //==================================
 // File Operations
 //==================================
