@@ -26,9 +26,9 @@ struct SwapChainSupportDetails
 
 typedef struct BufferDesc
 {
-	VkBuffer		Buffer;
+	VkBuffer		Buffer = VK_NULL_HANDLE;
 
-	VkDeviceMemory	BufferMemory;
+	VkDeviceMemory	BufferMemory = VK_NULL_HANDLE;
 }Buffer;
 
 class vkRenderer

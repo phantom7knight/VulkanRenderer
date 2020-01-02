@@ -11,9 +11,17 @@ ModelViewer::~ModelViewer()
 {
 }
 
+void ModelViewer::LoadAModel(std::string fileName)
+{
+	rsrcLdr.LoadModelResource(fileName);
+}
+
 
 void ModelViewer::PrepareApp()
 {
+	//Load Model
+	LoadAModel("Assets/Models/christmas-ball/source/Christmas_Ball_Sketchfab.fbx");
+
 }
 
 void ModelViewer::Update(float deltaTime)

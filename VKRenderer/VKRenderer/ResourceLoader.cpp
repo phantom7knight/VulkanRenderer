@@ -87,7 +87,7 @@ unsigned FileOperations::GetFileSize(std::string a_FileName)
 	return (unsigned)length;
 }
 
-std::string ResourceLoader::get_current_dir()
+std::string FileOperations::get_current_dir()
 {
 	char buff[FILENAME_MAX]; //create string buffer to hold path
 	_getcwd(buff, FILENAME_MAX);
@@ -234,6 +234,100 @@ void ResourceLoader::GenerateSPIRVShaders(std::vector<std::string> ShaderFileNam
 
 #pragma region Model-Loading
 
+void MeshLoader::LoadModel(std::string fileName)
+{
+	
+	Assimp::Importer m_Importer;
+	const aiScene *m_pScene = nullptr;
 
+	ModelInfo modelDesc;
+
+	// Flags for loading the mesh
+	static const int assimpFlags = aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_PreTransformVertices;
+
+	m_pScene = m_Importer.ReadFile(fileName.c_str(), assimpFlags);
+
+	std::vector<VertexInfo> vertexbuffer;
+
+	for (uint32_t m = 0; m < m_pScene->mNumMeshes; ++m)
+	{
+		for (uint32_t vert = 0; vert < m_pScene->mMeshes[m]->mNumVertices; ++vert)
+		{
+			VertexInfo vertex;
+
+			//Position
+			if (m_pScene->mMeshes[m]->HasPositions())
+			{
+				vertex.Position.x = m_pScene->mMeshes[m]->mVertices[vert].x;
+				vertex.Position.y = m_pScene->mMeshes[m]->mVertices[vert].y;
+				vertex.Position.z = m_pScene->mMeshes[m]->mVertices[vert].z;
+			}
+
+			//Normal
+			if (m_pScene->mMeshes[m]->HasNormals())
+			{
+				vertex.Normal.x = m_pScene->mMeshes[m]->mNormals[vert].x;
+				vertex.Normal.y = m_pScene->mMeshes[m]->mNormals[vert].y;
+				vertex.Normal.z = m_pScene->mMeshes[m]->mNormals[vert].z;
+			}
+
+			//UV
+			if (m_pScene->mMeshes[m]->HasTextureCoords(0))
+			{
+				vertex.UV.x = m_pScene->mMeshes[m]->mTextureCoords[0][vert].x;
+				vertex.UV.y = m_pScene->mMeshes[m]->mTextureCoords[0][vert].y;
+			}
+
+			//Tangent and BiTangents
+			if (m_pScene->mMeshes[m]->HasTangentsAndBitangents())
+			{
+				vertex.Tangent.x = m_pScene->mMeshes[m]->mTangents[vert].x;
+				vertex.Tangent.y = m_pScene->mMeshes[m]->mTangents[vert].y;
+				vertex.Tangent.z = m_pScene->mMeshes[m]->mTangents[vert].z;
+
+				vertex.BiTangent.x = m_pScene->mMeshes[m]->mBitangents[vert].x;
+				vertex.BiTangent.y = m_pScene->mMeshes[m]->mBitangents[vert].y;
+				vertex.BiTangent.z = m_pScene->mMeshes[m]->mBitangents[vert].z;
+
+			}
+
+			vertexbuffer.push_back(vertex);
+		}
+	}
+
+	size_t vertexBufferSize = vertexbuffer.size() * sizeof(VertexInfo);
+
+	modelDesc.vertexBufferSize = vertexBufferSize;
+	modelDesc.vertexbufferData = vertexbuffer;
+
+	std::vector<uint32_t>indexBuffer;
+	for (uint32_t m = 0; m < m_pScene->mNumMeshes; ++m)
+	{
+		uint32_t sizeIndex = indexBuffer.size();
+
+		for (uint32_t f = 0; f < m_pScene->mMeshes[m]->mNumFaces; ++f)
+		{
+			for (uint32_t i = 0; i < 3; ++i)
+			{
+				indexBuffer.push_back(m_pScene->mMeshes[m]->mFaces[f].mIndices[i] + sizeIndex);
+			}
+		}		
+	}
+
+	size_t indexBufferSize = indexBuffer.size() * sizeof(uint32_t);
+	
+	modelDesc.indexBufferSize = vertexBufferSize;
+	modelDesc.indexbufferData = indexBuffer;
+
+
+
+}
+
+
+
+void ResourceLoader::LoadModelResource(std::string fileName)
+{
+	m_MeshLoaderObj.LoadModel(fileName);
+}
 
 #pragma endregion

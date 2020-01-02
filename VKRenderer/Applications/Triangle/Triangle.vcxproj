@@ -71,7 +71,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>$(SolutionDir)Dependencies\ASSIMP\Lib;$(SolutionDir)$(Platform)\$(Configuration);$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration);$(LibraryPath)</LibraryPath>
     <IncludePath>$(SolutionDir)Dependencies\ASSIMP\Include;$(VULKAN_SDK)\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -79,7 +79,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>$(SolutionDir)Dependencies\ASSIMP\Lib;$(SolutionDir)$(Platform)\$(Configuration);$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration);$(LibraryPath)</LibraryPath>
     <IncludePath>$(SolutionDir)Dependencies\ASSIMP\Include;$(VULKAN_SDK)\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -101,7 +101,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>VKRenderer.lib;vulkan-1.lib;glfw3.lib;assimp-vc141-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;$(SolutionDir)\Dependencies\GLFW\lib-vc2017</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\assimp\Lib;$(VULKAN_SDK)\Lib;$(SolutionDir)\Dependencies\GLFW\lib-vc2017</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy Shaders  "$(OutDir)\Shaders\"   /s /e /y /i</Command>
@@ -133,8 +133,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>VKRenderer.lib;vulkan-1.lib;glfw3.lib;assimp-vc141-mtd.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;$(SolutionDir)\Dependencies\GLFW\lib-vc2017</AdditionalLibraryDirectories>
+      <AdditionalDependencies>VKRenderer.lib;vulkan-1.lib;glfw3.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\assimp\Lib;$(VULKAN_SDK)\Lib;$(SolutionDir)\Dependencies\GLFW\lib-vc2017</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy Shaders  "$(OutDir)\Shaders\"   /s /e /y /i</Command>

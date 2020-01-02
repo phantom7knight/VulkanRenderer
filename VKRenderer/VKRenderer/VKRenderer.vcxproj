@@ -71,11 +71,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(VULKAN_SDK)\Include;$(SolutionDir)Dependencies\ASSIMP\Include;$(VULKAN_SDK)\Include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)Dependencies\ASSIMP\Lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)Dependencies\assimp\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(VULKAN_SDK)\Include;$(SolutionDir)Dependencies\ASSIMP\Include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-    <LibraryPath>$(SolutionDir)Dependencies\ASSIMP\Lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)Dependencies\assimp\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -117,7 +117,7 @@
       <AdditionalDependencies>vulkan-1.lib;glfw3.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
-      <AdditionalOptions>-L assimp-vc141-mtd.lib %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-L assimp.lib %(AdditionalOptions)</AdditionalOptions>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>

@@ -19,5 +19,9 @@ public:
 
 	virtual void Destroy() override;
 
+private:
+
+	void LoadAModel(std::string fileName);
+
 };
 
