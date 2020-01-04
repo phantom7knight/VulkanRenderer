@@ -234,7 +234,10 @@ void ResourceLoader::GenerateSPIRVShaders(std::vector<std::string> ShaderFileNam
 
 #pragma region Model-Loading
 
-void MeshLoader::LoadModel(std::string fileName)
+
+
+
+ModelInfo MeshLoader::LoadModel(std::string fileName)
 {
 	
 	Assimp::Importer m_Importer;
@@ -246,6 +249,12 @@ void MeshLoader::LoadModel(std::string fileName)
 	static const int assimpFlags = aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_PreTransformVertices;
 
 	m_pScene = m_Importer.ReadFile(fileName.c_str(), assimpFlags);
+
+	if (m_pScene == NULL)
+	{
+		std::cout << "Failed to load the scene \n";
+		return ModelInfo{};
+	}
 
 	std::vector<VertexInfo> vertexbuffer;
 
@@ -316,18 +325,20 @@ void MeshLoader::LoadModel(std::string fileName)
 
 	size_t indexBufferSize = indexBuffer.size() * sizeof(uint32_t);
 	
-	modelDesc.indexBufferSize = vertexBufferSize;
+	modelDesc.indexBufferSize = indexBufferSize;
 	modelDesc.indexbufferData = indexBuffer;
 
-
+	return modelDesc;
 
 }
 
 
 
-void ResourceLoader::LoadModelResource(std::string fileName)
+ModelInfo ResourceLoader::LoadModelResource(std::string fileName)
 {
-	m_MeshLoaderObj.LoadModel(fileName);
+	ModelInfo modeldesc = m_MeshLoaderObj.LoadModel(fileName);
+
+	return modeldesc;
 }
 
 #pragma endregion

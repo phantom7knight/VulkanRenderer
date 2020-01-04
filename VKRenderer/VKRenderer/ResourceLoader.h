@@ -109,7 +109,7 @@ public:
 	MeshLoader() {}
 	~MeshLoader() {}
 
-	void LoadModel(std::string fileName);
+	ModelInfo LoadModel(std::string fileName);
 
 
 };
@@ -137,7 +137,7 @@ public:
 	//--------------------------------------------------------------------------
 	//Model Loading related
 
-	void			LoadModelResource(std::string fileName);
+	ModelInfo			LoadModelResource(std::string fileName);
 
 	//--------------------------------------------------------------------------
 	inline FileOperations getFileOperationobj()

@@ -13,14 +13,19 @@ ModelViewer::~ModelViewer()
 
 void ModelViewer::LoadAModel(std::string fileName)
 {
-	rsrcLdr.LoadModelResource(fileName);
+	ModelInfo modelinfor = 	rsrcLdr.LoadModelResource(fileName);
+
+	//Load Index and Vertex Buffer
+
+
+
 }
 
 
 void ModelViewer::PrepareApp()
 {
 	//Load Model
-	LoadAModel("Assets/Models/christmas-ball/source/Christmas_Ball_Sketchfab.fbx");
+	LoadAModel("../../Assets/Models/christmas-ball/source/Christmas_Ball_Sketchfab.fbx");
 
 }
 
