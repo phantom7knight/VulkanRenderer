@@ -2,7 +2,7 @@
 #extension GL_ARB_separate_shader_objects : enable
 
 
-layout(binding = 0) uniform UniformBufferObject
+layout(binding = 0) uniform ModelUBO
 {
 	mat4 ModelMatrix;
 	mat4 ViewMatrix;
@@ -17,6 +17,10 @@ layout(location = 0) in 	vec3 aPos;
 layout(location = 1) in 	vec3 aNormal;
 	
 layout(location = 2) in 	vec2 aTexCoords;
+
+layout(location = 3) in 	vec2 aTangents;
+
+layout(location = 4) in 	vec2 aBiTangents;
 
 layout(location = 0) out 	vec3 fragColor;
 	

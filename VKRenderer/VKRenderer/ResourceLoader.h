@@ -103,11 +103,15 @@ typedef struct
 	std::vector<uint32_t> indexbufferData;
 }ModelInfo;
 
+//Maybe Load Materials if available for the model
 class MeshLoader
 {
 public:
 	MeshLoader() {}
 	~MeshLoader() {}
+
+	static VkVertexInputBindingDescription getBindingDescription();
+	static std::array<VkVertexInputAttributeDescription, 5> getAttributeDescriptionsofVertex();
 
 	ModelInfo LoadModel(std::string fileName);
 
@@ -143,6 +147,11 @@ public:
 	inline FileOperations getFileOperationobj()
 	{
 		return m_fileOpsObj;
+	}
+
+	inline MeshLoader getModelLoaderobj()
+	{
+		return m_MeshLoaderObj;
 	}
 	
 

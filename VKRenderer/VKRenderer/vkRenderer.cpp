@@ -766,8 +766,13 @@ void vkRenderer::CleanUpSwapChain()
 
 	for (size_t i = 0; i < m_SwapChainImages.size(); ++i)
 	{
+		//Triangle's UBO
 		vkDestroyBuffer(m_device, m_TriangleUniformBuffer[i].Buffer, nullptr);
 		vkFreeMemory(m_device, m_TriangleUniformBuffer[i].BufferMemory, nullptr);
+		
+		//Model's UBO
+		vkDestroyBuffer(m_device, m_ModelUniformBuffer[i].Buffer, nullptr);
+		vkFreeMemory(m_device, m_ModelUniformBuffer[i].BufferMemory, nullptr);
 	}
 
 	vkDestroyDescriptorPool(m_device, m_DescriptorPool, nullptr);

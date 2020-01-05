@@ -706,9 +706,6 @@ void Triangle::CreateDescriptorPool()
 		throw std::runtime_error("Unable to create Desciptor Pool");
 	}
 
-
-
-
 }
 
 

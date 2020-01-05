@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "ResourceLoader.h"
 
+#pragma region File-Operations
 //if error then add "static" keyword for this function
 std::vector<char, std::allocator<char>> FileOperations::readFile(const std::string& filename)
 {
@@ -94,6 +95,7 @@ std::string FileOperations::get_current_dir()
 	std::string current_working_dir(buff);
 	return current_working_dir;
 }
+#pragma endregion
 
 #pragma region Shader-Loading
 
@@ -234,8 +236,15 @@ void ResourceLoader::GenerateSPIRVShaders(std::vector<std::string> ShaderFileNam
 
 #pragma region Model-Loading
 
+VkVertexInputBindingDescription MeshLoader::getBindingDescription()
+{
+	return VertexInfo::getBindingDescription();
+}
 
-
+std::array<VkVertexInputAttributeDescription, 5> MeshLoader::getAttributeDescriptionsofVertex()
+{
+	return VertexInfo::getAttributeDescriptionsofVertex();
+}
 
 ModelInfo MeshLoader::LoadModel(std::string fileName)
 {

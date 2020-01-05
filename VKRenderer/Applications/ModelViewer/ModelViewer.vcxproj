@@ -136,6 +136,10 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ModelViewer.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Model.frag" />
+    <None Include="Shaders\Model.vert" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -82,6 +82,8 @@ public:
 	BufferDesc							m_RectangleIndexBuffer;
 
 	std::vector<BufferDesc>				m_TriangleUniformBuffer;
+	
+	std::vector<BufferDesc>				m_ModelUniformBuffer;
 
 	VkDescriptorSetLayout				m_descriptorSetLayout;
 
