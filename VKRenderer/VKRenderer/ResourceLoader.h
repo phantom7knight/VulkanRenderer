@@ -4,6 +4,9 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 
 //==================================
 // File Operations
@@ -119,6 +122,17 @@ public:
 };
 
 
+class ImageLoader
+{
+private:
+
+public:
+
+
+
+};
+
+
 class ResourceLoader
 {
 
@@ -154,6 +168,11 @@ public:
 		return m_MeshLoaderObj;
 	}
 	
+	inline ImageLoader getImageLoaderobj()
+	{
+		return m_ImageLoaderObj;
+	}
+	
 
 
 private:
@@ -166,5 +185,6 @@ private:
 	bool m_bGeneratedSPIRV;
 	FileOperations m_fileOpsObj;
 	MeshLoader m_MeshLoaderObj;
+	ImageLoader m_ImageLoaderObj;
 
 };

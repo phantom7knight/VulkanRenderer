@@ -231,9 +231,6 @@ void ResourceLoader::GenerateSPIRVShaders(std::vector<std::string> ShaderFileNam
 
 #pragma endregion
 
-
-
-
 #pragma region Model-Loading
 
 VkVertexInputBindingDescription MeshLoader::getBindingDescription()
@@ -265,6 +262,7 @@ ModelInfo MeshLoader::LoadModel(std::string fileName)
 		return ModelInfo{};
 	}
 
+	//Vertex Loading
 	std::vector<VertexInfo> vertexbuffer;
 
 	for (uint32_t m = 0; m < m_pScene->mNumMeshes; ++m)
@@ -318,6 +316,7 @@ ModelInfo MeshLoader::LoadModel(std::string fileName)
 	modelDesc.vertexBufferSize = vertexBufferSize;
 	modelDesc.vertexbufferData = vertexbuffer;
 
+	//Index Loading
 	std::vector<uint32_t>indexBuffer;
 	for (uint32_t m = 0; m < m_pScene->mNumMeshes; ++m)
 	{
@@ -341,13 +340,15 @@ ModelInfo MeshLoader::LoadModel(std::string fileName)
 
 }
 
-
-
 ModelInfo ResourceLoader::LoadModelResource(std::string fileName)
 {
 	ModelInfo modeldesc = m_MeshLoaderObj.LoadModel(fileName);
 
 	return modeldesc;
 }
+
+#pragma endregion
+
+#pragma region Image-Loading
 
 #pragma endregion

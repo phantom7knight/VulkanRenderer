@@ -696,6 +696,7 @@ void ModelViewer::PrepareApp()
 
 void ModelViewer::Update(float deltaTime)
 {
+	//Update Camera
 }
 
 void ModelViewer::Draw(float deltaTime)
