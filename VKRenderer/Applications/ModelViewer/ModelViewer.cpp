@@ -662,6 +662,91 @@ void ModelViewer::LoadAModel(std::string fileName)
 
 }
 
+////Don't include in a header file
+#define STB_IMAGE_IMPLEMENTATION
+#include "../../Dependencies/STB/stb_image.h"
+
+void ModelViewer::LoadTexture(std::string textureName)
+{
+	int texWidth, texHeight, texChannels;
+
+	stbi_uc* pixels = stbi_load(textureName.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
+	VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+	if (!pixels)
+		std::cout << "Failed to load Texture : " << textureName << "\n";
+
+
+	BufferDesc stagingBuffer;
+
+	CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer.Buffer, stagingBuffer.BufferMemory);
+
+	void* data;
+	vkMapMemory(m_device, stagingBuffer.BufferMemory, 0, imageSize, 0, &data);
+		memcpy(data, pixels, static_cast<size_t>(imageSize));
+	vkUnmapMemory(m_device, stagingBuffer.BufferMemory);
+
+
+	//free the loaded image
+	stbi_image_free(pixels);
+
+	//Set the image Property
+
+	image1.ImageWidth		= texWidth;
+	image1.ImageHeigth		= texHeight;
+	image1.imageFormat		= VK_FORMAT_R8G8B8A8_UNORM;
+	image1.tiling			= VK_IMAGE_TILING_OPTIMAL;
+	image1.usageFlags		= VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	image1.propertyFlags	= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+	CreateImage(image1);
+	
+}
+
+void ModelViewer::CreateImage(TextureBufferDesc a_texBuffDesc)
+{
+	VkImageCreateInfo ImageCreateInfo = {};
+
+	ImageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	ImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+	ImageCreateInfo.extent.width = a_texBuffDesc.ImageWidth;
+	ImageCreateInfo.extent.height = a_texBuffDesc.ImageHeigth;
+	ImageCreateInfo.extent.depth = 1;
+	ImageCreateInfo.mipLevels = 1;
+	ImageCreateInfo.arrayLayers = 1;
+	ImageCreateInfo.format = a_texBuffDesc.imageFormat;
+	ImageCreateInfo.tiling = a_texBuffDesc.tiling;
+	ImageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	ImageCreateInfo.usage = a_texBuffDesc.usageFlags;
+	ImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	ImageCreateInfo.flags = 0;
+
+
+	if (vkCreateImage(m_device, &ImageCreateInfo, nullptr, &(image1.BufferImage)) != VK_SUCCESS)
+	{
+		std::cout << " Failed to create Image \n";
+	}
+
+	VkMemoryRequirements memRequirements;
+	vkGetImageMemoryRequirements(m_device, image1.BufferImage, &memRequirements);
+
+	VkMemoryAllocateInfo allocateInfo = {};
+	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocateInfo.allocationSize = memRequirements.size;
+	allocateInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, a_texBuffDesc.propertyFlags);
+
+	if (vkAllocateMemory(m_device, &allocateInfo, nullptr, &image1.BufferMemory) != VK_SUCCESS)
+	{
+		std::cout << "Failed to allocate memory to the image \n";
+	}
+
+	vkBindImageMemory(m_device, image1.BufferImage, image1.BufferMemory, 0);
+}
+
+
+
 
 void ModelViewer::PrepareApp()
 {

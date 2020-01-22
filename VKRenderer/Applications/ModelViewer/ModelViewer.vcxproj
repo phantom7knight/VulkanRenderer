@@ -70,11 +70,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)Dependencies\ASSIMP\Include;$(VULKAN_SDK)\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Dependencies\STB;$(SolutionDir)Dependencies\ASSIMP\Include;$(VULKAN_SDK)\Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)Dependencies\ASSIMP\Include;$(VULKAN_SDK)\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Dependencies\STB;$(SolutionDir)Dependencies\ASSIMP\Include;$(VULKAN_SDK)\Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -84,6 +84,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>VKRenderer.lib;vulkan-1.lib;glfw3.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -121,6 +122,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

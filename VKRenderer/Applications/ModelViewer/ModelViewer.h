@@ -52,11 +52,15 @@ public:
 private:
 
 	void LoadAModel(std::string fileName);
+	void LoadTexture(std::string fileName);
+	void CreateImage(TextureBufferDesc a_texBufferDesc);
 
 	BufferDesc IndexBUffer;
 	BufferDesc VertexBUffer;
 
 	int m_indexBufferCount = 0;
+
+	TextureBufferDesc image1 = {};
 
 };
 

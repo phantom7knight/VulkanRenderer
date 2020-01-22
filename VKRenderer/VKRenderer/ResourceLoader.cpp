@@ -349,6 +349,37 @@ ModelInfo ResourceLoader::LoadModelResource(std::string fileName)
 
 #pragma endregion
 
-#pragma region Image-Loading
 
+#pragma region Texture-Loading
+
+//Don't include in a header file
+/*#define STB_IMAGE_IMPLEMENTATION
+#include "../../Dependencies/STB/stb_image.h"
+
+
+void ImageLoader::LoadTexture(std::string textureName)
+{
+	int texWidth, texHeight, texChannels;
+
+	stbi_uc* pixels = stbi_load(textureName.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
+	VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+	if (!pixels)
+		std::cout << "Failed to load Texture : " << textureName << "\n";
+
+
+	BufferDesc stagingBuffer;
+
+	CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer.Buffer, stagingBuffer.BufferMemory);
+
+	void* data;
+	vkMapMemory(m_device, stagingBuffer.BufferMemory, 0, imageSize, 0, &data);
+	memcpy(data, pixels, static_cast<size_t>(imageSize));
+	vkUnmapMemory(m_device, stagingBuffer.BufferMemory);
+
+
+	//free the loaded image
+	stbi_image_free(pixels);
+}*/
 #pragma endregion

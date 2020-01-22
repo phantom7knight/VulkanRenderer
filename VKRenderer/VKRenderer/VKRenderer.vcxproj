@@ -70,12 +70,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(VULKAN_SDK)\Include;$(SolutionDir)Dependencies\ASSIMP\Include;$(VULKAN_SDK)\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\Dependencies\STB;$(VULKAN_SDK)\Include;$(SolutionDir)Dependencies\ASSIMP\Include;$(VULKAN_SDK)\Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)Dependencies\assimp\Lib;$(LibraryPath)</LibraryPath>
+    <SourcePath>$(SourcePath)</SourcePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(VULKAN_SDK)\Include;$(SolutionDir)Dependencies\ASSIMP\Include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(SolutionDir)\Dependencies\STB;$(VULKAN_SDK)\Include;$(SolutionDir)Dependencies\ASSIMP\Include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
     <LibraryPath>$(SolutionDir)Dependencies\assimp\Lib;$(LibraryPath)</LibraryPath>
+    <SourcePath>$(SourcePath)</SourcePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -103,7 +105,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\STB;$(SolutionDIr)\Dependencies\GLFW\include;$(SolutionDIr)\Dependencies\GLM\glm\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDIr)\Dependencies\GLFW\include;$(SolutionDIr)\Dependencies\GLM\glm\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>
@@ -155,7 +157,7 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(SolutionDir)\Dependencies\STB;$(SolutionDIr)\Dependencies\GLFW\include;$(VULKAN_SDK)\Include;$(SolutionDIr)\Dependencies\GLM\glm\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDIr)\Dependencies\GLFW\include;$(VULKAN_SDK)\Include;$(SolutionDIr)\Dependencies\GLM\glm\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>
