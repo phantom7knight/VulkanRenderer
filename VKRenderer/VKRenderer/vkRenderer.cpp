@@ -112,24 +112,26 @@ void vkRenderer::CreateBuffer(VkDeviceSize a_size, VkBufferUsageFlags a_usage, V
 
 void vkRenderer::CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDeviceSize a_size)
 {
-	VkCommandBufferAllocateInfo allocInfo = {};
+	//VkCommandBufferAllocateInfo allocInfo = {};
+	//
+	//allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	//allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	//allocInfo.commandPool = m_CommandPool;
+	//allocInfo.commandBufferCount = 1;
+	//
+	//VkCommandBuffer commandBuffer;
+	//vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer);
+	//
+	////Start recording Command Buffer
+	//
+	//VkCommandBufferBeginInfo bufferBeginInfo = {};
+	//
+	//bufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	//bufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	//
+	//vkBeginCommandBuffer(commandBuffer, &bufferBeginInfo);
 
-	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool = m_CommandPool;
-	allocInfo.commandBufferCount = 1;
-
-	VkCommandBuffer commandBuffer;
-	vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer);
-
-	//Start recording Command Buffer
-
-	VkCommandBufferBeginInfo bufferBeginInfo = {};
-
-	bufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	bufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-	vkBeginCommandBuffer(commandBuffer, &bufferBeginInfo);
+	VkCommandBuffer a_cmdBuffer = BeginSingleTimeCommands();
 
 	VkBufferCopy copyRegion = {};
 
@@ -137,23 +139,51 @@ void vkRenderer::CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDevice
 	copyRegion.dstOffset = 0;
 	copyRegion.size = a_size;
 
-	vkCmdCopyBuffer(commandBuffer, a_srcBuffer, a_dstBuffer, 1, &copyRegion);
+	vkCmdCopyBuffer(a_cmdBuffer, a_srcBuffer, a_dstBuffer, 1, &copyRegion);
 
-	vkEndCommandBuffer(commandBuffer);
+	EndSingleTimeCommands(a_cmdBuffer);
 
-	VkSubmitInfo submitInfo = {};
-
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &commandBuffer;
-
-	vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-	vkQueueWaitIdle(m_graphicsQueue);
-	vkFreeCommandBuffers(m_device, m_CommandPool, 1, &commandBuffer);
+	// vkEndCommandBuffer(commandBuffer);
+	// 
+	// VkSubmitInfo submitInfo = {};
+	// 
+	// submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	// submitInfo.commandBufferCount = 1;
+	// submitInfo.pCommandBuffers = &commandBuffer;
+	// 
+	// vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	// vkQueueWaitIdle(m_graphicsQueue);
+	// vkFreeCommandBuffers(m_device, m_CommandPool, 1, &commandBuffer);
 
 
 }
 
+
+void vkRenderer::CopyBufferToImage(VkBuffer buffer, TextureBufferDesc desc)
+{
+	VkCommandBuffer cmdBuffer = BeginSingleTimeCommands();
+
+	VkBufferImageCopy region = {};
+
+	region.bufferOffset = 0;
+	region.bufferRowLength = 0;
+	region.bufferImageHeight = 0;
+
+	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	region.imageSubresource.mipLevel = 0;
+	region.imageSubresource.baseArrayLayer = 0;
+	region.imageSubresource.layerCount = 1;
+
+	region.imageOffset = { 0,0,0 };
+	region.imageExtent = { static_cast<uint32_t>(desc.ImageWidth), static_cast<uint32_t>(desc.ImageHeigth), 1 };
+
+	vkCmdCopyBufferToImage(cmdBuffer, buffer, desc.BufferImage,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+
+
+	EndSingleTimeCommands(cmdBuffer);
+}
 
 //===================================================================
 //Create Vulkan Instance
@@ -625,6 +655,119 @@ void vkRenderer::CreateImageView()
 	}
 
 }
+
+//===================================================================
+//Command Buffer Recording Related
+//===================================================================
+
+VkCommandBuffer vkRenderer::BeginSingleTimeCommands()
+{
+	VkCommandBufferAllocateInfo allocInfo = {};
+
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandPool = m_CommandPool;
+	allocInfo.commandBufferCount = 1;
+
+	VkCommandBuffer commandBuffer;
+	vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer);
+
+	//Start recording Command Buffer
+
+	VkCommandBufferBeginInfo bufferBeginInfo = {};
+
+	bufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	bufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	vkBeginCommandBuffer(commandBuffer, &bufferBeginInfo);
+
+	return commandBuffer;
+}
+
+void vkRenderer::EndSingleTimeCommands(VkCommandBuffer a_commandBuffer)
+{
+	vkEndCommandBuffer(a_commandBuffer);
+
+	VkSubmitInfo submitInfo = {};
+
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &a_commandBuffer;
+
+	vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(m_graphicsQueue);
+	vkFreeCommandBuffers(m_device, m_CommandPool, 1, &a_commandBuffer);
+}
+
+
+void vkRenderer::TransitionImageLayouts(VkImage image, VkFormat format, VkImageLayout a_oldLayout, VkImageLayout a_newLayout)
+{
+	VkCommandBuffer cmdBuffer = BeginSingleTimeCommands();
+
+	VkImageMemoryBarrier barrier = {};
+
+	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+
+	barrier.oldLayout = a_oldLayout;
+	barrier.newLayout = a_newLayout;
+
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+
+	//these commands ahead say which part of image are effected
+	//and which properties are effected[image & subresourceRange].
+	barrier.image = image;
+	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	barrier.subresourceRange.baseMipLevel = 0;
+	barrier.subresourceRange.levelCount = 1;
+	barrier.subresourceRange.baseArrayLayer = 0;
+	barrier.subresourceRange.layerCount = 1;
+
+	VkPipelineStageFlags sourceStage;
+	VkPipelineStageFlags destinationStage;
+
+	if (a_oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && a_newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+	{
+		barrier.srcAccessMask = 0;
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+
+		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+
+	}
+	else if (a_oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && a_newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	{
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+
+
+		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+	else
+	{
+		std::cout << "Unsupported Layout Transition! \n";
+	}
+
+
+	vkCmdPipelineBarrier(
+		cmdBuffer,
+		0 /* TODO */, 0 /* TODO */,
+		0,
+		0, nullptr,
+		0, nullptr,
+		1, &barrier
+	);
+
+
+
+
+
+
+	EndSingleTimeCommands(cmdBuffer);
+}
+
 
 //===================================================================
 //Vulkan Initialization Function

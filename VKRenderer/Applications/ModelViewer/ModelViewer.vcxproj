@@ -142,6 +142,9 @@
     <None Include="Shaders\Model.frag" />
     <None Include="Shaders\Model.vert" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\Assets\Textures\Statue.jpg" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -701,7 +701,19 @@ void ModelViewer::LoadTexture(std::string textureName)
 	image1.propertyFlags	= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
 	CreateImage(image1);
-	
+
+	TransitionImageLayouts(image1.BufferImage, VK_FORMAT_R8G8B8A8_SRGB,
+		VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+	CopyBufferToImage(stagingBuffer.Buffer, image1);
+
+	//we do this to have access to the shader to a sampler
+	TransitionImageLayouts(image1.BufferImage, VK_FORMAT_R8G8B8A8_SRGB,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
+	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
+
 }
 
 void ModelViewer::CreateImage(TextureBufferDesc a_texBuffDesc)
@@ -763,6 +775,8 @@ void ModelViewer::PrepareApp()
 	CreateCommandPool();
 
 	LoadAModel("../../Assets/Models/christmas-ball/source/Christmas_Ball_Sketchfab.fbx");
+
+	LoadTexture("../../Assets/Textures/Statue.jpg");
 
 	CreateUniformBuffer();
 
@@ -872,4 +886,7 @@ void ModelViewer::Draw(float deltaTime)
 
 void ModelViewer::Destroy()
 {
+	//destroy Image
+	vkDestroyImage(m_device, image1.BufferImage, nullptr);
+	vkFreeMemory(m_device, image1.BufferMemory, nullptr);
 }

@@ -95,23 +95,32 @@ public:
 	void CreateLogicalDevice();
 	void CreateSurface();
 
+	//Swap Chain Related
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice a_device);
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector< VkSurfaceFormatKHR >& availableFormats);
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector< VkPresentModeKHR >& availablePresentModes);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& a_capabilities);
 	void CreateSwapChain();
-
-	void CreateImageView();
-
 	void CleanUpSwapChain();
 
+
+	void CreateImageView();
+	
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
+	//Buffer Creation Related
 	uint32_t findMemoryType(uint32_t typeFiler, VkMemoryPropertyFlags properties);
-
 	void CreateBuffer(VkDeviceSize a_size, VkBufferUsageFlags a_usage, VkMemoryPropertyFlags a_properties, VkBuffer& a_buffer, VkDeviceMemory& a_bufferMemory);
-
 	void CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDeviceSize a_size);
+	void CopyBufferToImage(VkBuffer buffer, TextureBufferDesc desc);
+
+
+	//Command Buffer Related
+	VkCommandBuffer BeginSingleTimeCommands();
+	void EndSingleTimeCommands(VkCommandBuffer a_commandBuffer);
+
+	void TransitionImageLayouts(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+
 
 
 	

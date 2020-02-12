@@ -44,7 +44,7 @@ Tentative Project Plans
 6.	Implement Compute Shaders		[Implement some simulation	]
 7.	Implement Geometry Shader		[ ""		""		""		]
 8.	Implement Tesselation Shader	[ ""		""		""		]
-9.	Reflection
+9.	Reflection[SSR]
 10. Offscreen Rendering[Look at Sascha Willems example]
 11. Culling Techniques
 12. Add GLTF model loader.
