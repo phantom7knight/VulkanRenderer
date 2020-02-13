@@ -695,7 +695,7 @@ void ModelViewer::LoadTexture(std::string textureName)
 
 	image1.ImageWidth		= texWidth;
 	image1.ImageHeigth		= texHeight;
-	image1.imageFormat		= VK_FORMAT_R8G8B8A8_UNORM;
+	image1.imageFormat		= VK_FORMAT_R8G8B8A8_SRGB;
 	image1.tiling			= VK_IMAGE_TILING_OPTIMAL;
 	image1.usageFlags		= VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	image1.propertyFlags	= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
@@ -709,7 +709,7 @@ void ModelViewer::LoadTexture(std::string textureName)
 
 	//we do this to have access to the shader to a sampler
 	TransitionImageLayouts(image1.BufferImage, VK_FORMAT_R8G8B8A8_SRGB,
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
 	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
@@ -758,6 +758,69 @@ void ModelViewer::CreateImage(TextureBufferDesc a_texBuffDesc)
 }
 
 
+void ModelViewer::CreateImageTextureView()
+{
+	VkImageViewCreateInfo createInfo = {};
+
+	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	createInfo.image = image1.BufferImage;
+	createInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+	createInfo.pNext = nullptr;
+	createInfo.viewType = VkImageViewType::VK_IMAGE_VIEW_TYPE_2D;
+	createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	createInfo.subresourceRange.baseMipLevel = 0;
+	createInfo.subresourceRange.levelCount = 1;
+	createInfo.subresourceRange.baseArrayLayer = 0;
+	createInfo.subresourceRange.layerCount = 1;
+
+	if (vkCreateImageView(m_device, &createInfo, nullptr, &textureImageView) != VK_SUCCESS)
+	{
+		std::cout << "Unable Image view for the texutre provided \n";
+		return;
+	}
+
+}
+
+void ModelViewer::CreateTextureSampler()
+{
+	VkSamplerCreateInfo createInfo = {};
+
+	createInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	createInfo.pNext = nullptr;
+	
+	createInfo.magFilter = VK_FILTER_LINEAR;
+	createInfo.minFilter = VK_FILTER_LINEAR;
+
+	createInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	createInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	createInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+	createInfo.anisotropyEnable = VK_TRUE;
+	createInfo.maxAnisotropy = 16; // lower value bad quality more performance
+
+	createInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+
+	//******* VERY IMP************//
+	createInfo.unnormalizedCoordinates = VK_FALSE;
+
+	createInfo.compareEnable = VK_FALSE;
+	createInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+
+	createInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	createInfo.mipLodBias = 0.0f;
+	createInfo.minLod = 0.0f;
+	createInfo.maxLod = 0.0f;
+
+	if (vkCreateSampler(m_device, &createInfo, nullptr, &textureSampler) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create sampler for the texture provided");
+		return;
+	}
+
+
+
+}
+
 
 
 void ModelViewer::PrepareApp()
@@ -777,6 +840,10 @@ void ModelViewer::PrepareApp()
 	LoadAModel("../../Assets/Models/christmas-ball/source/Christmas_Ball_Sketchfab.fbx");
 
 	LoadTexture("../../Assets/Textures/Statue.jpg");
+
+	CreateImageTextureView();
+
+	CreateTextureSampler();
 
 	CreateUniformBuffer();
 
@@ -886,6 +953,9 @@ void ModelViewer::Draw(float deltaTime)
 
 void ModelViewer::Destroy()
 {
+	vkDestroySampler(m_device, textureSampler, nullptr);
+	vkDestroyImageView(m_device, textureImageView, nullptr);
+
 	//destroy Image
 	vkDestroyImage(m_device, image1.BufferImage, nullptr);
 	vkFreeMemory(m_device, image1.BufferMemory, nullptr);

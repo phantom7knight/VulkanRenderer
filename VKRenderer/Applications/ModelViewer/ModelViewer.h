@@ -48,6 +48,10 @@ public:
 	
 	void ReCreateSwapChain();
 
+	void CreateImageTextureView();
+
+	void CreateTextureSampler();
+
 
 private:
 
@@ -61,6 +65,9 @@ private:
 	int m_indexBufferCount = 0;
 
 	TextureBufferDesc image1 = {};
+	VkImageView textureImageView;
+	VkSampler textureSampler;
+
 
 };
 

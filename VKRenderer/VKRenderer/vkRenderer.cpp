@@ -297,6 +297,9 @@ bool vkRenderer::isDeviceSuitable(VkPhysicalDevice a_device)
 		isSwapChainSupported = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
 	}
 
+	VkPhysicalDeviceFeatures supportedFeatures;
+	vkGetPhysicalDeviceFeatures(a_device, &supportedFeatures);
+
 	return indices.isComplete() && extensionSupported && isSwapChainSupported;
 	
 }
@@ -394,6 +397,7 @@ void vkRenderer::CreateLogicalDevice()
 
 	//Features which we will be using
 	VkPhysicalDeviceFeatures deviceFeatures = {};
+	deviceFeatures.samplerAnisotropy = VK_TRUE;
 
 	//Device Info
 	VkDeviceCreateInfo createInfo = {};
@@ -619,6 +623,7 @@ void vkRenderer::CreateSwapChain()
 
 
 //===================================================================
+//TODO: GENERALIZE IT!!!!!
 // Creating Image Views[Used to view Images]
 //===================================================================
 
@@ -655,6 +660,7 @@ void vkRenderer::CreateImageView()
 	}
 
 }
+
 
 //===================================================================
 //Command Buffer Recording Related

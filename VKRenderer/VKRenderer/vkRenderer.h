@@ -120,6 +120,7 @@ public:
 	void EndSingleTimeCommands(VkCommandBuffer a_commandBuffer);
 
 	void TransitionImageLayouts(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+;
 
 
 
