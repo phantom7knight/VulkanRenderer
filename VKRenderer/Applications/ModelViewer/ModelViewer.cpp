@@ -74,6 +74,8 @@ void ModelViewer::CreateRenderPass()
 
 void ModelViewer::CreateDescriptorSetLayout()
 {
+	//create binding for UBO
+	//used in vertex shader
 	VkDescriptorSetLayoutBinding layoutBinding = {};
 
 	layoutBinding.binding = 0;
@@ -82,11 +84,26 @@ void ModelViewer::CreateDescriptorSetLayout()
 	layoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	layoutBinding.pImmutableSamplers = nullptr;
 
+	//create binding for sampler
+	//used in pixel shader
+	VkDescriptorSetLayoutBinding samplerBinding = {};
+
+	samplerBinding.binding = 1;
+	samplerBinding.descriptorCount = 1;
+	samplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerBinding.pImmutableSamplers = nullptr;
+
+
+	//create an array of descriptors
+	std::array< VkDescriptorSetLayoutBinding, 2> descriptorsArray = { layoutBinding ,samplerBinding };
+
+
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = 1;
-	layoutInfo.pBindings = &layoutBinding;
+	layoutInfo.bindingCount = static_cast<uint32_t>(descriptorsArray.size());
+	layoutInfo.pBindings = descriptorsArray.data();
 
 	if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_descriptorSetLayout) != VK_SUCCESS)
 	{
@@ -348,16 +365,21 @@ void ModelViewer::CreateUniformBuffer()
 
 void ModelViewer::CreateDescriptorPool()
 {
-	VkDescriptorPoolSize poolSize = {};
+	
+	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
 
-	poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSize.descriptorCount = static_cast<uint32_t>(m_SwapChainImages.size());
+	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_SwapChainImages.size());
+
+	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[1].descriptorCount = static_cast<uint32_t>(m_SwapChainImages.size());
+
 
 	VkDescriptorPoolCreateInfo createInfo = {};
 
 	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	createInfo.poolSizeCount = 1;
-	createInfo.pPoolSizes = &poolSize;
+	createInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+	createInfo.pPoolSizes = poolSizes.data();
 	createInfo.maxSets = static_cast<uint32_t>(m_SwapChainImages.size());
 
 
@@ -367,7 +389,7 @@ void ModelViewer::CreateDescriptorPool()
 	}
 }
 
-void ModelViewer::CreateDesciptorSets()
+void ModelViewer::CreateDescriptorSets()
 {
 	std::vector<VkDescriptorSetLayout> layouts(m_SwapChainImages.size(), m_descriptorSetLayout);
 
@@ -393,19 +415,35 @@ void ModelViewer::CreateDesciptorSets()
 		bufferInfo.offset = 0;
 		bufferInfo.range = sizeof(ModelUBO);
 
-		VkWriteDescriptorSet descriptorWriteInfo = {};
+		VkDescriptorImageInfo imageInfo = {};
 
-		descriptorWriteInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWriteInfo.dstSet = m_DescriptorSets[i];
-		descriptorWriteInfo.dstBinding = 0;
-		descriptorWriteInfo.dstArrayElement = 0;
-		descriptorWriteInfo.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWriteInfo.descriptorCount = 1;
-		descriptorWriteInfo.pBufferInfo = &bufferInfo;
-		descriptorWriteInfo.pImageInfo = nullptr;
-		descriptorWriteInfo.pTexelBufferView = nullptr;
+		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageInfo.sampler = textureSampler;
+		imageInfo.imageView = textureImageView;
 
-		vkUpdateDescriptorSets(m_device, 1, &descriptorWriteInfo, 0, nullptr);
+		std::array< VkWriteDescriptorSet,2> descriptorWriteInfo = {};
+
+		descriptorWriteInfo[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWriteInfo[0].dstSet = m_DescriptorSets[i];
+		descriptorWriteInfo[0].dstBinding = 0;
+		descriptorWriteInfo[0].dstArrayElement = 0;
+		descriptorWriteInfo[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWriteInfo[0].descriptorCount = 1;
+		descriptorWriteInfo[0].pBufferInfo = &bufferInfo;
+		descriptorWriteInfo[0].pImageInfo = nullptr;
+		descriptorWriteInfo[0].pTexelBufferView = nullptr;
+
+		descriptorWriteInfo[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWriteInfo[1].dstSet = m_DescriptorSets[i];
+		descriptorWriteInfo[1].dstBinding = 1;
+		descriptorWriteInfo[1].dstArrayElement = 0;
+		descriptorWriteInfo[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWriteInfo[1].descriptorCount = 1;
+		descriptorWriteInfo[1].pImageInfo = &imageInfo;
+		descriptorWriteInfo[1].pBufferInfo = nullptr; //TODO: Check this
+		descriptorWriteInfo[1].pTexelBufferView = nullptr;
+
+		vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWriteInfo.size()), descriptorWriteInfo.data(), 0, nullptr);
 
 	}
 
@@ -579,7 +617,7 @@ void ModelViewer::ReCreateSwapChain()
 
 	CreateDescriptorPool();
 
-	CreateDesciptorSets();
+	CreateDescriptorSets();
 
 	CreateCommandPool();
 
@@ -837,7 +875,7 @@ void ModelViewer::PrepareApp()
 
 	CreateCommandPool();
 
-	LoadAModel("../../Assets/Models/christmas-ball/source/Christmas_Ball_Sketchfab.fbx");
+	LoadAModel("../../Assets/Models/cube/source/cube.obj");
 
 	LoadTexture("../../Assets/Textures/Statue.jpg");
 
@@ -849,7 +887,7 @@ void ModelViewer::PrepareApp()
 
 	CreateDescriptorPool();
 
-	CreateDesciptorSets();
+	CreateDescriptorSets();
 
 	CreateCommandBuffers();
 

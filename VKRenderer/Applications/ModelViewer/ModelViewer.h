@@ -40,7 +40,7 @@ public:
 	void CreateCommandPool();
 	void CreateUniformBuffer();
 	void CreateDescriptorPool();
-	void CreateDesciptorSets();
+	void CreateDescriptorSets();
 	void CreateCommandBuffers();
 	void CreateSemaphoresandFences();
 

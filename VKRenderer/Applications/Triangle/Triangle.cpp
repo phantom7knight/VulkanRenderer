@@ -653,6 +653,10 @@ void Triangle::CreateVertexBuffer()//Make this Generic
 
 //===================================================================
 // Create and Set Descriptor Layouts[maybe generalize?]
+
+//This functions is used to set the layout which will be 
+//sent to Shaders. Ex: UBO to Vertex Shader and Sampler to 
+//Fragment/Pixel Shader.
 //===================================================================
 
 void Triangle::CreateDescriptorSetLayout()
