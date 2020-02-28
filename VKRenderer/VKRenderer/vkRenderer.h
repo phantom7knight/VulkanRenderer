@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 
+class Camera;
 class vkRenderer
 {
 public:
@@ -61,6 +62,9 @@ public:
 	VkDescriptorPool					m_DescriptorPool;
 
 	std::vector<VkDescriptorSet>		m_DescriptorSets;
+
+
+	Camera								*m_MainCamera;
 
 	//Functions
 	vkRenderer();
@@ -133,6 +137,9 @@ public:
 
 	void InitializeVulkan();
 	
+	void ProcessInput(GLFWwindow* window);
+
+
 	//Pure Virtual so that the inherited class can override.
 	virtual void PrepareApp();
 	

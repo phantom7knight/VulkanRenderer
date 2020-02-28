@@ -900,7 +900,12 @@ void ModelViewer::PrepareApp()
 
 void ModelViewer::Update(float deltaTime)
 {
+	ProcessInput(m_window);
+
 	//Update Camera
+
+
+
 }
 
 void ModelViewer::Draw(float deltaTime)

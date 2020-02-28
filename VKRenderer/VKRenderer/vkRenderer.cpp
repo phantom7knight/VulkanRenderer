@@ -2,7 +2,7 @@
 #include "vkRenderer.h"
 #include "ValidationLayer.hpp"
 #include "ResourceLoader.h"
-
+#include "Camera.h"
 
 
 
@@ -21,7 +21,7 @@ VkDebugUtilsMessengerEXT vkRenderer::getDebugMessenger()
 }
 
 
-vkRenderer::vkRenderer()
+vkRenderer::vkRenderer() :m_MainCamera(new Camera())
 {
 }
 
@@ -687,7 +687,7 @@ VkCommandBuffer vkRenderer::BeginSingleTimeCommands()
 
 	vkBeginCommandBuffer(commandBuffer, &bufferBeginInfo);
 
-	return commandBuffer;
+return commandBuffer;
 }
 
 void vkRenderer::EndSingleTimeCommands(VkCommandBuffer a_commandBuffer)
@@ -773,6 +773,28 @@ void vkRenderer::TransitionImageLayouts(VkImage image, VkFormat format, VkImageL
 
 	EndSingleTimeCommands(cmdBuffer);
 }
+
+//===================================================================
+
+//===================================================================
+void vkRenderer::ProcessInput(GLFWwindow* window)
+{
+	//If Esc button is pressed we close
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	{
+		glfwSetWindowShouldClose(window, true);
+	}
+
+	//Update Keys pressed status for the camera update
+	m_MainCamera->keys.up		= glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS ? true : false;
+	m_MainCamera->keys.down		= glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS ? true : false;
+	m_MainCamera->keys.right	= glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS ? true : false;
+	m_MainCamera->keys.left		= glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS ? true : false;
+
+}
+
+
+
 
 
 //===================================================================
@@ -971,6 +993,12 @@ void vkRenderer::Destroy()
 	glfwDestroyWindow(m_window);
 
 	glfwTerminate();
+
+	//Destroy Camera
+	if (m_MainCamera != NULL)
+	{
+		delete m_MainCamera;
+	}
 	
 }
 

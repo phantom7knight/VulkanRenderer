@@ -118,17 +118,6 @@ public:
 
 };
 
-
-/*class ImageLoader
-{
-private:
-
-
-public:
-
-	void LoadTexture(std::string textureName);
-};*/
-
 class ResourceLoader
 {
 

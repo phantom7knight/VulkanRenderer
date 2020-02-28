@@ -51,3 +51,40 @@ struct SwapChainSupportDetails
 };
 
 
+struct CameraMatrices
+{
+	glm::mat4 perspective;
+	glm::mat4 view;
+
+	CameraMatrices() :perspective(glm::mat4()), view(glm::mat4())
+	{
+
+	}
+};
+
+struct CameraKeys
+{
+	bool left = false;
+	bool right = false;
+	bool up = false;
+	bool down = false;
+} ;
+
+
+struct CameraProperties
+{
+	//Camera's Position and Rotation
+	glm::vec3 rotation = glm::vec3();
+	glm::vec3 position = glm::vec3();
+
+	float rotation_speed = 1.0f;
+	float translation_speed = 1.0f;
+
+	//Field of View
+	float fov;
+	//Near Plane and Far Plane
+	float znear, zfar;
+
+	//to check if the camera is updated
+	bool updated;
+};

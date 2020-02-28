@@ -19,7 +19,6 @@ void MainLoop(vkRenderer* rendererExample)
 
 		glfwPollEvents();
 
-
 		//Renderer Update
 		rendererExample->Update(deltaTime);
 		
