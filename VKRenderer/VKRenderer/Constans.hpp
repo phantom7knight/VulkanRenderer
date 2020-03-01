@@ -76,6 +76,7 @@ struct CameraProperties
 	//Camera's Position and Rotation
 	glm::vec3 rotation = glm::vec3();
 	glm::vec3 position = glm::vec3();
+	const glm::vec3 defPosition = glm::vec3(0.0, 0.0, -10.5);
 
 	float rotation_speed = 1.0f;
 	float translation_speed = 1.0f;
@@ -87,4 +88,13 @@ struct CameraProperties
 
 	//to check if the camera is updated
 	bool updated;
+};
+
+
+struct MousePositions
+{
+	float currentPosX = 0;
+	float currentPosY = 0;
+	float PrevPosX = 0;
+	float PrevPosY = 0;
 };

@@ -35,6 +35,30 @@ void vkRenderer::framebufferResizeCallback(GLFWwindow* window, int width, int he
 	app->m_frameBufferResized = true;
 }
 
+static void MousePosCallBack(GLFWwindow* window, double xpos, double ypos)
+{
+	auto app = reinterpret_cast<vkRenderer*>(glfwGetWindowUserPointer(window));
+
+	app->mousePos.currentPosX = (float)xpos;
+	app->mousePos.currentPosY = (float)ypos;
+
+	int dx =	app->mousePos.PrevPosX - app->mousePos.currentPosX;
+	int dy =   -app->mousePos.PrevPosY + app->mousePos.currentPosY;
+
+	//if left mouse button pressed
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+	{
+		app->m_MainCamera->camProperties.rotation.x += dy * app->m_MainCamera->camProperties.rotation_speed;
+		app->m_MainCamera->camProperties.rotation.y -= dx * app->m_MainCamera->camProperties.rotation_speed;
+		app->m_MainCamera->camProperties.rotation += glm::vec3(dy * app->m_MainCamera->camProperties.rotation_speed, -dx * app->m_MainCamera->camProperties.rotation_speed, 0.0);
+		app->m_MainCamera->update_view_matrix();
+	}
+
+	app->mousePos.PrevPosX	=	app->mousePos.currentPosX;
+	app->mousePos.PrevPosY	=	app->mousePos.currentPosY;
+
+}
+
 bool vkRenderer::InitGLFW()
 {
 
@@ -44,7 +68,9 @@ bool vkRenderer::InitGLFW()
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 	m_window = glfwCreateWindow(WIDTH, HEIGHT, "VkRenderer", nullptr, nullptr);
+	glfwSetWindowUserPointer(m_window, this);
 	glfwSetFramebufferSizeCallback(m_window, framebufferResizeCallback);
+	glfwSetCursorPosCallback(m_window, MousePosCallBack);
 
 	if (!m_window)
 		return false;
@@ -783,6 +809,11 @@ void vkRenderer::ProcessInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		m_MainCamera->camProperties.position = m_MainCamera->camProperties.defPosition;
 	}
 
 	//Update Keys pressed status for the camera update

@@ -1,4 +1,5 @@
 #include "ModelViewer.h"
+#include "../../VKRenderer/Camera.h"
 
 
 
@@ -9,6 +10,13 @@ ModelViewer::ModelViewer()
 
 ModelViewer::~ModelViewer()
 {
+}
+
+
+void ModelViewer::SetUpCameraProperties(Camera* a_cam)
+{
+	//SetUp Camera Properties
+	a_cam->set_position(glm::vec3(0.0, 0.0, -10.5));
 }
 
 
@@ -555,25 +563,24 @@ void ModelViewer::CreateSemaphoresandFences()
 
 }
 
-void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime)
+void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices properties_Cam)
 {
-	//TODO: Fix this
-	a_deltaTime = 0.5f;
 
 
 	ModelUBO mvp_UBO = {};
 
 	//Model Matrix
-	mvp_UBO.ModelMatrix = glm::rotate(glm::mat4(1.0f), a_deltaTime * glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	mvp_UBO.ModelMatrix = glm::scale(mvp_UBO.ModelMatrix, glm::vec3(0.01));
+	mvp_UBO.ModelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0, 0.0, -20.0));
+	mvp_UBO.ModelMatrix = glm::rotate(mvp_UBO.ModelMatrix, glm::radians(-45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	mvp_UBO.ModelMatrix = glm::scale(mvp_UBO.ModelMatrix, glm::vec3(11110.01f));
 
 
 	//View Matrix
-	mvp_UBO.ViewMatrix = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	mvp_UBO.ViewMatrix = cam_matrices.view;// glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 
 	//Projection Matrix
-	mvp_UBO.ProjectionMatrix = glm::perspective(glm::radians(45.0f), m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 10.0f);
+	mvp_UBO.ProjectionMatrix = cam_matrices.perspective;// glm::perspective(glm::radians(45.0f), m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 10.0f);
 	mvp_UBO.ProjectionMatrix[1][1] *= -1;
 
 
@@ -700,7 +707,7 @@ void ModelViewer::LoadAModel(std::string fileName)
 
 }
 
-////Don't include in a header file
+////Don't include in a header file////
 #define STB_IMAGE_IMPLEMENTATION
 #include "../../Dependencies/STB/stb_image.h"
 
@@ -795,7 +802,6 @@ void ModelViewer::CreateImage(TextureBufferDesc a_texBuffDesc)
 	vkBindImageMemory(m_device, image1.BufferImage, image1.BufferMemory, 0);
 }
 
-
 void ModelViewer::CreateImageTextureView()
 {
 	VkImageViewCreateInfo createInfo = {};
@@ -859,7 +865,7 @@ void ModelViewer::CreateTextureSampler()
 
 }
 
-
+//==========================================================================================================
 
 void ModelViewer::PrepareApp()
 {
@@ -893,7 +899,8 @@ void ModelViewer::PrepareApp()
 
 	CreateSemaphoresandFences();
 
-
+	// set up the camera position
+	SetUpCameraProperties(m_MainCamera);
 	
 
 }
@@ -902,8 +909,12 @@ void ModelViewer::Update(float deltaTime)
 {
 	ProcessInput(m_window);
 
-	//Update Camera
+	//set proj matrix
+	m_MainCamera->set_perspective(glm::radians(45.0f), m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 10.0f);
+	cam_matrices.perspective = m_MainCamera->matrices.perspective;
 
+	//set view matrix
+	cam_matrices.view = m_MainCamera->matrices.view;
 
 
 }
@@ -936,7 +947,7 @@ void ModelViewer::Draw(float deltaTime)
 	}
 
 	//Update Uniform Buffers which needs to be sent to Shader every frames
-	UpdateUniformBuffer(imageIndex, deltaTime);
+	UpdateUniformBuffer(imageIndex , cam_matrices);
 
 	//Subit info of which semaphores are being used for Queue
 	VkSubmitInfo submitInfo = {};
@@ -992,6 +1003,7 @@ void ModelViewer::Draw(float deltaTime)
 	}
 
 	m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
 }
 
 void ModelViewer::Destroy()

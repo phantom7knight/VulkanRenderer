@@ -13,5 +13,6 @@ void main()
 {
 	vec4 samplerOutput = texture(samplerTexture1, TexCoords);
 
-	OutColor = samplerOutput;
+	//OutColor = samplerOutput;
+	OutColor = vec4(1.0,0.0,0.0,1.0);
 }

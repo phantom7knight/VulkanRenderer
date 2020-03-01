@@ -1,5 +1,4 @@
 #pragma once
-
 #include "../../VKRenderer/vkRenderer.h"
 
 
@@ -10,7 +9,7 @@ struct ModelUBO
 	glm::mat4 ProjectionMatrix;
 };
 
-
+class Camera;
 class ModelViewer : public vkRenderer
 {
 public:
@@ -30,21 +29,34 @@ public:
 
 
 	//Helper functions for this application
+
+	void SetUpCameraProperties(Camera* a_cam);
+	
 	void SetUpIndexBuffer(const ModelInfo a_modelDesc	, BufferDesc *a_IndexBUffer);
+	
 	void SetUpVertexBuffer(const ModelInfo a_modelDesc	, BufferDesc *a_VertexBUffer);
 
 	void CreateRenderPass();
+
 	void CreateDescriptorSetLayout();
+	
 	void CreateGraphicsPipeline();
+	
 	void CreateFrameBuffers();
+	
 	void CreateCommandPool();
+	
 	void CreateUniformBuffer();
+	
 	void CreateDescriptorPool();
+	
 	void CreateDescriptorSets();
+	
 	void CreateCommandBuffers();
+	
 	void CreateSemaphoresandFences();
 
-	void UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime);
+	void UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices properties_Cam);
 	
 	void ReCreateSwapChain();
 
@@ -67,7 +79,7 @@ private:
 	TextureBufferDesc image1 = {};
 	VkImageView textureImageView;
 	VkSampler textureSampler;
-
+	CameraMatrices cam_matrices;
 
 };
 

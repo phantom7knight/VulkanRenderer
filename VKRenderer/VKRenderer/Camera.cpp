@@ -29,8 +29,7 @@ void Camera::update_view_matrix()
 
 	transformation_matrix = glm::translate(glm::mat4(1.0f), camProperties.position);
 
-	//matrices.view = rotation_matrix * transformation_matrix;
-	matrices.view = transformation_matrix * rotation_matrix;
+	matrices.view = rotation_matrix * transformation_matrix;
 	
 	camProperties.updated = true;
 }

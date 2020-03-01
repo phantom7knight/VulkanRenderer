@@ -44,8 +44,6 @@ public:
 
 	void translate(const glm::vec3& delta);
 
-private:
-
 	CameraProperties camProperties;
 
 	void update_view_matrix();

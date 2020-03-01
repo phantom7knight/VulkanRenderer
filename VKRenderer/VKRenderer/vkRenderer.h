@@ -7,65 +7,6 @@ class vkRenderer
 {
 public:
 
-	//Variables
-	bool m_frameBufferResized = false;
-
-	ResourceLoader rsrcLdr;
-
-	GLFWwindow*							m_window;
-
-
-	//Vulkan Related Parameters
-	VkInstance							m_VulkanInstance;
-	VkDebugUtilsMessengerEXT			m_debugMessenger;
-	VkPhysicalDevice					m_physicalDevice = VK_NULL_HANDLE;
-
-	VkDevice							m_device;
-	VkQueue								m_graphicsQueue;
-	VkSurfaceKHR						m_surface; // This is for relating Windows and Vulkan
-	VkQueue								m_PresentQueue;
-
-	VkSwapchainKHR						m_swapChain;
-	std::vector<VkImage>				m_SwapChainImages;
-	VkFormat							m_swapChainFormat;
-	VkExtent2D							m_swapChainExtent;
-
-	std::vector<VkImageView>			m_SwapChainImageViews;
-	
-	VkRenderPass						m_renderPass;//TODO : This can be modified later
-	VkPipelineLayout					m_pipelineLayout;//TODO : This has to be per Shader/Obj [Look into it]
-	VkPipeline							m_graphicsPipeline;
-
-	std::vector<VkFramebuffer>			m_swapChainFrameBuffer;
-
-	VkCommandPool						m_CommandPool;
-
-	std::vector<VkCommandBuffer>		m_commandBuffers;
-
-	std::vector<VkSemaphore>			m_imageAvailableSemaphore;
-	std::vector<VkSemaphore>			m_renderFinishedSemaphore;
-
-	std::vector<VkFence>				m_inflightFences;
-
-	size_t								m_currentFrame = 0;
-
-	BufferDesc							m_TriangleVertexBuffer;
-
-	BufferDesc							m_RectangleIndexBuffer;
-
-	std::vector<BufferDesc>				m_TriangleUniformBuffer;
-	
-	std::vector<BufferDesc>				m_ModelUniformBuffer;
-
-	VkDescriptorSetLayout				m_descriptorSetLayout;
-
-	VkDescriptorPool					m_DescriptorPool;
-
-	std::vector<VkDescriptorSet>		m_DescriptorSets;
-
-
-	Camera								*m_MainCamera;
-
 	//Functions
 	vkRenderer();
 	virtual ~vkRenderer();
@@ -124,8 +65,6 @@ public:
 	void EndSingleTimeCommands(VkCommandBuffer a_commandBuffer);
 
 	void TransitionImageLayouts(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
-;
-
 
 
 	
@@ -148,6 +87,74 @@ public:
 	virtual void Update(float deltaTime) = 0;
 	
 	virtual void Destroy();
+
+	MousePositions mousePos;
+
+	Camera* m_MainCamera;
+
+protected:
+	
+#pragma region Variables
+	bool m_frameBufferResized = false;
+
+	ResourceLoader rsrcLdr;
+
+	GLFWwindow* m_window;
+
+
+	//Vulkan Related Parameters
+	VkInstance							m_VulkanInstance;
+	VkDebugUtilsMessengerEXT			m_debugMessenger;
+	VkPhysicalDevice					m_physicalDevice = VK_NULL_HANDLE;
+
+	VkDevice							m_device;
+	VkQueue								m_graphicsQueue;
+	VkSurfaceKHR						m_surface; // This is for relating Windows and Vulkan
+	VkQueue								m_PresentQueue;
+
+	VkSwapchainKHR						m_swapChain;
+	std::vector<VkImage>				m_SwapChainImages;
+	VkFormat							m_swapChainFormat;
+	VkExtent2D							m_swapChainExtent;
+
+	std::vector<VkImageView>			m_SwapChainImageViews;
+
+	VkRenderPass						m_renderPass;//TODO : This can be modified later
+	VkPipelineLayout					m_pipelineLayout;//TODO : This has to be per Shader/Obj [Look into it]
+	VkPipeline							m_graphicsPipeline;
+
+	std::vector<VkFramebuffer>			m_swapChainFrameBuffer;
+
+	VkCommandPool						m_CommandPool;
+
+	std::vector<VkCommandBuffer>		m_commandBuffers;
+
+	std::vector<VkSemaphore>			m_imageAvailableSemaphore;
+	std::vector<VkSemaphore>			m_renderFinishedSemaphore;
+
+	std::vector<VkFence>				m_inflightFences;
+
+	size_t								m_currentFrame = 0;
+
+	BufferDesc							m_TriangleVertexBuffer;
+
+	BufferDesc							m_RectangleIndexBuffer;
+
+	std::vector<BufferDesc>				m_TriangleUniformBuffer;
+
+	std::vector<BufferDesc>				m_ModelUniformBuffer;
+
+	VkDescriptorSetLayout				m_descriptorSetLayout;
+
+	VkDescriptorPool					m_DescriptorPool;
+
+	std::vector<VkDescriptorSet>		m_DescriptorSets;
+
+
+
+#pragma endregion
+
+
 
 };
 
