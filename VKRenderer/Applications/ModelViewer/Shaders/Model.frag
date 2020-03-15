@@ -19,8 +19,7 @@ void main()
 	vec3 camPos			= vec3(0.0, 0.0, -10.5);
 	float specIntensity = 32;
 
-	//vec4 samplerOutput = texture(samplerTexture1, TexCoords);
-	//OutColor = samplerOutput;
+	vec4 samplerOutput = texture(samplerTexture1, TexCoords);
 
 	//Simple Lighting
 	//===================
@@ -43,5 +42,6 @@ void main()
 
 	vec4 lightCalcs = vec4((AmbLight + DiffLight + SpecLight) * objColor, 1.0f);
 
-	OutColor = lightCalcs;
+	//OutColor = lightCalcs;
+	OutColor = samplerOutput;
 }

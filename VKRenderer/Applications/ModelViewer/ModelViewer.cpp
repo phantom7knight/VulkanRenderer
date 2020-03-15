@@ -193,6 +193,7 @@ void ModelViewer::CreateGraphicsPipeline()
 	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;//TODO :This can be configurable by user
 	inputAssembly.primitiveRestartEnable = VK_FALSE;
+	inputAssembly.flags = 0;
 
 	//View Ports
 	VkViewport viewPort = {};//TODO :This can be configurable by user
@@ -222,16 +223,17 @@ void ModelViewer::CreateGraphicsPipeline()
 	VkPipelineRasterizationStateCreateInfo rasterizer = {};
 
 	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-	rasterizer.depthClampEnable = VK_FALSE;
+	rasterizer.depthClampEnable = VK_TRUE;
 	rasterizer.rasterizerDiscardEnable = VK_FALSE;
 	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;	//TODO :This can be configurable by user
 	rasterizer.lineWidth = 1.0f;					//TODO :This can be configurable by user
 	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
 	rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizer.depthBiasEnable = VK_FALSE;
-	rasterizer.depthBiasConstantFactor = 0.0f;	//TODO: look into this later, since these are optional
-	rasterizer.depthBiasClamp = 0.0f;			//TODO: look into this later, since these are optional
-	rasterizer.depthBiasSlopeFactor = 0.0f;		//TODO: look into this later, since these are optional
+	rasterizer.depthBiasConstantFactor = 0.0f;	
+	rasterizer.depthBiasClamp = 0.0f;			
+	rasterizer.depthBiasSlopeFactor = 0.0f;		
+	rasterizer.flags = 0;
 
 
 	//Multisampling
@@ -247,6 +249,16 @@ void ModelViewer::CreateGraphicsPipeline()
 
 	//Depth Testing and Stencil Testing
 	VkPipelineDepthStencilStateCreateInfo depthStencilInfo = {};
+
+	depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	depthStencilInfo.depthTestEnable = VK_TRUE;
+	depthStencilInfo.depthWriteEnable = VK_TRUE;
+	depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+	depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
+	depthStencilInfo.minDepthBounds = 0.0f;
+	depthStencilInfo.maxDepthBounds = 1.0f;
+	depthStencilInfo.stencilTestEnable = VK_FALSE;
+	depthStencilInfo.back.compareOp = VK_COMPARE_OP_ALWAYS;
 
 	//Color Blending
 	VkPipelineColorBlendAttachmentState colorBlendAttachment = {};//For individual attached frame buffer settings
@@ -295,6 +307,7 @@ void ModelViewer::CreateGraphicsPipeline()
 	createGraphicsPipelineInfo.pVertexInputState = &VertexInputInfo;
 	createGraphicsPipelineInfo.pInputAssemblyState = &inputAssembly;
 	createGraphicsPipelineInfo.pViewportState = &viewPortState;
+	createGraphicsPipelineInfo.pDepthStencilState = &depthStencilInfo;
 	createGraphicsPipelineInfo.pRasterizationState = &rasterizer;
 	createGraphicsPipelineInfo.pMultisampleState = &multiSampling;
 	createGraphicsPipelineInfo.pDepthStencilState = nullptr;
@@ -503,9 +516,11 @@ void ModelViewer::CreateCommandBuffers()
 
 
 		//Clear Color//
-		VkClearValue clearColor = { 0.0,0.0,0.0,1.0 };
-		renderpassBeginInfo.clearValueCount = 1;
-		renderpassBeginInfo.pClearValues = &clearColor;
+		VkClearValue clearColor[2];
+		clearColor[0] = { 0.0,0.0,0.0,1.0 };
+		clearColor[1] = { 1.0f, 0 };
+		renderpassBeginInfo.clearValueCount = 2;
+		renderpassBeginInfo.pClearValues = clearColor;
 
 
 		vkCmdBeginRenderPass(m_commandBuffers[i], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -577,7 +592,7 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices pro
 	mvp_UBO.ModelMatrix = glm::mat4(1);
 	mvp_UBO.ModelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0, 0.0, 0.0));
 	mvp_UBO.ModelMatrix = glm::rotate(mvp_UBO.ModelMatrix, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	mvp_UBO.ModelMatrix = glm::scale(mvp_UBO.ModelMatrix, glm::vec3(0.05f));
+	mvp_UBO.ModelMatrix = glm::scale(mvp_UBO.ModelMatrix, glm::vec3(0.005f));
 
 
 	//View Matrix
@@ -886,10 +901,12 @@ void ModelViewer::PrepareApp()
 
 	CreateCommandPool();
 
+	//LoadAModel("../../Assets/Models/cornell_box/cornell_box.obj");
 	LoadAModel("../../Assets/Models/monkey/monkey.obj");
-	//LoadAModel("../../Assets/Models/cube/source/cube.obj");
+	//LoadAModel("../../Assets/Models/venus/venus.fbx");
 
-	LoadTexture("../../Assets/Textures/Statue.jpg");
+	//LoadTexture("../../Assets/Textures/Statue.jpg");
+	LoadTexture("../../Assets/Textures/green.jpg");
 
 	CreateImageTextureView();
 
