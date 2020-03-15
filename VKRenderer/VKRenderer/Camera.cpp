@@ -29,7 +29,7 @@ void Camera::update_view_matrix()
 
 	transformation_matrix = glm::translate(glm::mat4(1.0f), camProperties.position);
 
-	matrices.view = rotation_matrix * transformation_matrix;
+	matrices.view = transformation_matrix * rotation_matrix;
 	
 	camProperties.updated = true;
 }
@@ -60,6 +60,7 @@ void Camera::set_perspective(float fov, float aspect, float znear, float zfar)
 void Camera::update_aspect_ratio(float aspect)
 {
 	matrices.perspective = glm::perspective(glm::radians(camProperties.fov), aspect, camProperties.znear, camProperties.zfar);
+	//matrices.perspective = glm::ortho(0.f, 400.f, 0.f, 400.f, -1.f, 1.f);
 }
 
 void Camera::set_position(const glm::vec3& position)

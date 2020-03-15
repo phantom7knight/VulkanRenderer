@@ -12,13 +12,17 @@ ModelViewer::~ModelViewer()
 {
 }
 
-
 void ModelViewer::SetUpCameraProperties(Camera* a_cam)
 {
 	//SetUp Camera Properties
 	a_cam->set_position(glm::vec3(0.0, 0.0, -10.5));
-}
+	a_cam->camProperties.rotation_speed	   = 0.2f;
+	a_cam->camProperties.translation_speed = 0.002f;
 
+	//set proj matrix
+	a_cam->set_perspective(glm::radians(45.0f), (float)m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 1000.0f);
+
+}
 
 void ModelViewer::CreateRenderPass()
 {
@@ -570,17 +574,18 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices pro
 	ModelUBO mvp_UBO = {};
 
 	//Model Matrix
-	mvp_UBO.ModelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0, 0.0, -20.0));
-	mvp_UBO.ModelMatrix = glm::rotate(mvp_UBO.ModelMatrix, glm::radians(-45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	mvp_UBO.ModelMatrix = glm::scale(mvp_UBO.ModelMatrix, glm::vec3(11110.01f));
+	mvp_UBO.ModelMatrix = glm::mat4(1);
+	mvp_UBO.ModelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0, 0.0, 0.0));
+	mvp_UBO.ModelMatrix = glm::rotate(mvp_UBO.ModelMatrix, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	mvp_UBO.ModelMatrix = glm::scale(mvp_UBO.ModelMatrix, glm::vec3(0.05f));
 
 
 	//View Matrix
-	mvp_UBO.ViewMatrix = cam_matrices.view;// glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	mvp_UBO.ViewMatrix = cam_matrices.view;
 
 
 	//Projection Matrix
-	mvp_UBO.ProjectionMatrix = cam_matrices.perspective;// glm::perspective(glm::radians(45.0f), m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 10.0f);
+	mvp_UBO.ProjectionMatrix = cam_matrices.perspective;
 	mvp_UBO.ProjectionMatrix[1][1] *= -1;
 
 
@@ -881,7 +886,8 @@ void ModelViewer::PrepareApp()
 
 	CreateCommandPool();
 
-	LoadAModel("../../Assets/Models/cube/source/cube.obj");
+	LoadAModel("../../Assets/Models/monkey/monkey.obj");
+	//LoadAModel("../../Assets/Models/cube/source/cube.obj");
 
 	LoadTexture("../../Assets/Textures/Statue.jpg");
 
@@ -909,8 +915,6 @@ void ModelViewer::Update(float deltaTime)
 {
 	ProcessInput(m_window);
 
-	//set proj matrix
-	m_MainCamera->set_perspective(glm::radians(45.0f), m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 10.0f);
 	cam_matrices.perspective = m_MainCamera->matrices.perspective;
 
 	//set view matrix

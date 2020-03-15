@@ -78,8 +78,8 @@ struct CameraProperties
 	glm::vec3 position = glm::vec3();
 	const glm::vec3 defPosition = glm::vec3(0.0, 0.0, -10.5);
 
-	float rotation_speed = 1.0f;
-	float translation_speed = 1.0f;
+	float rotation_speed = 0.5f;
+	float translation_speed = 0.5f;
 
 	//Field of View
 	float fov;

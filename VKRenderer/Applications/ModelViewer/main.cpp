@@ -36,7 +36,7 @@ void MainLoop(vkRenderer* rendererExample)
 
 		//print camera position
 
-		if (i % 500 == 0)
+		/*if (i % 500 == 0)
 		{
 			std::cout << "The position is " << " X: " << rendererExample->m_MainCamera->camProperties.position.x << " Y: " << rendererExample->m_MainCamera->camProperties.position.y << " Z: "
 				<< rendererExample->m_MainCamera->camProperties.position.z << std::endl;
@@ -45,7 +45,7 @@ void MainLoop(vkRenderer* rendererExample)
 		else
 		{
 			++i;
-		}
+		}*/
 
 		if (deltaTimeDiff > 1000.0f)
 		{

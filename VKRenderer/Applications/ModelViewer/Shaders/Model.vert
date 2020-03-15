@@ -22,13 +22,18 @@ layout(location = 3) in 	vec2 aTangents;
 
 layout(location = 4) in 	vec2 aBiTangents;
 
-layout(location = 0) out 	vec3 fragColor;
+
+
+layout(location = 0) out 	vec3 fragPos;
 
 layout(location = 1) out	vec2 TexCoords;
+
+layout(location = 2) out	vec3 Normals;
 	
 void main()
 {
-	gl_Position = ubo.ProjectionMatrix * ubo.ViewMatrix * ubo.ModelMatrix * vec4( aPos, 1.0);
-	fragColor = vec3(1.0,0.5,0.222);
-	TexCoords = aTexCoords;
+	fragPos		= vec3(ubo.ModelMatrix * vec4(aPos, 1.0));
+	TexCoords	= aTexCoords;
+	Normals		= mat3(transpose(inverse(ubo.ModelMatrix))) * aNormal;
+	gl_Position = ubo.ProjectionMatrix * ubo.ViewMatrix * vec4(fragPos,1.0f);
 }
