@@ -1,5 +1,6 @@
 #include "ModelViewer.h"
 #include "../../VKRenderer/Camera.h"
+#include "../../Dependencies/Imgui/IMGUI/Imgui_Impl.h"
 
 
 
@@ -386,7 +387,7 @@ void ModelViewer::CreateCommandPool()
 
 	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	createInfo.queueFamilyIndex = queuefamilyindeces.graphicsFamily.value();
-	createInfo.flags = 0;
+	createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
 	if (vkCreateCommandPool(m_device, &createInfo, nullptr, &m_CommandPool) != VK_SUCCESS)
 	{
@@ -511,64 +512,6 @@ void ModelViewer::CreateCommandBuffers()
 		throw std::runtime_error("Unable to create Command Buffers");
 	}
 
-	//Record Command Buffer data
-	for (size_t i = 0; i < m_commandBuffers.size(); ++i)
-	{
-		VkCommandBufferBeginInfo beginInfo = {};
-
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-		beginInfo.pInheritanceInfo = nullptr;
-
-		//Start Recording
-		if (vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Unable to begin recording Command Buffer");
-		}
-
-		VkRenderPassBeginInfo renderpassBeginInfo = {};
-
-		renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderpassBeginInfo.renderPass = m_renderPass;
-		renderpassBeginInfo.framebuffer = m_swapChainFrameBuffer[i];
-		renderpassBeginInfo.renderArea.offset = { 0,0 };
-		renderpassBeginInfo.renderArea.extent = m_swapChainExtent;
-
-
-		//Clear Color//
-		VkClearValue clearColor[2];
-		clearColor[0] = { 0.0,0.0,0.0,1.0 };
-		clearColor[1] = { 1.0f, 0.0f };
-		renderpassBeginInfo.clearValueCount = 2;
-		renderpassBeginInfo.pClearValues = clearColor;
-
-
-		vkCmdBeginRenderPass(m_commandBuffers[i], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-
-		vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
-
-		vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
-
-		VkDeviceSize offset = { 0 };
-
-		//Bind Vertex Buffer
-		vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &VertexBUffer.Buffer, &offset);
-
-		//Bind Index Buffer
-		vkCmdBindIndexBuffer(m_commandBuffers[i], IndexBUffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
-
-		//Call Draw Indexed for the model
-		vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_indexBufferCount), 1, 0, 0, 0);
-
-		vkCmdEndRenderPass(m_commandBuffers[i]);
-
-		//End Recording
-		if (vkEndCommandBuffer(m_commandBuffers[i]) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Failed to record Command Buffer");
-		}
-
-	}
 }
 
 void ModelViewer::CreateSemaphoresandFences()
@@ -631,6 +574,72 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices pro
 	vkMapMemory(m_device, m_ModelUniformBuffer[a_imageIndex].BufferMemory, 0, sizeof(mvp_UBO), 0, &data);
 	memcpy(data, &mvp_UBO, sizeof(mvp_UBO));
 	vkUnmapMemory(m_device, m_ModelUniformBuffer[a_imageIndex].BufferMemory);
+}
+
+void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
+{
+	uint32_t i = a_imageIndex;
+	VkCommandBufferBeginInfo beginInfo = {};
+
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+	beginInfo.pInheritanceInfo = nullptr;
+
+	//Start Recording
+	if (vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to begin recording Command Buffer");
+	}
+
+	VkRenderPassBeginInfo renderpassBeginInfo = {};
+
+	renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderpassBeginInfo.renderPass = m_renderPass;
+	renderpassBeginInfo.framebuffer = m_swapChainFrameBuffer[i];
+	renderpassBeginInfo.renderArea.offset = { 0,0 };
+	renderpassBeginInfo.renderArea.extent = m_swapChainExtent;
+
+
+	//Clear Color//
+	VkClearValue clearColor[2];
+	clearColor[0] = { 0.0,0.0,0.0,1.0 };
+	clearColor[1] = { 1.0f, 0.0f };
+	renderpassBeginInfo.clearValueCount = 2;
+	renderpassBeginInfo.pClearValues = clearColor;
+
+
+	vkCmdBeginRenderPass(m_commandBuffers[i], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+	vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
+
+	vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
+
+	VkDeviceSize offset = { 0 };
+
+	//Bind Vertex Buffer
+	vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &VertexBUffer.Buffer, &offset);
+
+	//Bind Index Buffer
+	vkCmdBindIndexBuffer(m_commandBuffers[i], IndexBUffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
+
+	//Call Draw Indexed for the model
+	vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_indexBufferCount), 1, 0, 0, 0);
+	
+	//==================================================
+	//Draw UI
+	
+	Imgui_Impl::getInstance()->DrawGui(m_commandBuffers[i]);
+		
+	//==================================================
+	
+	vkCmdEndRenderPass(m_commandBuffers[i]);
+
+	//End Recording
+	if (vkEndCommandBuffer(m_commandBuffers[i]) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to record Command Buffer");
+	}
+
 }
 
 void ModelViewer::ReCreateSwapChain()
@@ -951,6 +960,27 @@ void ModelViewer::PrepareApp()
 
 	// set up the camera position
 	SetUpCameraProperties(m_MainCamera);
+
+
+	//GLFWwindow* a_window, ImGui_ImplVulkan_InitInfo a_GUIInitInfo, VkRenderPass a_renderPass, VkQueue a_graphicsQueue,
+	//VkCommandPoolCreateFlags a_poolFlags, uint32_t a_queueFamilyIndex
+
+	ImGui_ImplVulkan_InitInfo imguiInfo = {};
+
+	imguiInfo.Instance = m_VulkanInstance;
+	imguiInfo.Allocator = nullptr;
+	imguiInfo.Device = m_device;
+	imguiInfo.PhysicalDevice = m_physicalDevice;
+	imguiInfo.DescriptorPool = nullptr;//this will be gui created descriptor pool
+	imguiInfo.ImageCount = IMAGE_COUNT;
+	imguiInfo.MinImageCount = 2;
+	imguiInfo.Queue = m_graphicsQueue;
+	imguiInfo.QueueFamily = findQueueFamilies(m_physicalDevice).graphicsFamily.value();
+	imguiInfo.PipelineCache = nullptr;
+
+
+	//Init the GUI for IMGUI
+	Imgui_Impl::getInstance()->Init(m_window, imguiInfo, m_renderPass, m_CommandPool);
 	
 
 }
@@ -993,6 +1023,9 @@ void ModelViewer::Draw(float deltaTime)
 	{
 		throw std::runtime_error("Failed to acquire swap chain image");
 	}
+
+	//update our command buffers
+	UpdateCommandBuffers(imageIndex);
 
 	//Update Uniform Buffers which needs to be sent to Shader every frames
 	UpdateUniformBuffer(imageIndex , cam_matrices);
@@ -1070,4 +1103,8 @@ void ModelViewer::Destroy()
 	//destroy Image
 	vkDestroyImage(m_device, image1.BufferImage, nullptr);
 	vkFreeMemory(m_device, image1.BufferMemory, nullptr);
+
+
+	Imgui_Impl::getInstance()->DestroyGui(m_device);
+
 }

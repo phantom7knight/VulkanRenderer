@@ -57,6 +57,8 @@ public:
 	void CreateSemaphoresandFences();
 
 	void UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices properties_Cam);
+
+	void UpdateCommandBuffers(uint32_t a_imageIndex);
 	
 	void ReCreateSwapChain();
 
