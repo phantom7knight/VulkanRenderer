@@ -96,10 +96,10 @@ struct VertexInfo
 
 typedef struct
 {
-	uint32_t vertexBufferSize;
+	uint32_t vertexBufferSize = 0;
 	std::vector<VertexInfo> vertexbufferData;
 	
-	uint32_t indexBufferSize;
+	uint32_t indexBufferSize = 0;
 	std::vector<uint32_t> indexbufferData;
 }ModelInfo;
 
@@ -122,7 +122,7 @@ class ResourceLoader
 {
 
 public:
-	ResourceLoader() : m_bGeneratedSPIRV(false)
+	ResourceLoader()
 	{
 
 	}
@@ -166,7 +166,6 @@ private:
 	bool				CheckifSPIRVGenerated(std::vector<std::string> ShaderFileNames);
 
 	//Bool to check if the SPIR-V files have been generated
-	bool m_bGeneratedSPIRV;
 	FileOperations m_fileOpsObj;
 	MeshLoader m_MeshLoaderObj;
 	//ImageLoader m_ImageLoaderObj;
