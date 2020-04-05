@@ -1,5 +1,13 @@
 #include "stdafx.h"
 #include "vkTimer.h"
+#include <ctime>
+
+# pragma comment(lib, "secur32.lib")
+# pragma comment(lib, "winmm.lib")
+# pragma comment(lib, "dmoguids.lib")
+# pragma comment(lib, "wmcodecdspuuid.lib")
+# pragma comment(lib, "msdmo.lib")
+# pragma comment(lib, "Strmiids.lib")
 
 //Static variable declaration
 vkTimer* vkTimer::m_instance = nullptr;

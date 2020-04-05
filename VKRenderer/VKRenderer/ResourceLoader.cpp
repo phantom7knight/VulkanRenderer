@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include "ResourceLoader.h"
 
+#pragma region File-Operations
 //if error then add "static" keyword for this function
-std::vector<char> ResourceLoader::readFile(const std::string& filename)
+std::vector<char, std::allocator<char>> FileOperations::readFile(const std::string& filename)
 {
 	std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
@@ -32,7 +33,7 @@ bool ResourceLoader::checkIfCharacterExists(const std::string a_string, char a_t
 	return false;
 }
 
-std::string ReplaceCharacter(const std::string a_str, char a_toReplaceWith, char a_toSearchFor)
+std::string FileOperations::ReplaceCharacter(const std::string a_str, char a_toReplaceWith, char a_toSearchFor)
 {
 	std::string res = a_str;
 
@@ -48,32 +49,32 @@ std::string ReplaceCharacter(const std::string a_str, char a_toReplaceWith, char
 }
 
 
-bool IfFileExists(const char* filename)
+bool FileOperations::IfFileExists(const char* filename)
 {
 	std::ifstream ifile(filename);
 	return (bool)ifile;
 }
 
 
-FILE* OpenFile(std::string a_FileName,const char* flags)
+FILE* FileOperations::OpenFile(std::string a_FileName,const char* flags)
 {
 	FILE* fp;
 	fopen_s(&fp, a_FileName.c_str(), flags);
 	return fp;
 }
 
-long TellFile(FILE* file)
+long FileOperations::TellFile(FILE* file)
 {
 	long result = ftell(file);
 	return result;
 }
 
-bool SeekFIle(FILE* fp, long offset, int origin)
+bool FileOperations::SeekFIle(FILE* fp, long offset, int origin)
 {
 	return fseek(fp, offset, origin) == 0;
 }
 
-unsigned GetFileSize(std::string a_FileName)
+unsigned FileOperations::GetFileSize(std::string a_FileName)
 {
 	//Open File and get Handle
 	FILE* fp = OpenFile(a_FileName, "r");
@@ -87,13 +88,14 @@ unsigned GetFileSize(std::string a_FileName)
 	return (unsigned)length;
 }
 
-std::string ResourceLoader::get_current_dir()
+std::string FileOperations::get_current_dir()
 {
 	char buff[FILENAME_MAX]; //create string buffer to hold path
 	_getcwd(buff, FILENAME_MAX);
 	std::string current_working_dir(buff);
 	return current_working_dir;
 }
+#pragma endregion
 
 #pragma region Shader-Loading
 
@@ -102,8 +104,8 @@ VkShaderModule ResourceLoader::createShaderModule(ShaderDesc desc)
 	VkShaderModuleCreateInfo createInfo = {};
 
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	createInfo.codeSize = desc.shaderCode.size();
-	createInfo.pCode = reinterpret_cast<const uint32_t*>(desc.shaderCode.data());
+	createInfo.codeSize = desc.shaderCode->size();
+	createInfo.pCode = reinterpret_cast<const uint32_t*>(desc.shaderCode->data());
 
 	VkShaderModule shaderModule;
 
@@ -116,8 +118,6 @@ VkShaderModule ResourceLoader::createShaderModule(ShaderDesc desc)
 
 }
 
-
-
 bool ResourceLoader::CheckifSPIRVGenerated(std::vector<std::string> a_fileNames)
 {
 	//check for the shader bytecode file existence
@@ -125,14 +125,14 @@ bool ResourceLoader::CheckifSPIRVGenerated(std::vector<std::string> a_fileNames)
 	{
 		std::string file_name = "Shaders/BinaryCode/" + a_fileNames[i] + ".spv";
 		//First check if file exists
-		if (!IfFileExists(file_name.c_str()))
+		if (!m_fileOpsObj.IfFileExists(file_name.c_str()))
 		{
 			std::cout << "ByteCode for the file " + a_fileNames[i] + " doesn't exist \n";;
 			return false;
 		}
 
 		//Secondly check the size of the file
-		if (GetFileSize(file_name) == 0)
+		if (m_fileOpsObj.GetFileSize(file_name) == 0)
 		{
 			std::cout << "Filesize for the file " + a_fileNames[i] + " was 0 \n";
 			return false;
@@ -154,7 +154,7 @@ void ResourceLoader::GenerateBatchFile(std::vector<std::string> fileNames)
 
 	if (checkIfCharacterExists(vulkansdk_name, '\\'))
 	{
-		vulkansdk_name_replaced = ReplaceCharacter(vulkansdk_name, '/', '\\' );
+		vulkansdk_name_replaced = m_fileOpsObj.ReplaceCharacter(vulkansdk_name, '/', '\\' );
 	}
 	else
 	{
@@ -189,7 +189,6 @@ bool ResourceLoader::CreateDirectoryFolder(std::string a_pathName)
 	return true;
 }
 
-
 void ResourceLoader::CreateFolderForSPIRV(std::string a_pathName)
 {
 	CreateDirectoryFolder(a_pathName);
@@ -208,7 +207,6 @@ void ResourceLoader::RunShaderBatchFile()
 	std::cout << "================================================ \n";
 	
 }
-
 
 void ResourceLoader::GenerateSPIRVShaders(std::vector<std::string> ShaderFileNames)
 {
@@ -231,15 +229,157 @@ void ResourceLoader::GenerateSPIRVShaders(std::vector<std::string> ShaderFileNam
 	
 }
 
+#pragma endregion
 
+#pragma region Model-Loading
+
+VkVertexInputBindingDescription MeshLoader::getBindingDescription()
+{
+	return VertexInfo::getBindingDescription();
+}
+
+std::array<VkVertexInputAttributeDescription, 5> MeshLoader::getAttributeDescriptionsofVertex()
+{
+	return VertexInfo::getAttributeDescriptionsofVertex();
+}
+
+ModelInfo MeshLoader::LoadModel(std::string fileName)
+{
+	
+	Assimp::Importer m_Importer;
+	const aiScene *m_pScene = nullptr;
+
+	ModelInfo modelDesc;
+
+	// Flags for loading the mesh
+	static const int assimpFlags = aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_PreTransformVertices;
+
+	m_pScene = m_Importer.ReadFile(fileName.c_str(), assimpFlags);
+
+	if (m_pScene == NULL)
+	{
+		std::cout << "Failed to load the scene \n";
+		return ModelInfo{};
+	}
+
+	//Vertex Loading
+	std::vector<VertexInfo> vertexbuffer;
+
+	for (uint32_t m = 0; m < m_pScene->mNumMeshes; ++m)
+	{
+		for (uint32_t vert = 0; vert < m_pScene->mMeshes[m]->mNumVertices; ++vert)
+		{
+			VertexInfo vertex;
+
+			//Position
+			if (m_pScene->mMeshes[m]->HasPositions())
+			{
+				vertex.Position.x = m_pScene->mMeshes[m]->mVertices[vert].x;
+				vertex.Position.y = m_pScene->mMeshes[m]->mVertices[vert].y;
+				vertex.Position.z = m_pScene->mMeshes[m]->mVertices[vert].z;
+			}
+
+			//Normal
+			if (m_pScene->mMeshes[m]->HasNormals())
+			{
+				vertex.Normal.x = m_pScene->mMeshes[m]->mNormals[vert].x;
+				vertex.Normal.y = m_pScene->mMeshes[m]->mNormals[vert].y;
+				vertex.Normal.z = m_pScene->mMeshes[m]->mNormals[vert].z;
+			}
+
+			//UV
+			if (m_pScene->mMeshes[m]->HasTextureCoords(0))
+			{
+				vertex.UV.x = m_pScene->mMeshes[m]->mTextureCoords[0][vert].x;
+				vertex.UV.y = m_pScene->mMeshes[m]->mTextureCoords[0][vert].y;
+			}
+
+			//Tangent and BiTangents
+			if (m_pScene->mMeshes[m]->HasTangentsAndBitangents())
+			{
+				vertex.Tangent.x = m_pScene->mMeshes[m]->mTangents[vert].x;
+				vertex.Tangent.y = m_pScene->mMeshes[m]->mTangents[vert].y;
+				vertex.Tangent.z = m_pScene->mMeshes[m]->mTangents[vert].z;
+
+				vertex.BiTangent.x = m_pScene->mMeshes[m]->mBitangents[vert].x;
+				vertex.BiTangent.y = m_pScene->mMeshes[m]->mBitangents[vert].y;
+				vertex.BiTangent.z = m_pScene->mMeshes[m]->mBitangents[vert].z;
+
+			}
+
+			vertexbuffer.push_back(vertex);
+		}
+	}
+
+	size_t vertexBufferSize = vertexbuffer.size() * sizeof(VertexInfo);
+
+	modelDesc.vertexBufferSize = vertexBufferSize;
+	modelDesc.vertexbufferData = vertexbuffer;
+
+	//Index Loading
+	std::vector<uint32_t>indexBuffer;
+	for (uint32_t m = 0; m < m_pScene->mNumMeshes; ++m)
+	{
+		uint32_t sizeIndex = indexBuffer.size();
+
+		for (uint32_t f = 0; f < m_pScene->mMeshes[m]->mNumFaces; ++f)
+		{
+			for (uint32_t i = 0; i < 3; ++i)
+			{
+				indexBuffer.push_back(m_pScene->mMeshes[m]->mFaces[f].mIndices[i] + sizeIndex);
+			}
+		}		
+	}
+
+	size_t indexBufferSize = indexBuffer.size() * sizeof(uint32_t);
+	
+	modelDesc.indexBufferSize = indexBufferSize;
+	modelDesc.indexbufferData = indexBuffer;
+
+	return modelDesc;
+
+}
+
+ModelInfo ResourceLoader::LoadModelResource(std::string fileName)
+{
+	ModelInfo modeldesc = m_MeshLoaderObj.LoadModel(fileName);
+
+	return modeldesc;
+}
 
 #pragma endregion
 
 
+#pragma region Texture-Loading
+
+//Don't include in a header file
+/*#define STB_IMAGE_IMPLEMENTATION
+#include "../../Dependencies/STB/stb_image.h"
 
 
-#pragma region Model-Loading
+void ImageLoader::LoadTexture(std::string textureName)
+{
+	int texWidth, texHeight, texChannels;
+
+	stbi_uc* pixels = stbi_load(textureName.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
+	VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+	if (!pixels)
+		std::cout << "Failed to load Texture : " << textureName << "\n";
 
 
+	BufferDesc stagingBuffer;
 
+	CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer.Buffer, stagingBuffer.BufferMemory);
+
+	void* data;
+	vkMapMemory(m_device, stagingBuffer.BufferMemory, 0, imageSize, 0, &data);
+	memcpy(data, pixels, static_cast<size_t>(imageSize));
+	vkUnmapMemory(m_device, stagingBuffer.BufferMemory);
+
+
+	//free the loaded image
+	stbi_image_free(pixels);
+}*/
 #pragma endregion

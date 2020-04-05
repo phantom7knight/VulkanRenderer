@@ -2,7 +2,7 @@
 #include "vkRenderer.h"
 #include "ValidationLayer.hpp"
 #include "ResourceLoader.h"
-
+#include "Camera.h"
 
 
 
@@ -21,7 +21,7 @@ VkDebugUtilsMessengerEXT vkRenderer::getDebugMessenger()
 }
 
 
-vkRenderer::vkRenderer()
+vkRenderer::vkRenderer() :m_MainCamera(new Camera())
 {
 }
 
@@ -29,12 +29,34 @@ vkRenderer::~vkRenderer()
 {
 }
 
-
-
 void vkRenderer::framebufferResizeCallback(GLFWwindow* window, int width, int height)
 {
 	auto app = reinterpret_cast<vkRenderer*>(glfwGetWindowUserPointer(window));
 	app->m_frameBufferResized = true;
+}
+
+static void MousePosCallBack(GLFWwindow* window, double xpos, double ypos)
+{
+	auto app = reinterpret_cast<vkRenderer*>(glfwGetWindowUserPointer(window));
+
+	app->mousePos.currentPosX = (float)xpos;
+	app->mousePos.currentPosY = (float)ypos;
+
+	int dx =	app->mousePos.PrevPosX - app->mousePos.currentPosX;
+	int dy =   -app->mousePos.PrevPosY + app->mousePos.currentPosY;
+
+	//if left mouse button pressed
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+	{
+		app->m_MainCamera->camProperties.rotation.x += dy * app->m_MainCamera->camProperties.rotation_speed;
+		app->m_MainCamera->camProperties.rotation.y -= dx * app->m_MainCamera->camProperties.rotation_speed;
+		app->m_MainCamera->camProperties.rotation += glm::vec3(dy * app->m_MainCamera->camProperties.rotation_speed, -dx * app->m_MainCamera->camProperties.rotation_speed, 0.0);
+		app->m_MainCamera->update_view_matrix();
+	}
+
+	app->mousePos.PrevPosX	=	app->mousePos.currentPosX;
+	app->mousePos.PrevPosY	=	app->mousePos.currentPosY;
+
 }
 
 bool vkRenderer::InitGLFW()
@@ -46,12 +68,147 @@ bool vkRenderer::InitGLFW()
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 	m_window = glfwCreateWindow(WIDTH, HEIGHT, "VkRenderer", nullptr, nullptr);
+	glfwSetWindowUserPointer(m_window, this);
 	glfwSetFramebufferSizeCallback(m_window, framebufferResizeCallback);
+	glfwSetCursorPosCallback(m_window, MousePosCallBack);
 
 	if (!m_window)
 		return false;
 
 	return true;
+}
+
+//===================================================================
+//Buffer Description
+//===================================================================
+
+uint32_t vkRenderer::findMemoryType(uint32_t typeFiler, VkMemoryPropertyFlags properties)
+{
+	VkPhysicalDeviceMemoryProperties memProperties;
+	vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memProperties);
+
+	for (uint32_t i = 0; i < memProperties.memoryTypeCount; ++i)
+	{
+		if (typeFiler & (1 << i) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+		{
+			return i;
+		}
+	}
+
+	throw std::runtime_error("Failed to find suitable memory type!");
+
+
+}
+
+
+void vkRenderer::CreateBuffer(VkDeviceSize a_size, VkBufferUsageFlags a_usage, VkMemoryPropertyFlags a_properties, VkBuffer& a_buffer, VkDeviceMemory& a_bufferMemory)
+{
+	/////For EX: Buffer for the coordinates of Triangle which are being sent to the VS
+	VkBufferCreateInfo bufferCreateInfo = {};
+
+	bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferCreateInfo.size = a_size;
+	bufferCreateInfo.usage = a_usage;
+	bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (vkCreateBuffer(m_device, &bufferCreateInfo, nullptr, &a_buffer) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to Create Buffer");
+	}
+
+	VkMemoryRequirements memRequirements;
+	vkGetBufferMemoryRequirements(m_device, a_buffer, &memRequirements);
+
+	VkMemoryAllocateInfo allocateInfo = {};
+
+	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocateInfo.allocationSize = memRequirements.size;
+	allocateInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, a_properties);// VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+	//Allocated memory for the Vertex Buffer
+	if (vkAllocateMemory(m_device, &allocateInfo, nullptr, &a_bufferMemory) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to allocate memory for the Buffer");
+	}
+	vkBindBufferMemory(m_device, a_buffer, a_bufferMemory, 0);
+
+
+}
+
+
+void vkRenderer::CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDeviceSize a_size)
+{
+	//VkCommandBufferAllocateInfo allocInfo = {};
+	//
+	//allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	//allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	//allocInfo.commandPool = m_CommandPool;
+	//allocInfo.commandBufferCount = 1;
+	//
+	//VkCommandBuffer commandBuffer;
+	//vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer);
+	//
+	////Start recording Command Buffer
+	//
+	//VkCommandBufferBeginInfo bufferBeginInfo = {};
+	//
+	//bufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	//bufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	//
+	//vkBeginCommandBuffer(commandBuffer, &bufferBeginInfo);
+
+	VkCommandBuffer a_cmdBuffer = BeginSingleTimeCommands();
+
+	VkBufferCopy copyRegion = {};
+
+	copyRegion.srcOffset = 0;
+	copyRegion.dstOffset = 0;
+	copyRegion.size = a_size;
+
+	vkCmdCopyBuffer(a_cmdBuffer, a_srcBuffer, a_dstBuffer, 1, &copyRegion);
+
+	EndSingleTimeCommands(a_cmdBuffer);
+
+	// vkEndCommandBuffer(commandBuffer);
+	// 
+	// VkSubmitInfo submitInfo = {};
+	// 
+	// submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	// submitInfo.commandBufferCount = 1;
+	// submitInfo.pCommandBuffers = &commandBuffer;
+	// 
+	// vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	// vkQueueWaitIdle(m_graphicsQueue);
+	// vkFreeCommandBuffers(m_device, m_CommandPool, 1, &commandBuffer);
+
+
+}
+
+
+void vkRenderer::CopyBufferToImage(VkBuffer buffer, TextureBufferDesc desc)
+{
+	VkCommandBuffer cmdBuffer = BeginSingleTimeCommands();
+
+	VkBufferImageCopy region = {};
+
+	region.bufferOffset = 0;
+	region.bufferRowLength = 0;
+	region.bufferImageHeight = 0;
+
+	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	region.imageSubresource.mipLevel = 0;
+	region.imageSubresource.baseArrayLayer = 0;
+	region.imageSubresource.layerCount = 1;
+
+	region.imageOffset = { 0,0,0 };
+	region.imageExtent = { static_cast<uint32_t>(desc.ImageWidth), static_cast<uint32_t>(desc.ImageHeight), 1 };
+
+	vkCmdCopyBufferToImage(cmdBuffer, buffer, desc.BufferImage,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+
+
+	EndSingleTimeCommands(cmdBuffer);
 }
 
 //===================================================================
@@ -166,6 +323,9 @@ bool vkRenderer::isDeviceSuitable(VkPhysicalDevice a_device)
 		isSwapChainSupported = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
 	}
 
+	VkPhysicalDeviceFeatures supportedFeatures;
+	vkGetPhysicalDeviceFeatures(a_device, &supportedFeatures);
+
 	return indices.isComplete() && extensionSupported && isSwapChainSupported;
 	
 }
@@ -261,11 +421,9 @@ void vkRenderer::CreateLogicalDevice()
 		queuecreateInfos.push_back(queuecreateInfo);
 	}
 
-	
-
-
 	//Features which we will be using
 	VkPhysicalDeviceFeatures deviceFeatures = {};
+	deviceFeatures.samplerAnisotropy = VK_TRUE;
 
 	//Device Info
 	VkDeviceCreateInfo createInfo = {};
@@ -490,11 +648,37 @@ void vkRenderer::CreateSwapChain()
 }
 
 
+
 //===================================================================
+//TODO: GENERALIZE IT!!!!!
 // Creating Image Views[Used to view Images]
 //===================================================================
+void vkRenderer::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView *a_imageView)
+{
+	VkImageViewCreateInfo createInfo = {};
 
-void vkRenderer::CreateImageView()
+	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	createInfo.image = image;
+	createInfo.format = format;
+	createInfo.pNext = nullptr;
+	createInfo.viewType = VkImageViewType::VK_IMAGE_VIEW_TYPE_2D;
+	createInfo.subresourceRange.aspectMask = aspectFlags;
+	createInfo.subresourceRange.baseMipLevel = 0;
+	createInfo.subresourceRange.levelCount = 1;
+	createInfo.subresourceRange.baseArrayLayer = 0;
+	createInfo.subresourceRange.layerCount = 1;
+
+	if (vkCreateImageView(m_device, &createInfo, nullptr, a_imageView) != VK_SUCCESS)
+	{
+		std::cout << "Unable Image view for the texture provided \n";
+		return;
+	}
+
+}
+
+
+//TODO: REMOVE IT AND ADD THE ABOVE FUNCTION AS DEFAULT
+void vkRenderer::CreateSwapChainImageView()
 {
 	m_SwapChainImageViews.resize(m_SwapChainImages.size());
 
@@ -527,6 +711,189 @@ void vkRenderer::CreateImageView()
 	}
 
 }
+
+
+//===================================================================
+//Command Buffer Recording Related
+//===================================================================
+
+VkCommandBuffer vkRenderer::BeginSingleTimeCommands()
+{
+	VkCommandBufferAllocateInfo allocInfo = {};
+
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandPool = m_CommandPool;
+	allocInfo.commandBufferCount = 1;
+
+	VkCommandBuffer commandBuffer;
+	vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer);
+
+	//Start recording Command Buffer
+
+	VkCommandBufferBeginInfo bufferBeginInfo = {};
+
+	bufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	bufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	vkBeginCommandBuffer(commandBuffer, &bufferBeginInfo);
+
+return commandBuffer;
+}
+
+void vkRenderer::EndSingleTimeCommands(VkCommandBuffer a_commandBuffer)
+{
+	vkEndCommandBuffer(a_commandBuffer);
+
+	VkSubmitInfo submitInfo = {};
+
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &a_commandBuffer;
+
+	vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(m_graphicsQueue);
+	vkFreeCommandBuffers(m_device, m_CommandPool, 1, &a_commandBuffer);
+}
+
+
+void vkRenderer::TransitionImageLayouts(VkImage image, VkFormat format, VkImageLayout a_oldLayout, VkImageLayout a_newLayout)
+{
+	VkCommandBuffer cmdBuffer = BeginSingleTimeCommands();
+
+	VkImageMemoryBarrier barrier = {};
+
+	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+
+	barrier.oldLayout = a_oldLayout;
+	barrier.newLayout = a_newLayout;
+
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+
+	//these commands ahead say which part of image are effected
+	//and which properties are effected[image & subresourceRange].
+	barrier.image = image;
+	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	barrier.subresourceRange.baseMipLevel = 0;
+	barrier.subresourceRange.levelCount = 1;
+	barrier.subresourceRange.baseArrayLayer = 0;
+	barrier.subresourceRange.layerCount = 1;
+
+	VkPipelineStageFlags sourceStage;
+	VkPipelineStageFlags destinationStage;
+
+	if (a_oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && a_newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+	{
+		barrier.srcAccessMask = 0;
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+
+		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+
+	}
+	else if (a_oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && a_newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+	{
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+
+		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+	//else if (a_oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && a_newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) 
+	//{
+	//	barrier.srcAccessMask = 0;
+	//	barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	//
+	//	sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+	//	destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	//}
+	else
+	{
+		std::cout << "Unsupported Layout Transition! \n";
+	}
+
+
+	vkCmdPipelineBarrier(
+		cmdBuffer,
+		sourceStage, destinationStage,
+		0,
+		0, nullptr,
+		0, nullptr,
+		1, &barrier
+	);
+
+
+
+
+
+
+	EndSingleTimeCommands(cmdBuffer);
+}
+
+//===================================================================
+//GLFW Input recording
+//===================================================================
+void vkRenderer::ProcessInput(GLFWwindow* window)
+{
+	//If Esc button is pressed we close
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	{
+		glfwSetWindowShouldClose(window, true);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		m_MainCamera->camProperties.position = m_MainCamera->camProperties.defPosition;
+	}
+
+	//Update Keys pressed status for the camera update
+	m_MainCamera->keys.up		= glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS ? true : false;
+	m_MainCamera->keys.down		= glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS ? true : false;
+	m_MainCamera->keys.right	= glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS ? true : false;
+	m_MainCamera->keys.left		= glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS ? true : false;
+
+}
+
+
+
+//===================================================================
+//Depth related helpers
+//===================================================================
+VkFormat vkRenderer::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
+{
+	for (auto format : candidates)
+	{
+		VkFormatProperties properties_here;
+
+		vkGetPhysicalDeviceFormatProperties(m_physicalDevice, format, &properties_here);
+
+		if (tiling == VK_IMAGE_TILING_LINEAR && (properties_here.linearTilingFeatures & features) == features)
+			return format;
+		else if (tiling == VK_IMAGE_TILING_OPTIMAL && (properties_here.optimalTilingFeatures & features) == features)
+			return format;
+		else
+			throw std::runtime_error ("Failed to find appropriate format");
+	}
+}
+
+VkFormat vkRenderer::FindDepthFormat()
+{
+	return findSupportedFormat(
+		{ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+		VK_IMAGE_TILING_OPTIMAL,
+		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+		);
+}
+
+bool vkRenderer::hasStencilComponent(VkFormat format)
+{
+	return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
+}
+
+
 
 //===================================================================
 //Vulkan Initialization Function
@@ -617,12 +984,10 @@ void vkRenderer::SetUpSwapChain()
 	CreateSwapChain();
 }
 
-
-
 void vkRenderer::PrepareApp()
 {
 	SetUpSwapChain();
-	CreateImageView();
+	CreateSwapChainImageView();
 }
 
 
@@ -670,8 +1035,13 @@ void vkRenderer::CleanUpSwapChain()
 
 	for (size_t i = 0; i < m_SwapChainImages.size(); ++i)
 	{
-		vkDestroyBuffer(m_device, m_uniformBuffers[i], nullptr);
-		vkFreeMemory(m_device, m_uniformBuffersMemory[i], nullptr);
+		//Triangle's UBO
+		vkDestroyBuffer(m_device, m_TriangleUniformBuffer[i].Buffer, nullptr);
+		vkFreeMemory(m_device, m_TriangleUniformBuffer[i].BufferMemory, nullptr);
+		
+		//Model's UBO
+		vkDestroyBuffer(m_device, m_ModelUniformBuffer[i].Buffer, nullptr);
+		vkFreeMemory(m_device, m_ModelUniformBuffer[i].BufferMemory, nullptr);
 	}
 
 	vkDestroyDescriptorPool(m_device, m_DescriptorPool, nullptr);
@@ -690,12 +1060,13 @@ void vkRenderer::Destroy()
 
 	vkDestroyDescriptorSetLayout(m_device, m_descriptorSetLayout, nullptr);
 
-	vkDestroyBuffer(m_device, m_RectangleIndexBuffer, nullptr);
-	vkFreeMemory(m_device, m_IndexBufferMemory, nullptr);
+	//Destroy Rectangle Index Buffer
+	vkDestroyBuffer(m_device, m_RectangleIndexBuffer.Buffer, nullptr);
+	vkFreeMemory(m_device, m_RectangleIndexBuffer.BufferMemory, nullptr);
 
-
-	vkDestroyBuffer(m_device, m_TriangleVertexBuffer, nullptr);
-	vkFreeMemory(m_device, m_vertexBufferMemory, nullptr);
+	//Destroy Triangle Index Buffer
+	vkDestroyBuffer(m_device, m_TriangleVertexBuffer.Buffer, nullptr);
+	vkFreeMemory(m_device, m_TriangleVertexBuffer.BufferMemory, nullptr);
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 	{
@@ -720,6 +1091,12 @@ void vkRenderer::Destroy()
 	glfwDestroyWindow(m_window);
 
 	glfwTerminate();
+
+	//Destroy Camera
+	if (m_MainCamera != NULL)
+	{
+		delete m_MainCamera;
+	}
 	
 }
 
