@@ -25,7 +25,7 @@ public:
 	void Gui_BeginFrame();
 	void Gui_Render(VkCommandBuffer command_buffer);
 
-	void Draw(VkCommandBuffer a_cmdBuffer);
+	void DrawGui(VkCommandBuffer a_cmdBuffer);
 
 	void DestroyGui(VkDevice a_device);
 

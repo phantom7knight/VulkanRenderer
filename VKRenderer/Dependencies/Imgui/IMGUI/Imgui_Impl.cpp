@@ -144,7 +144,7 @@ void Imgui_Impl::Gui_Render(VkCommandBuffer command_buffer)
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), command_buffer);
 }
 
-void Imgui_Impl::Draw(VkCommandBuffer a_cmdBuffer)
+void Imgui_Impl::DrawGui(VkCommandBuffer a_cmdBuffer)
 {
     Imgui_Impl::getInstance()->Gui_BeginFrame();
 

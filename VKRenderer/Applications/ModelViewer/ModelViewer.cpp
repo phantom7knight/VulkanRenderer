@@ -627,22 +627,9 @@ void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 	
 	//==================================================
 	//Draw UI
-	//Imgui_Impl::getInstance()->Draw(m_commandBuffers[i]);
-	Imgui_Impl::getInstance()->Gui_BeginFrame();
-
-	if (Imgui_Impl::getInstance()->m_showGuiWindow)
-	{
-		ImGui::Begin("Another Window", &Imgui_Impl::getInstance()->m_showGuiWindow);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-		ImGui::Text("Hello from another window!");
-		if (ImGui::Button("Close Me"))
-			Imgui_Impl::getInstance()->m_showGuiWindow = false;
-		ImGui::End();
-	}
-
-
-	Imgui_Impl::getInstance()->Gui_Render(m_commandBuffers[i]);
 	
-	
+	Imgui_Impl::getInstance()->DrawGui(m_commandBuffers[i]);
+		
 	//==================================================
 	
 	vkCmdEndRenderPass(m_commandBuffers[i]);
