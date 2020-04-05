@@ -899,51 +899,6 @@ bool vkRenderer::hasStencilComponent(VkFormat format)
 //Vulkan Initialization Function
 //===================================================================
 
-//bool vkRenderer::InitVulkan()
-//{
-//	if (!CreateInstance())d
-//		return false;
-//
-//	CreateSurface();D
-//
-//	setupDebugMessenger();D
-//
-//	pickPhysicalDevice();D
-//	 
-//	CreateLogicalDevice();D
-//
-//	CreateSwapChain();D
-//
-//	CreateImageView();D
-//
-//	CreateRenderPass();
-//
-//	CreateDescriptorSetLayout();
-//
-//	CreateGraphicsPipeline();	//Make this programmable from outside later[this is similar to what TheForge does when they make Pipeline]
-//
-//	CreateFrameBuffers();
-//
-//	CreateCommandPool();
-//
-//	CreateVertexBuffer();
-//
-//	CreateIndexBuffer();
-//
-//	CreateUniformBuffer();
-//
-//	CreateDescriptorPool();
-//
-//	CreateDesciptorSets();
-//	
-//	CreateCommandBuffers();
-//	
-//	CreateSemaphoresandFences();
-//
-//	return true;
-//}
-//
-
 void vkRenderer::InitializeVulkan()
 {
 

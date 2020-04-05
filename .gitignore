@@ -344,3 +344,6 @@ ASALocalRun/
 /Dependencies/IMGUI/imgui-1.62/examples/.vs/imgui_examples/v15/Solution.VC.db
 /Dependencies/IMGUI/imgui-1.62/examples/.vs/imgui_examples/v15/Solution.VC.db-shm
 /Dependencies/IMGUI/imgui-1.62/examples/.vs/imgui_examples/v15/Solution.VC.db-wal
+
+
+*.spv

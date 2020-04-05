@@ -210,22 +210,15 @@ void ResourceLoader::RunShaderBatchFile()
 
 void ResourceLoader::GenerateSPIRVShaders(std::vector<std::string> ShaderFileNames)
 {
-	if (CheckifSPIRVGenerated(ShaderFileNames))
-	{
-		m_bGeneratedSPIRV = true;
-	}
 
-	if (!m_bGeneratedSPIRV)
-	{
-		//Generate a batch file with the glslvalidator
-		GenerateBatchFile(ShaderFileNames);
+	//Generate a batch file with the glslvalidator
+	GenerateBatchFile(ShaderFileNames);
 
-		//Create A directory for the Binary Code to be stored
-		CreateFolderForSPIRV("Shaders/BinaryCode");
+	//Create A directory for the Binary Code to be stored
+	CreateFolderForSPIRV("Shaders/BinaryCode");
 
-		//Run the Batch File to generate shader code
-		RunShaderBatchFile();
-	}
+	//Run the Batch File to generate shader code
+	RunShaderBatchFile();
 	
 }
 

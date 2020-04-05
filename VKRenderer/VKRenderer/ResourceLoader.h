@@ -122,7 +122,7 @@ class ResourceLoader
 {
 
 public:
-	ResourceLoader() : m_bGeneratedSPIRV(false)
+	ResourceLoader()
 	{
 
 	}
@@ -166,7 +166,6 @@ private:
 	bool				CheckifSPIRVGenerated(std::vector<std::string> ShaderFileNames);
 
 	//Bool to check if the SPIR-V files have been generated
-	bool m_bGeneratedSPIRV;
 	FileOperations m_fileOpsObj;
 	MeshLoader m_MeshLoaderObj;
 	//ImageLoader m_ImageLoaderObj;

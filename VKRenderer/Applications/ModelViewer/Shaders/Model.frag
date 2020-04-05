@@ -16,7 +16,7 @@ void main()
 	//remove the hard coded values
 	vec3 ambLightColor	= vec3(0.8,0.8,0.8);
 	vec3 LightColor		= vec3(1.0,1.0,1.0);
-	vec3 objColor		= vec3(0.8,0.3,0.2);
+	vec3 objColor		= vec3(0.8,0.3,0.8);
 	vec3 camPos			= vec3(0.0, 0.0, -10.5);
 	float specIntensity = 4;
 
