@@ -17,7 +17,7 @@ typedef struct BufferDesc
 
 }Buffer;
 
-typedef struct TextureBufferDesc
+typedef struct 
 {
 	VkImage					BufferImage = VK_NULL_HANDLE;
 	VkDeviceMemory			BufferMemory = VK_NULL_HANDLE;
@@ -25,9 +25,9 @@ typedef struct TextureBufferDesc
 	VkImageTiling			tiling;
 	VkImageUsageFlags		usageFlags;
 	VkMemoryPropertyFlags	propertyFlags;
-	int						ImageWidth;
-	int						ImageHeight;
-};
+	int						ImageWidth = 0;
+	int						ImageHeight = 0;
+}TextureBufferDesc;
 
 struct QueueFamilyIndices
 {

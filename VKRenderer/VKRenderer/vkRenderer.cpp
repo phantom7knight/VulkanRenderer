@@ -42,8 +42,8 @@ static void MousePosCallBack(GLFWwindow* window, double xpos, double ypos)
 	app->mousePos.currentPosX = (float)xpos;
 	app->mousePos.currentPosY = (float)ypos;
 
-	int dx =	app->mousePos.PrevPosX - app->mousePos.currentPosX;
-	int dy =   -app->mousePos.PrevPosY + app->mousePos.currentPosY;
+	int dx = (int)(app->mousePos.PrevPosX - app->mousePos.currentPosX);
+	int dy = (int)(-app->mousePos.PrevPosY + app->mousePos.currentPosY);
 
 	//if left mouse button pressed
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
@@ -877,6 +877,8 @@ VkFormat vkRenderer::findSupportedFormat(const std::vector<VkFormat>& candidates
 		else
 			throw std::runtime_error ("Failed to find appropriate format");
 	}
+
+	return VkFormat();
 }
 
 VkFormat vkRenderer::FindDepthFormat()
@@ -927,6 +929,8 @@ void vkRenderer::Init()
 	}
 
 	InitializeVulkan();
+
+
 
 }
 

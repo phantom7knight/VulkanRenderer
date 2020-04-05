@@ -96,10 +96,10 @@ struct VertexInfo
 
 typedef struct
 {
-	uint32_t vertexBufferSize;
+	uint32_t vertexBufferSize = 0;
 	std::vector<VertexInfo> vertexbufferData;
 	
-	uint32_t indexBufferSize;
+	uint32_t indexBufferSize = 0;
 	std::vector<uint32_t> indexbufferData;
 }ModelInfo;
 

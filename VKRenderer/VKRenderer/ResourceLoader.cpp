@@ -306,14 +306,14 @@ ModelInfo MeshLoader::LoadModel(std::string fileName)
 
 	size_t vertexBufferSize = vertexbuffer.size() * sizeof(VertexInfo);
 
-	modelDesc.vertexBufferSize = vertexBufferSize;
+	modelDesc.vertexBufferSize = static_cast<uint32_t>(vertexBufferSize);
 	modelDesc.vertexbufferData = vertexbuffer;
 
 	//Index Loading
 	std::vector<uint32_t>indexBuffer;
 	for (uint32_t m = 0; m < m_pScene->mNumMeshes; ++m)
 	{
-		uint32_t sizeIndex = indexBuffer.size();
+		uint32_t sizeIndex = static_cast<uint32_t>(indexBuffer.size());
 
 		for (uint32_t f = 0; f < m_pScene->mMeshes[m]->mNumFaces; ++f)
 		{
@@ -326,7 +326,7 @@ ModelInfo MeshLoader::LoadModel(std::string fileName)
 
 	size_t indexBufferSize = indexBuffer.size() * sizeof(uint32_t);
 	
-	modelDesc.indexBufferSize = indexBufferSize;
+	modelDesc.indexBufferSize = static_cast<uint32_t>(indexBufferSize);
 	modelDesc.indexbufferData = indexBuffer;
 
 	return modelDesc;
