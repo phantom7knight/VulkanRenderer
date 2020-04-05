@@ -19,7 +19,6 @@
 #include <chrono>
 
 #define GLFW_INCLUDE_VULKAN
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include "../Dependencies/GLFW/include/GLFW/glfw3.h"
 
 //Above line replaces the line below so no need to worry about including it 

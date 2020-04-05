@@ -40,6 +40,20 @@ void ModelViewer::CreateRenderPass()
 	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass shud start with
 	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;		//How render pass final image shud translate at end of render pass
 
+	VkAttachmentDescription depthAttachment = {};
+
+	depthAttachment.format = FindDepthFormat();
+	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+
+	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass shud start with
+	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;		//How render pass final image shud translate at end of render pass
+
 
 	//Each renderpass can have multiple sub-passes
 	//which will help or can be used for the Post-Processing,...etc
@@ -49,11 +63,17 @@ void ModelViewer::CreateRenderPass()
 	colorAttachmentRef.attachment = 0;
 	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+	VkAttachmentReference depthAttachmentRef = {};
+
+	depthAttachmentRef.attachment = 1;
+	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
 	VkSubpassDescription subpassInfo = {};
 
 	subpassInfo.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpassInfo.colorAttachmentCount = 1;	//layout(location = 0) out vec4 outColor this is where it will be referenced
 	subpassInfo.pColorAttachments = &colorAttachmentRef;
+	subpassInfo.pDepthStencilAttachment = &depthAttachmentRef;
 
 	VkSubpassDependency dependency = {};
 
@@ -65,14 +85,15 @@ void ModelViewer::CreateRenderPass()
 	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
 
+	//array of attachments for this render pass
+	std::array< VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
 
 	//Render Pass Info
-
 	VkRenderPassCreateInfo renderpassInfo = {};
 
 	renderpassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderpassInfo.attachmentCount = 1;
-	renderpassInfo.pAttachments = &colorAttachment;
+	renderpassInfo.attachmentCount = attachments.size();
+	renderpassInfo.pAttachments = attachments.data();
 	renderpassInfo.subpassCount = 1;
 	renderpassInfo.pSubpasses = &subpassInfo;
 	renderpassInfo.dependencyCount = 1;
@@ -223,12 +244,12 @@ void ModelViewer::CreateGraphicsPipeline()
 	VkPipelineRasterizationStateCreateInfo rasterizer = {};
 
 	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-	rasterizer.depthClampEnable = VK_TRUE;
+	rasterizer.depthClampEnable = VK_FALSE;
 	rasterizer.rasterizerDiscardEnable = VK_FALSE;
 	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;	//TODO :This can be configurable by user
 	rasterizer.lineWidth = 1.0f;					//TODO :This can be configurable by user
 	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-	rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
 	rasterizer.depthBiasEnable = VK_FALSE;
 	rasterizer.depthBiasConstantFactor = 0.0f;	
 	rasterizer.depthBiasClamp = 0.0f;			
@@ -253,7 +274,7 @@ void ModelViewer::CreateGraphicsPipeline()
 	depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 	depthStencilInfo.depthTestEnable = VK_TRUE;
 	depthStencilInfo.depthWriteEnable = VK_TRUE;
-	depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+	depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
 	depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
 	depthStencilInfo.minDepthBounds = 0.0f;
 	depthStencilInfo.maxDepthBounds = 1.0f;
@@ -310,7 +331,6 @@ void ModelViewer::CreateGraphicsPipeline()
 	createGraphicsPipelineInfo.pDepthStencilState = &depthStencilInfo;
 	createGraphicsPipelineInfo.pRasterizationState = &rasterizer;
 	createGraphicsPipelineInfo.pMultisampleState = &multiSampling;
-	createGraphicsPipelineInfo.pDepthStencilState = nullptr;
 	createGraphicsPipelineInfo.pColorBlendState = &colorBlending;
 	createGraphicsPipelineInfo.pDynamicState = nullptr;
 	createGraphicsPipelineInfo.layout = m_pipelineLayout;
@@ -339,14 +359,14 @@ void ModelViewer::CreateFrameBuffers()
 
 	for (uint32_t i = 0; i < m_SwapChainImageViews.size(); ++i)
 	{
-		VkImageView attachments[] = { m_SwapChainImageViews[i] };
+		std::array< VkImageView,2> attachments[] = { m_SwapChainImageViews[i], depthImageView };
 
 		VkFramebufferCreateInfo fbcreateInfo = {};
 
 		fbcreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		fbcreateInfo.renderPass = m_renderPass;
-		fbcreateInfo.attachmentCount = 1;
-		fbcreateInfo.pAttachments = attachments;
+		fbcreateInfo.attachmentCount = attachments->size();
+		fbcreateInfo.pAttachments = attachments->data();
 		fbcreateInfo.width = m_swapChainExtent.width;
 		fbcreateInfo.height = m_swapChainExtent.height;
 		fbcreateInfo.layers = 1;
@@ -518,7 +538,7 @@ void ModelViewer::CreateCommandBuffers()
 		//Clear Color//
 		VkClearValue clearColor[2];
 		clearColor[0] = { 0.0,0.0,0.0,1.0 };
-		clearColor[1] = { 1.0f, 0 };
+		clearColor[1] = { 1.0f, 0.0f };
 		renderpassBeginInfo.clearValueCount = 2;
 		renderpassBeginInfo.pClearValues = clearColor;
 
@@ -591,7 +611,7 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices pro
 	//Model Matrix
 	mvp_UBO.ModelMatrix = glm::mat4(1);
 	mvp_UBO.ModelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0, 0.0, 0.0));
-	mvp_UBO.ModelMatrix = glm::rotate(mvp_UBO.ModelMatrix, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	//mvp_UBO.ModelMatrix = glm::rotate(mvp_UBO.ModelMatrix, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	mvp_UBO.ModelMatrix = glm::scale(mvp_UBO.ModelMatrix, glm::vec3(0.005f));
 
 
@@ -626,15 +646,19 @@ void ModelViewer::ReCreateSwapChain()
 
 	vkDeviceWaitIdle(m_device);
 
+	Destroy();
+
 	CleanUpSwapChain();
 
 	CreateSwapChain();
 
-	CreateImageView();
+	CreateSwapChainImageView();
 
 	CreateRenderPass();
 
 	CreateGraphicsPipeline();
+
+	CreateDepthResources();
 
 	CreateFrameBuffers();
 
@@ -727,7 +751,7 @@ void ModelViewer::LoadAModel(std::string fileName)
 
 }
 
-////Don't include in a header file////
+////Don't include this in a header file////
 #define STB_IMAGE_IMPLEMENTATION
 #include "../../Dependencies/STB/stb_image.h"
 
@@ -759,13 +783,13 @@ void ModelViewer::LoadTexture(std::string textureName)
 	//Set the image Property
 
 	image1.ImageWidth		= texWidth;
-	image1.ImageHeigth		= texHeight;
+	image1.ImageHeight		= texHeight;
 	image1.imageFormat		= VK_FORMAT_R8G8B8A8_SRGB;
 	image1.tiling			= VK_IMAGE_TILING_OPTIMAL;
 	image1.usageFlags		= VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	image1.propertyFlags	= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-	CreateImage(image1);
+	CreateImage(&image1);
 
 	TransitionImageLayouts(image1.BufferImage, VK_FORMAT_R8G8B8A8_SRGB,
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
@@ -781,68 +805,51 @@ void ModelViewer::LoadTexture(std::string textureName)
 
 }
 
-void ModelViewer::CreateImage(TextureBufferDesc a_texBuffDesc)
+//TODO: Generalize this
+void ModelViewer::CreateImage(TextureBufferDesc *a_texBuffDesc)
 {
 	VkImageCreateInfo ImageCreateInfo = {};
 
 	ImageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	ImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-	ImageCreateInfo.extent.width = a_texBuffDesc.ImageWidth;
-	ImageCreateInfo.extent.height = a_texBuffDesc.ImageHeigth;
+	ImageCreateInfo.extent.width = a_texBuffDesc->ImageWidth;
+	ImageCreateInfo.extent.height = a_texBuffDesc->ImageHeight;
 	ImageCreateInfo.extent.depth = 1;
 	ImageCreateInfo.mipLevels = 1;
 	ImageCreateInfo.arrayLayers = 1;
-	ImageCreateInfo.format = a_texBuffDesc.imageFormat;
-	ImageCreateInfo.tiling = a_texBuffDesc.tiling;
+	ImageCreateInfo.format = a_texBuffDesc->imageFormat;
+	ImageCreateInfo.tiling = a_texBuffDesc->tiling;
 	ImageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	ImageCreateInfo.usage = a_texBuffDesc.usageFlags;
+	ImageCreateInfo.usage = a_texBuffDesc->usageFlags;
 	ImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 	ImageCreateInfo.flags = 0;
 
 
-	if (vkCreateImage(m_device, &ImageCreateInfo, nullptr, &(image1.BufferImage)) != VK_SUCCESS)
+	if (vkCreateImage(m_device, &ImageCreateInfo, nullptr, &(a_texBuffDesc->BufferImage)) != VK_SUCCESS)
 	{
 		std::cout << " Failed to create Image \n";
 	}
 
 	VkMemoryRequirements memRequirements;
-	vkGetImageMemoryRequirements(m_device, image1.BufferImage, &memRequirements);
+	vkGetImageMemoryRequirements(m_device, a_texBuffDesc->BufferImage, &memRequirements);
 
 	VkMemoryAllocateInfo allocateInfo = {};
 	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocateInfo.allocationSize = memRequirements.size;
-	allocateInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, a_texBuffDesc.propertyFlags);
+	allocateInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, a_texBuffDesc->propertyFlags);
 
-	if (vkAllocateMemory(m_device, &allocateInfo, nullptr, &image1.BufferMemory) != VK_SUCCESS)
+	if (vkAllocateMemory(m_device, &allocateInfo, nullptr, &a_texBuffDesc->BufferMemory) != VK_SUCCESS)
 	{
 		std::cout << "Failed to allocate memory to the image \n";
 	}
 
-	vkBindImageMemory(m_device, image1.BufferImage, image1.BufferMemory, 0);
+	vkBindImageMemory(m_device, a_texBuffDesc->BufferImage, a_texBuffDesc->BufferMemory, 0);
 }
 
 void ModelViewer::CreateImageTextureView()
 {
-	VkImageViewCreateInfo createInfo = {};
-
-	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	createInfo.image = image1.BufferImage;
-	createInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
-	createInfo.pNext = nullptr;
-	createInfo.viewType = VkImageViewType::VK_IMAGE_VIEW_TYPE_2D;
-	createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	createInfo.subresourceRange.baseMipLevel = 0;
-	createInfo.subresourceRange.levelCount = 1;
-	createInfo.subresourceRange.baseArrayLayer = 0;
-	createInfo.subresourceRange.layerCount = 1;
-
-	if (vkCreateImageView(m_device, &createInfo, nullptr, &textureImageView) != VK_SUCCESS)
-	{
-		std::cout << "Unable Image view for the texutre provided \n";
-		return;
-	}
-
+	createImageView(image1.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &textureImageView);
 }
 
 void ModelViewer::CreateTextureSampler()
@@ -885,6 +892,25 @@ void ModelViewer::CreateTextureSampler()
 
 }
 
+
+void ModelViewer::CreateDepthResources()
+{
+	VkFormat depthFormat = FindDepthFormat();
+
+	depthImageInfo.ImageHeight = m_swapChainExtent.height;
+	depthImageInfo.ImageWidth = m_swapChainExtent.width;
+	depthImageInfo.imageFormat = depthFormat;
+	depthImageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	depthImageInfo.usageFlags = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	depthImageInfo.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+	CreateImage(&depthImageInfo);
+
+	createImageView(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &depthImageView);
+
+	//TransitionImageLayouts(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+}
+
 //==========================================================================================================
 
 void ModelViewer::PrepareApp()
@@ -895,11 +921,13 @@ void ModelViewer::PrepareApp()
 
 	CreateDescriptorSetLayout();
 
-	CreateGraphicsPipeline();
+	CreateCommandPool();
+
+	CreateDepthResources();
 
 	CreateFrameBuffers();
 
-	CreateCommandPool();
+	CreateGraphicsPipeline();
 
 	//LoadAModel("../../Assets/Models/cornell_box/cornell_box.obj");
 	LoadAModel("../../Assets/Models/monkey/monkey.obj");
@@ -1025,10 +1053,18 @@ void ModelViewer::Draw(float deltaTime)
 
 	m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
+	m_MainCamera->update(deltaTime);
+
 }
 
 void ModelViewer::Destroy()
 {
+	//depth Image
+	vkDestroyImageView(m_device, depthImageView, nullptr);
+	vkDestroyImage(m_device, depthImageInfo.BufferImage, nullptr);
+	vkFreeMemory(m_device, depthImageInfo.BufferMemory, nullptr);
+
+
 	vkDestroySampler(m_device, textureSampler, nullptr);
 	vkDestroyImageView(m_device, textureImageView, nullptr);
 

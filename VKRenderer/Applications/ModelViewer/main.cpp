@@ -27,25 +27,12 @@ void MainLoop(vkRenderer* rendererExample)
 		float deltaTimeDiff = (float)(std::chrono::duration<double, std::milli>(timeEnd - lastTimeStamp).count());
 
 		//Frame Rate Manager Init
-		float deltaTime = (float)deltaTimeDiff / 1000.0f;//vkTimer::getInstance()->FrameStart(true) / 1000.0f;
+		float deltaTime = (float)deltaTimeDiff / 1000.0f;
 
 		
 		//Add other updates here
 		//camera update
 		rendererExample->m_MainCamera->update(deltaTime);
-
-		//print camera position
-
-		/*if (i % 500 == 0)
-		{
-			std::cout << "The position is " << " X: " << rendererExample->m_MainCamera->camProperties.position.x << " Y: " << rendererExample->m_MainCamera->camProperties.position.y << " Z: "
-				<< rendererExample->m_MainCamera->camProperties.position.z << std::endl;
-			i = 0;
-		}
-		else
-		{
-			++i;
-		}*/
 
 		if (deltaTimeDiff > 1000.0f)
 		{

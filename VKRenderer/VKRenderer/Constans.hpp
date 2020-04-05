@@ -26,7 +26,7 @@ typedef struct TextureBufferDesc
 	VkImageUsageFlags		usageFlags;
 	VkMemoryPropertyFlags	propertyFlags;
 	int						ImageWidth;
-	int						ImageHeigth;
+	int						ImageHeight;
 };
 
 struct QueueFamilyIndices

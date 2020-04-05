@@ -64,12 +64,14 @@ public:
 
 	void CreateTextureSampler();
 
+	void CreateDepthResources();
+
 
 private:
 
 	void LoadAModel(std::string fileName);
 	void LoadTexture(std::string fileName);
-	void CreateImage(TextureBufferDesc a_texBufferDesc);
+	void CreateImage(TextureBufferDesc *a_texBufferDesc);
 
 	BufferDesc IndexBUffer;
 	BufferDesc VertexBUffer;
@@ -80,6 +82,11 @@ private:
 	VkImageView textureImageView;
 	VkSampler textureSampler;
 	CameraMatrices cam_matrices;
+
+	
+	//Depth Related variables
+	TextureBufferDesc depthImageInfo;
+	VkImageView depthImageView;
 
 };
 

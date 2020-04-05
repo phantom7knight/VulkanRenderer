@@ -201,7 +201,7 @@ void vkRenderer::CopyBufferToImage(VkBuffer buffer, TextureBufferDesc desc)
 	region.imageSubresource.layerCount = 1;
 
 	region.imageOffset = { 0,0,0 };
-	region.imageExtent = { static_cast<uint32_t>(desc.ImageWidth), static_cast<uint32_t>(desc.ImageHeigth), 1 };
+	region.imageExtent = { static_cast<uint32_t>(desc.ImageWidth), static_cast<uint32_t>(desc.ImageHeight), 1 };
 
 	vkCmdCopyBufferToImage(cmdBuffer, buffer, desc.BufferImage,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
@@ -648,12 +648,37 @@ void vkRenderer::CreateSwapChain()
 }
 
 
+
 //===================================================================
 //TODO: GENERALIZE IT!!!!!
 // Creating Image Views[Used to view Images]
 //===================================================================
+void vkRenderer::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView *a_imageView)
+{
+	VkImageViewCreateInfo createInfo = {};
 
-void vkRenderer::CreateImageView()
+	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	createInfo.image = image;
+	createInfo.format = format;
+	createInfo.pNext = nullptr;
+	createInfo.viewType = VkImageViewType::VK_IMAGE_VIEW_TYPE_2D;
+	createInfo.subresourceRange.aspectMask = aspectFlags;
+	createInfo.subresourceRange.baseMipLevel = 0;
+	createInfo.subresourceRange.levelCount = 1;
+	createInfo.subresourceRange.baseArrayLayer = 0;
+	createInfo.subresourceRange.layerCount = 1;
+
+	if (vkCreateImageView(m_device, &createInfo, nullptr, a_imageView) != VK_SUCCESS)
+	{
+		std::cout << "Unable Image view for the texture provided \n";
+		return;
+	}
+
+}
+
+
+//TODO: REMOVE IT AND ADD THE ABOVE FUNCTION AS DEFAULT
+void vkRenderer::CreateSwapChainImageView()
 {
 	m_SwapChainImageViews.resize(m_SwapChainImages.size());
 
@@ -777,6 +802,14 @@ void vkRenderer::TransitionImageLayouts(VkImage image, VkFormat format, VkImageL
 		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	}
+	//else if (a_oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && a_newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) 
+	//{
+	//	barrier.srcAccessMask = 0;
+	//	barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	//
+	//	sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+	//	destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	//}
 	else
 	{
 		std::cout << "Unsupported Layout Transition! \n";
@@ -801,7 +834,7 @@ void vkRenderer::TransitionImageLayouts(VkImage image, VkFormat format, VkImageL
 }
 
 //===================================================================
-
+//GLFW Input recording
 //===================================================================
 void vkRenderer::ProcessInput(GLFWwindow* window)
 {
@@ -825,6 +858,40 @@ void vkRenderer::ProcessInput(GLFWwindow* window)
 }
 
 
+
+//===================================================================
+//Depth related helpers
+//===================================================================
+VkFormat vkRenderer::findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features)
+{
+	for (auto format : candidates)
+	{
+		VkFormatProperties properties_here;
+
+		vkGetPhysicalDeviceFormatProperties(m_physicalDevice, format, &properties_here);
+
+		if (tiling == VK_IMAGE_TILING_LINEAR && (properties_here.linearTilingFeatures & features) == features)
+			return format;
+		else if (tiling == VK_IMAGE_TILING_OPTIMAL && (properties_here.optimalTilingFeatures & features) == features)
+			return format;
+		else
+			throw std::runtime_error ("Failed to find appropriate format");
+	}
+}
+
+VkFormat vkRenderer::FindDepthFormat()
+{
+	return findSupportedFormat(
+		{ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+		VK_IMAGE_TILING_OPTIMAL,
+		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+		);
+}
+
+bool vkRenderer::hasStencilComponent(VkFormat format)
+{
+	return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
+}
 
 
 
@@ -920,7 +987,7 @@ void vkRenderer::SetUpSwapChain()
 void vkRenderer::PrepareApp()
 {
 	SetUpSwapChain();
-	CreateImageView();
+	CreateSwapChainImageView();
 }
 
 

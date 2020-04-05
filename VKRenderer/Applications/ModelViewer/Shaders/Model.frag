@@ -4,7 +4,7 @@
 
 layout(location = 0) out 	vec4 OutColor;
 
-layout(location = 0) in 	vec3 fragPos;
+layout(location = 0) in 	vec4 vertPos;
 layout(location = 1) in		vec2 TexCoords;
 layout(location = 2) in		vec3 Normals;
 
@@ -13,11 +13,12 @@ layout(binding = 1) uniform sampler2D samplerTexture1;
 
 void main()
 {
+	//remove the hard coded values
 	vec3 ambLightColor	= vec3(0.8,0.8,0.8);
 	vec3 LightColor		= vec3(1.0,1.0,1.0);
-	vec3 objColor		= vec3(1.0,0.0,0.0);
+	vec3 objColor		= vec3(0.5,0.5,0.5);
 	vec3 camPos			= vec3(0.0, 0.0, -10.5);
-	float specIntensity = 32;
+	float specIntensity = 16;
 
 	vec4 samplerOutput = texture(samplerTexture1, TexCoords);
 
@@ -29,11 +30,11 @@ void main()
 
 	//Diffuse Lighting
 	vec3 lightPos = vec3(0.0, 10.0, 0.0);
-	vec3 LightDir = normalize(fragPos - lightPos);
+	vec3 LightDir = normalize(vertPos.xyz - lightPos);
 	vec3 DiffLight = max(dot(Normals,LightDir),0.0) * LightColor;
 
 	//Specular Lighting
-	vec3 ViewDir = normalize(camPos - fragPos);
+	vec3 ViewDir = normalize(camPos - vertPos.xyz);
 	vec3 reflectDir = reflect(-LightDir,normalize(Normals));
 	float spec = pow(max(dot(ViewDir,reflectDir),0.0),specIntensity);
 	vec3 SpecLight = spec * LightColor;
@@ -42,6 +43,6 @@ void main()
 
 	vec4 lightCalcs = vec4((AmbLight + DiffLight + SpecLight) * objColor, 1.0f);
 
-	//OutColor = lightCalcs;
-	OutColor = samplerOutput;
+	OutColor = lightCalcs;
+	//OutColor = samplerOutput;
 }

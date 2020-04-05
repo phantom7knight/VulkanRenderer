@@ -49,7 +49,8 @@ public:
 	void CleanUpSwapChain();
 
 
-	void CreateImageView();
+	void CreateSwapChainImageView();
+	void createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView *a_imageView);
 	
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
@@ -66,6 +67,9 @@ public:
 
 	void TransitionImageLayouts(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 
+	VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+	VkFormat FindDepthFormat();
+	bool hasStencilComponent(VkFormat format);
 
 	
 	void Init();

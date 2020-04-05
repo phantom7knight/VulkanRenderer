@@ -30,6 +30,7 @@ void Camera::update_view_matrix()
 	transformation_matrix = glm::translate(glm::mat4(1.0f), camProperties.position);
 
 	matrices.view = transformation_matrix * rotation_matrix;
+	//matrices.view = rotation_matrix * transformation_matrix;
 	
 	camProperties.updated = true;
 }
@@ -98,13 +99,13 @@ void Camera::update(float deltaTime)
 	camProperties.updated = false;
 	if (moving())
 	{
-		glm::vec3 front;
+		
 		front.x = -cos(glm::radians(camProperties.rotation.x)) * sin(glm::radians(camProperties.rotation.y));
 		front.y = sin(glm::radians(camProperties.rotation.x));
 		front.z = cos(glm::radians(camProperties.rotation.x)) * cos(glm::radians(camProperties.rotation.y));
 		front = glm::normalize(front);
 
-		float move_speed = deltaTime * camProperties.translation_speed;
+		move_speed = deltaTime * camProperties.translation_speed;
 
 		if (keys.up)
 		{

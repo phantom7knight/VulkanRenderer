@@ -24,7 +24,7 @@ layout(location = 4) in 	vec2 aBiTangents;
 
 
 
-layout(location = 0) out 	vec3 fragPos;
+layout(location = 0) out 	vec4 vertPos;
 
 layout(location = 1) out	vec2 TexCoords;
 
@@ -32,8 +32,8 @@ layout(location = 2) out	vec3 Normals;
 	
 void main()
 {
-	fragPos		= vec3(ubo.ModelMatrix * vec4(aPos, 1.0));
+	vertPos		= ubo.ModelMatrix * vec4(aPos, 1.0);
 	TexCoords	= aTexCoords;
 	Normals		= mat3(transpose(inverse(ubo.ModelMatrix))) * aNormal;
-	gl_Position = ubo.ProjectionMatrix * ubo.ViewMatrix * vec4(fragPos,1.0f);
+	gl_Position = ubo.ProjectionMatrix * ubo.ViewMatrix * vec4(vertPos.xyz,1.0f);
 }

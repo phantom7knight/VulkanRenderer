@@ -24,6 +24,10 @@ public:
 
 	CameraKeys keys;
 
+	glm::vec3 front;
+
+	float move_speed;
+
 	bool moving();
 
 	float get_near_clip();

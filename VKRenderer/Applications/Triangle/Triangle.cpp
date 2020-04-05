@@ -780,7 +780,7 @@ void Triangle::ReCreateSwapChain()
 
 	CreateSwapChain();
 
-	CreateImageView();
+	CreateSwapChainImageView();
 
 	CreateRenderPass();
 
