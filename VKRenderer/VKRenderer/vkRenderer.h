@@ -2,91 +2,10 @@
 
 #include "stdafx.h"
 
-struct QueueFamilyIndices
-{
-	std::optional<uint32_t> graphicsFamily;
-	std::optional<uint32_t> presentFamily;
-
-	bool isComplete()
-	{
-		return graphicsFamily.has_value() && presentFamily.has_value();
-	}
-};
-
-struct SwapChainSupportDetails 
-{
-	VkSurfaceCapabilitiesKHR capabilities;
-	
-	std::vector<VkSurfaceFormatKHR> formats;
-	
-	std::vector<VkPresentModeKHR> presentModes;
-
-};
-
-
+class Camera;
 class vkRenderer
 {
 public:
-
-	//Variables
-	bool m_frameBufferResized = false;
-
-	ResourceLoader rsrcLdr;
-
-	GLFWwindow*							m_window;
-
-
-	//Vulkan Related Parameters
-	VkInstance							m_VulkanInstance;
-	VkDebugUtilsMessengerEXT			m_debugMessenger;
-	VkPhysicalDevice					m_physicalDevice = VK_NULL_HANDLE;
-
-	VkDevice							m_device;
-	VkQueue								m_graphicsQueue;
-	VkSurfaceKHR						m_surface; // This is for relating Windows and Vulkan
-	VkQueue								m_PresentQueue;
-
-	VkSwapchainKHR						m_swapChain;
-	std::vector<VkImage>				m_SwapChainImages;
-	VkFormat							m_swapChainFormat;
-	VkExtent2D							m_swapChainExtent;
-
-	std::vector<VkImageView>			m_SwapChainImageViews;
-	
-	VkRenderPass						m_renderPass;//TODO : This can be modified later
-	VkPipelineLayout					m_pipelineLayout;//TODO : This has to be per Shader/Obj [Look into it]
-	VkPipeline							m_graphicsPipeline;
-
-	std::vector<VkFramebuffer>			m_swapChainFrameBuffer;
-
-	VkCommandPool						m_CommandPool;
-
-	std::vector<VkCommandBuffer>		m_commandBuffers;
-
-	std::vector<VkSemaphore>			m_imageAvailableSemaphore;
-	std::vector<VkSemaphore>			m_renderFinishedSemaphore;
-
-	std::vector<VkFence>				m_inflightFences;
-
-	size_t								m_currentFrame = 0;
-
-	VkBuffer							m_TriangleVertexBuffer;
-
-	VkDeviceMemory						m_vertexBufferMemory;
-
-	VkBuffer							m_RectangleIndexBuffer;
-
-	VkDeviceMemory						m_IndexBufferMemory;
-
-	VkDescriptorSetLayout				m_descriptorSetLayout;
-
-	std::vector<VkBuffer>				m_uniformBuffers;
-
-	std::vector<VkDeviceMemory>			m_uniformBuffersMemory;
-
-	VkDescriptorPool					m_DescriptorPool;
-
-	std::vector<VkDescriptorSet>		m_DescriptorSets;
 
 	//Functions
 	vkRenderer();
@@ -121,28 +40,36 @@ public:
 	void CreateLogicalDevice();
 	void CreateSurface();
 
+	//Swap Chain Related
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice a_device);
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector< VkSurfaceFormatKHR >& availableFormats);
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector< VkPresentModeKHR >& availablePresentModes);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& a_capabilities);
 	void CreateSwapChain();
-
-	void CreateImageView();
-
-	VkShaderModule createShaderModule(const std::vector<char>& shaderCode);
-
 	void CleanUpSwapChain();
 
+
+	void CreateSwapChainImageView();
+	void createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView *a_imageView);
+	
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
-	//void CreateVertexBuffer();
-
+	//Buffer Creation Related
 	uint32_t findMemoryType(uint32_t typeFiler, VkMemoryPropertyFlags properties);
-
 	void CreateBuffer(VkDeviceSize a_size, VkBufferUsageFlags a_usage, VkMemoryPropertyFlags a_properties, VkBuffer& a_buffer, VkDeviceMemory& a_bufferMemory);
-
 	void CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDeviceSize a_size);
+	void CopyBufferToImage(VkBuffer buffer, TextureBufferDesc desc);
 
+
+	//Command Buffer Related
+	VkCommandBuffer BeginSingleTimeCommands();
+	void EndSingleTimeCommands(VkCommandBuffer a_commandBuffer);
+
+	void TransitionImageLayouts(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+
+	VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+	VkFormat FindDepthFormat();
+	bool hasStencilComponent(VkFormat format);
 
 	
 	void Init();
@@ -153,6 +80,9 @@ public:
 
 	void InitializeVulkan();
 	
+	void ProcessInput(GLFWwindow* window);
+
+
 	//Pure Virtual so that the inherited class can override.
 	virtual void PrepareApp();
 	
@@ -161,6 +91,74 @@ public:
 	virtual void Update(float deltaTime) = 0;
 	
 	virtual void Destroy();
+
+	MousePositions mousePos;
+
+	Camera* m_MainCamera;
+
+protected:
+	
+#pragma region Variables
+	bool m_frameBufferResized = false;
+
+	ResourceLoader rsrcLdr;
+
+	GLFWwindow* m_window;
+
+
+	//Vulkan Related Parameters
+	VkInstance							m_VulkanInstance;
+	VkDebugUtilsMessengerEXT			m_debugMessenger;
+	VkPhysicalDevice					m_physicalDevice = VK_NULL_HANDLE;
+
+	VkDevice							m_device;
+	VkQueue								m_graphicsQueue;
+	VkSurfaceKHR						m_surface; // This is for relating Windows and Vulkan
+	VkQueue								m_PresentQueue;
+
+	VkSwapchainKHR						m_swapChain;
+	std::vector<VkImage>				m_SwapChainImages;
+	VkFormat							m_swapChainFormat;
+	VkExtent2D							m_swapChainExtent;
+
+	std::vector<VkImageView>			m_SwapChainImageViews;
+
+	VkRenderPass						m_renderPass;//TODO : This can be modified later
+	VkPipelineLayout					m_pipelineLayout;//TODO : This has to be per Shader/Obj [Look into it]
+	VkPipeline							m_graphicsPipeline;
+
+	std::vector<VkFramebuffer>			m_swapChainFrameBuffer;
+
+	VkCommandPool						m_CommandPool;
+
+	std::vector<VkCommandBuffer>		m_commandBuffers;
+
+	std::vector<VkSemaphore>			m_imageAvailableSemaphore;
+	std::vector<VkSemaphore>			m_renderFinishedSemaphore;
+
+	std::vector<VkFence>				m_inflightFences;
+
+	size_t								m_currentFrame = 0;
+
+	BufferDesc							m_TriangleVertexBuffer;
+
+	BufferDesc							m_RectangleIndexBuffer;
+
+	std::vector<BufferDesc>				m_TriangleUniformBuffer;
+
+	std::vector<BufferDesc>				m_ModelUniformBuffer;
+
+	VkDescriptorSetLayout				m_descriptorSetLayout;
+
+	VkDescriptorPool					m_DescriptorPool;
+
+	std::vector<VkDescriptorSet>		m_DescriptorSets;
+
+
+
+#pragma endregion
+
+
 
 };
 

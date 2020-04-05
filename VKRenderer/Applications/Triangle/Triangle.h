@@ -2,10 +2,6 @@
 
 #include "../../VKRenderer/vkRenderer.h"
 
-
-
-
-
 class Triangle : public vkRenderer
 {
 
