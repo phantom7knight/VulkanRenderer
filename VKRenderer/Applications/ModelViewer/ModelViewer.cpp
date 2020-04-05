@@ -624,10 +624,27 @@ void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 
 	//Call Draw Indexed for the model
 	vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_indexBufferCount), 1, 0, 0, 0);
-
+	
+	//==================================================
 	//Draw UI
+	//Imgui_Impl::getInstance()->Draw(m_commandBuffers[i]);
+	Imgui_Impl::getInstance()->Gui_BeginFrame();
+
+	if (Imgui_Impl::getInstance()->m_showGuiWindow)
+	{
+		ImGui::Begin("Another Window", &Imgui_Impl::getInstance()->m_showGuiWindow);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+		ImGui::Text("Hello from another window!");
+		if (ImGui::Button("Close Me"))
+			Imgui_Impl::getInstance()->m_showGuiWindow = false;
+		ImGui::End();
+	}
 
 
+	Imgui_Impl::getInstance()->Gui_Render(m_commandBuffers[i]);
+	
+	
+	//==================================================
+	
 	vkCmdEndRenderPass(m_commandBuffers[i]);
 
 	//End Recording
@@ -956,6 +973,27 @@ void ModelViewer::PrepareApp()
 
 	// set up the camera position
 	SetUpCameraProperties(m_MainCamera);
+
+
+	//GLFWwindow* a_window, ImGui_ImplVulkan_InitInfo a_GUIInitInfo, VkRenderPass a_renderPass, VkQueue a_graphicsQueue,
+	//VkCommandPoolCreateFlags a_poolFlags, uint32_t a_queueFamilyIndex
+
+	ImGui_ImplVulkan_InitInfo imguiInfo = {};
+
+	imguiInfo.Instance = m_VulkanInstance;
+	imguiInfo.Allocator = nullptr;
+	imguiInfo.Device = m_device;
+	imguiInfo.PhysicalDevice = m_physicalDevice;
+	imguiInfo.DescriptorPool = nullptr;//this will be gui created descriptor pool
+	imguiInfo.ImageCount = IMAGE_COUNT;
+	imguiInfo.MinImageCount = 2;
+	imguiInfo.Queue = m_graphicsQueue;
+	imguiInfo.QueueFamily = findQueueFamilies(m_physicalDevice).graphicsFamily.value();
+	imguiInfo.PipelineCache = nullptr;
+
+
+	//Init the GUI for IMGUI
+	Imgui_Impl::getInstance()->Init(m_window, imguiInfo, m_renderPass, m_CommandPool);
 	
 
 }
@@ -1078,4 +1116,8 @@ void ModelViewer::Destroy()
 	//destroy Image
 	vkDestroyImage(m_device, image1.BufferImage, nullptr);
 	vkFreeMemory(m_device, image1.BufferMemory, nullptr);
+
+
+	Imgui_Impl::getInstance()->DestroyGui(m_device);
+
 }

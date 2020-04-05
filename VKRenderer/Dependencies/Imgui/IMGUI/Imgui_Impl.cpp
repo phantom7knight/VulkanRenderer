@@ -2,6 +2,7 @@
 
 #include "Imgui_Impl.h"
 
+Imgui_Impl* Imgui_Impl::m_instance = nullptr;
 
 VkCommandBuffer BeginCmdBuffer(VkDevice a_device, VkCommandPool a_CommandPool)
 {
@@ -44,15 +45,15 @@ void EndCmdBufferOperation(VkCommandBuffer a_commandBuffer, VkQueue a_graphicsQu
 }
 
 
-void Imgui_Impl::Init(GLFWwindow* a_window, ImGui_ImplVulkan_InitInfo a_GUIInitInfo, VkRenderPass a_renderPass, VkQueue a_graphicsQueue, 
-    VkCommandPoolCreateFlags a_poolFlags, uint32_t a_queueFamilyIndex)
+void Imgui_Impl::Init(GLFWwindow* a_window, ImGui_ImplVulkan_InitInfo a_GUIInitInfo, VkRenderPass a_renderPass,
+    VkCommandPool a_cmdPool)
 {
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
@@ -85,30 +86,17 @@ void Imgui_Impl::Init(GLFWwindow* a_window, ImGui_ImplVulkan_InitInfo a_GUIInitI
     // Upload Fonts
     {
         // Use any command queue
-        CreateCommandPool(a_poolFlags, a_queueFamilyIndex, a_GUIInitInfo.Device);
-        VkCommandBuffer command_buffer = BeginCmdBuffer(a_GUIInitInfo.Device, VkCommandPool());
+        //CreateCommandPool(a_poolFlags, a_queueFamilyIndex, a_GUIInitInfo.Device);
+        VkCommandBuffer command_buffer = BeginCmdBuffer(a_GUIInitInfo.Device, a_cmdPool);
 
         ImGui_ImplVulkan_CreateFontsTexture(command_buffer);
 
-        EndCmdBufferOperation(command_buffer, a_graphicsQueue, a_GUIInitInfo.Device, m_guiCommandPool);
+        EndCmdBufferOperation(command_buffer, a_GUIInitInfo.Queue, a_GUIInitInfo.Device, a_cmdPool);
 
         ImGui_ImplVulkan_DestroyFontUploadObjects();
     }
 
 }
-
-void Imgui_Impl::CreateCommandPool(VkCommandPoolCreateFlags a_poolFlags, uint32_t a_queueFamilyIndex, VkDevice a_device)
-{
-    VkCommandPoolCreateInfo commandPoolCreateInfo = {};
-    commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    commandPoolCreateInfo.queueFamilyIndex = a_queueFamilyIndex;
-    commandPoolCreateInfo.flags = a_poolFlags;
-
-    if (vkCreateCommandPool(a_device, &commandPoolCreateInfo, nullptr, &m_guiCommandPool) != VK_SUCCESS) {
-        throw std::runtime_error("Could not create graphics command pool");
-    }
-}
-
 
 void Imgui_Impl::CreateGUIDescriptorPool(VkDevice a_device)
 {
@@ -154,4 +142,31 @@ void Imgui_Impl::Gui_Render(VkCommandBuffer command_buffer)
 {
     ImGui::Render();
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), command_buffer);
+}
+
+void Imgui_Impl::Draw(VkCommandBuffer a_cmdBuffer)
+{
+    Imgui_Impl::getInstance()->Gui_BeginFrame();
+
+    if (m_showGuiWindow)
+    {
+        ImGui::Begin("Another Window", &m_showGuiWindow);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+        ImGui::Text("Hello from another window!");
+        if (ImGui::Button("Close Me"))
+            m_showGuiWindow = false;
+        ImGui::End();
+    }
+
+
+    Imgui_Impl::getInstance()->Gui_Render(a_cmdBuffer);
+}
+
+
+void Imgui_Impl::DestroyGui(VkDevice a_device)
+{
+    vkDeviceWaitIdle(a_device);
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+    vkDestroyDescriptorPool(a_device, m_guiDescriptorPool, nullptr);
 }
