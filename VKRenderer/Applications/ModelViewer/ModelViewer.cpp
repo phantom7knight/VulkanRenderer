@@ -4,7 +4,7 @@
 
 
 
-ModelViewer::ModelViewer()
+ModelViewer::ModelViewer() : m_showGUILight(true)
 {
 }
 
@@ -128,9 +128,19 @@ void ModelViewer::CreateDescriptorSetLayout()
 	samplerBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	samplerBinding.pImmutableSamplers = nullptr;
 
+	//TODO: check the binding for the layout
+	VkDescriptorSetLayoutBinding LightlayoutBinding = {};
+
+	LightlayoutBinding.binding = 2;
+	LightlayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	LightlayoutBinding.descriptorCount = 1;
+	LightlayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	LightlayoutBinding.pImmutableSamplers = nullptr;
+
+
 
 	//create an array of descriptors
-	std::array< VkDescriptorSetLayoutBinding, 2> descriptorsArray = { layoutBinding ,samplerBinding };
+	std::array< VkDescriptorSetLayoutBinding, 3> descriptorsArray = { layoutBinding ,samplerBinding, LightlayoutBinding };
 
 
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
@@ -312,8 +322,8 @@ void ModelViewer::CreateGraphicsPipeline()
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 1;
 	pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
-	//pipelineLayoutInfo.pushConstantRangeCount = 0;
-	//pipelineLayoutInfo.pPushConstantRanges = nullptr;
+	//pipelineLayoutInfo.pushConstantRangeCount = 0; //TODO: USE Push Constants
+	//pipelineLayoutInfo.pPushConstantRanges = nullptr; //TODO: USE Push Constants
 
 	if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
 	{
@@ -398,21 +408,27 @@ void ModelViewer::CreateCommandPool()
 void ModelViewer::CreateUniformBuffer()
 {
 	VkDeviceSize bufferSize = sizeof(ModelUBO);
+	VkDeviceSize lightBufferSize = sizeof(LightInfoUBO);
 
 	m_ModelUniformBuffer.resize(m_SwapChainImages.size());
-	//m_uniformBuffersMemory.resize(m_SwapChainImages.size());
+	m_LightInfoUniformBuffer.resize(m_SwapChainImages.size());
 
 	for (int i = 0; i < m_SwapChainImages.size(); ++i)
 	{
+		//model uniform buffer creation
 		CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 			, m_ModelUniformBuffer[i].Buffer, m_ModelUniformBuffer[i].BufferMemory);
+		
+		//light info uniform buffer creation
+		CreateBuffer(lightBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+			, m_LightInfoUniformBuffer[i].Buffer, m_LightInfoUniformBuffer[i].BufferMemory);
 	}
 }
 
 void ModelViewer::CreateDescriptorPool()
 {
 	
-	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
+	std::array<VkDescriptorPoolSize, 3> poolSizes = {};
 
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_SwapChainImages.size());
@@ -420,6 +436,8 @@ void ModelViewer::CreateDescriptorPool()
 	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	poolSizes[1].descriptorCount = static_cast<uint32_t>(m_SwapChainImages.size());
 
+	poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSizes[2].descriptorCount = static_cast<uint32_t>(m_SwapChainImages.size());
 
 	VkDescriptorPoolCreateInfo createInfo = {};
 
@@ -461,13 +479,19 @@ void ModelViewer::CreateDescriptorSets()
 		bufferInfo.offset = 0;
 		bufferInfo.range = sizeof(ModelUBO);
 
+		VkDescriptorBufferInfo lightBufferInfo = {};
+
+		lightBufferInfo.buffer = m_LightInfoUniformBuffer[i].Buffer;
+		lightBufferInfo.offset = 0;
+		lightBufferInfo.range = sizeof(LightInfoUBO);
+
 		VkDescriptorImageInfo imageInfo = {};
 
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		imageInfo.sampler = textureSampler;
 		imageInfo.imageView = textureImageView;
 
-		std::array< VkWriteDescriptorSet,2> descriptorWriteInfo = {};
+		std::array< VkWriteDescriptorSet,3> descriptorWriteInfo = {};
 
 		descriptorWriteInfo[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWriteInfo[0].dstSet = m_DescriptorSets[i];
@@ -489,6 +513,16 @@ void ModelViewer::CreateDescriptorSets()
 		descriptorWriteInfo[1].pBufferInfo = nullptr; //TODO: Check this
 		descriptorWriteInfo[1].pTexelBufferView = nullptr;
 
+		descriptorWriteInfo[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWriteInfo[2].dstSet = m_DescriptorSets[i];
+		descriptorWriteInfo[2].dstBinding = 2;
+		descriptorWriteInfo[2].dstArrayElement = 0;
+		descriptorWriteInfo[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWriteInfo[2].descriptorCount = 1;
+		descriptorWriteInfo[2].pBufferInfo = &lightBufferInfo;
+		descriptorWriteInfo[2].pImageInfo = nullptr;
+		descriptorWriteInfo[2].pTexelBufferView = nullptr;
+		
 		vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWriteInfo.size()), descriptorWriteInfo.data(), 0, nullptr);
 
 	}
@@ -548,7 +582,7 @@ void ModelViewer::CreateSemaphoresandFences()
 void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices properties_Cam)
 {
 
-
+#pragma region MVP_Update
 	ModelUBO mvp_UBO = {};
 
 	//Model Matrix
@@ -574,7 +608,61 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices pro
 	vkMapMemory(m_device, m_ModelUniformBuffer[a_imageIndex].BufferMemory, 0, sizeof(mvp_UBO), 0, &data);
 	memcpy(data, &mvp_UBO, sizeof(mvp_UBO));
 	vkUnmapMemory(m_device, m_ModelUniformBuffer[a_imageIndex].BufferMemory);
+#pragma endregion
+
+#pragma region LightInfo_Update
+	LightInfoUBO lightInfo_UBO = {};
+
+	//lightPosition
+	lightInfo_UBO.lightPosition = m_lightPosGUILight;
+
+	lightInfo_UBO.lightColor = m_lightColorGUILight;
+
+	lightInfo_UBO.specularIntensity = m_SpecularIntensityGUILight;
+
+	lightInfo_UBO.camPosition = glm::vec3(0.0, 0.0, -10.5);
+
+	
+	//Copy the data
+
+	data = NULL;
+
+	vkMapMemory(m_device, m_LightInfoUniformBuffer[a_imageIndex].BufferMemory, 0, sizeof(lightInfo_UBO), 0, &data);
+	memcpy(data, &lightInfo_UBO, sizeof(lightInfo_UBO));
+	vkUnmapMemory(m_device, m_LightInfoUniformBuffer[a_imageIndex].BufferMemory);
+
+#pragma endregion
+
 }
+
+void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
+{
+	Imgui_Impl::getInstance()->Gui_BeginFrame();
+
+	if (m_showGUILight)
+	{
+		
+		ImGui::Begin("Another Window", &m_showGUILight);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+				
+		ImGui::Text("Hello from another window!");
+
+		ImGui::SliderFloat3("Light Position", &m_lightPosGUILight.x, -200.0f, 200.0f);
+
+		ImGui::SliderFloat3("Light Color", &m_lightColorGUILight.x, 0.0f, 1.0f);
+
+		ImGui::SliderInt("Spec Intensity", &m_SpecularIntensityGUILight, 2, 256);
+
+
+		if (ImGui::Button("Close Me"))
+			m_showGUILight = false;
+		
+		ImGui::End();
+	}
+
+
+	Imgui_Impl::getInstance()->Gui_Render(a_cmdBuffer);
+}
+
 
 void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 {
@@ -627,9 +715,8 @@ void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 	
 	//==================================================
 	//Draw UI
+	DrawGui(m_commandBuffers[i]);
 	
-	Imgui_Impl::getInstance()->DrawGui(m_commandBuffers[i]);
-		
 	//==================================================
 	
 	vkCmdEndRenderPass(m_commandBuffers[i]);
@@ -919,6 +1006,38 @@ void ModelViewer::CreateDepthResources()
 	//TransitionImageLayouts(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 }
 
+void ModelViewer::setGuiVariables()
+{
+	m_lightPosGUILight = glm::vec3(0.0, -100.0, 0.0);
+	m_lightColorGUILight = glm::vec3(1.0, 1.0, 1.0);
+	m_SpecularIntensityGUILight = 4;
+}
+
+void ModelViewer::InitGui()
+{
+
+	setGuiVariables();
+
+	ImGui_ImplVulkan_InitInfo imguiInfo = {};
+
+	imguiInfo.Instance = m_VulkanInstance;
+	imguiInfo.Allocator = nullptr;
+	imguiInfo.Device = m_device;
+	imguiInfo.PhysicalDevice = m_physicalDevice;
+	imguiInfo.DescriptorPool = nullptr;//this will be gui created descriptor pool
+	imguiInfo.ImageCount = IMAGE_COUNT;
+	imguiInfo.MinImageCount = 2;
+	imguiInfo.Queue = m_graphicsQueue;
+	imguiInfo.QueueFamily = findQueueFamilies(m_physicalDevice).graphicsFamily.value();
+	imguiInfo.PipelineCache = nullptr;
+
+
+	//Init the GUI for IMGUI
+	Imgui_Impl::getInstance()->Init(m_window, imguiInfo, m_renderPass, m_CommandPool);
+
+
+}
+
 //==========================================================================================================
 
 void ModelViewer::PrepareApp()
@@ -961,27 +1080,8 @@ void ModelViewer::PrepareApp()
 	// set up the camera position
 	SetUpCameraProperties(m_MainCamera);
 
-
-	//GLFWwindow* a_window, ImGui_ImplVulkan_InitInfo a_GUIInitInfo, VkRenderPass a_renderPass, VkQueue a_graphicsQueue,
-	//VkCommandPoolCreateFlags a_poolFlags, uint32_t a_queueFamilyIndex
-
-	ImGui_ImplVulkan_InitInfo imguiInfo = {};
-
-	imguiInfo.Instance = m_VulkanInstance;
-	imguiInfo.Allocator = nullptr;
-	imguiInfo.Device = m_device;
-	imguiInfo.PhysicalDevice = m_physicalDevice;
-	imguiInfo.DescriptorPool = nullptr;//this will be gui created descriptor pool
-	imguiInfo.ImageCount = IMAGE_COUNT;
-	imguiInfo.MinImageCount = 2;
-	imguiInfo.Queue = m_graphicsQueue;
-	imguiInfo.QueueFamily = findQueueFamilies(m_physicalDevice).graphicsFamily.value();
-	imguiInfo.PipelineCache = nullptr;
-
-
-	//Init the GUI for IMGUI
-	Imgui_Impl::getInstance()->Init(m_window, imguiInfo, m_renderPass, m_CommandPool);
-	
+	//Initialize Dear ImGui
+	InitGui();
 
 }
 

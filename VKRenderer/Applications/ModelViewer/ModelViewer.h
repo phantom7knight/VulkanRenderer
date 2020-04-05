@@ -9,6 +9,22 @@ struct ModelUBO
 	glm::mat4 ProjectionMatrix;
 };
 
+
+struct LightInfoUBO
+{
+	glm::vec3 lightColor;
+	int specularIntensity;
+	glm::vec3 lightPosition;
+	glm::vec3 camPosition;
+
+	LightInfoUBO() : lightColor(glm::vec3(1.0, 1.0, 1.0)), specularIntensity(4)
+		, lightPosition(glm::vec3(0.0, 0.0, 0.0)), camPosition(glm::vec3(0.0, 0.0, 0.0))
+	{
+		
+	}
+
+};
+
 class Camera;
 class ModelViewer : public vkRenderer
 {
@@ -68,6 +84,12 @@ public:
 
 	void CreateDepthResources();
 
+	void setGuiVariables();
+
+	void InitGui();
+
+	void DrawGui(VkCommandBuffer a_cmdBuffer);
+
 
 private:
 
@@ -84,11 +106,17 @@ private:
 	VkImageView textureImageView;
 	VkSampler textureSampler;
 	CameraMatrices cam_matrices;
+	//glm::vec3 getCamProperties
 
 	
 	//Depth Related variables
 	TextureBufferDesc depthImageInfo;
 	VkImageView depthImageView;
+
+	bool m_showGUILight;
+	glm::vec3	m_lightPosGUILight;
+	glm::vec3	m_lightColorGUILight;
+	int		m_SpecularIntensityGUILight;
 
 };
 

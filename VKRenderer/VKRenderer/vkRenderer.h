@@ -148,6 +148,8 @@ protected:
 
 	std::vector<BufferDesc>				m_ModelUniformBuffer;
 
+	std::vector<BufferDesc>				m_LightInfoUniformBuffer;
+
 	VkDescriptorSetLayout				m_descriptorSetLayout;
 
 	VkDescriptorPool					m_DescriptorPool;

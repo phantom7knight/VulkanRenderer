@@ -78,8 +78,7 @@ void Imgui_Impl::Init(GLFWwindow* a_window, ImGui_ImplVulkan_InitInfo a_GUIInitI
     init_info.Allocator = a_GUIInitInfo.Allocator;
     init_info.MinImageCount = a_GUIInitInfo.MinImageCount;
     init_info.ImageCount = a_GUIInitInfo.ImageCount;
-    //init_info.CheckVkResultFn = check_vk_result;
-
+    
     ImGui_ImplVulkan_Init(&init_info, a_renderPass);
 
 
@@ -143,24 +142,6 @@ void Imgui_Impl::Gui_Render(VkCommandBuffer command_buffer)
     ImGui::Render();
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), command_buffer);
 }
-
-void Imgui_Impl::DrawGui(VkCommandBuffer a_cmdBuffer)
-{
-    Imgui_Impl::getInstance()->Gui_BeginFrame();
-
-    if (m_showGuiWindow)
-    {
-        ImGui::Begin("Another Window", &m_showGuiWindow);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        ImGui::Text("Hello from another window!");
-        if (ImGui::Button("Close Me"))
-            m_showGuiWindow = false;
-        ImGui::End();
-    }
-
-
-    Imgui_Impl::getInstance()->Gui_Render(a_cmdBuffer);
-}
-
 
 void Imgui_Impl::DestroyGui(VkDevice a_device)
 {
