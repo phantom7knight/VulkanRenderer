@@ -4,7 +4,7 @@
 
 
 
-ModelViewer::ModelViewer()
+ModelViewer::ModelViewer() : m_showGUILight(true)
 {
 }
 
@@ -576,6 +576,27 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices pro
 	vkUnmapMemory(m_device, m_ModelUniformBuffer[a_imageIndex].BufferMemory);
 }
 
+void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
+{
+	Imgui_Impl::getInstance()->Gui_BeginFrame();
+
+	if (m_showGUILight)
+	{
+		
+		ImGui::Begin("Another Window", &m_showGUILight);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+				
+		ImGui::Text("Hello from another window!");
+		if (ImGui::Button("Close Me"))
+			m_showGUILight = false;
+		
+		ImGui::End();
+	}
+
+
+	Imgui_Impl::getInstance()->Gui_Render(a_cmdBuffer);
+}
+
+
 void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 {
 	uint32_t i = a_imageIndex;
@@ -627,9 +648,8 @@ void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 	
 	//==================================================
 	//Draw UI
+	DrawGui(m_commandBuffers[i]);
 	
-	Imgui_Impl::getInstance()->DrawGui(m_commandBuffers[i]);
-		
 	//==================================================
 	
 	vkCmdEndRenderPass(m_commandBuffers[i]);
@@ -919,6 +939,30 @@ void ModelViewer::CreateDepthResources()
 	//TransitionImageLayouts(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 }
 
+
+void ModelViewer::InitGui()
+{
+
+	ImGui_ImplVulkan_InitInfo imguiInfo = {};
+
+	imguiInfo.Instance = m_VulkanInstance;
+	imguiInfo.Allocator = nullptr;
+	imguiInfo.Device = m_device;
+	imguiInfo.PhysicalDevice = m_physicalDevice;
+	imguiInfo.DescriptorPool = nullptr;//this will be gui created descriptor pool
+	imguiInfo.ImageCount = IMAGE_COUNT;
+	imguiInfo.MinImageCount = 2;
+	imguiInfo.Queue = m_graphicsQueue;
+	imguiInfo.QueueFamily = findQueueFamilies(m_physicalDevice).graphicsFamily.value();
+	imguiInfo.PipelineCache = nullptr;
+
+
+	//Init the GUI for IMGUI
+	Imgui_Impl::getInstance()->Init(m_window, imguiInfo, m_renderPass, m_CommandPool);
+
+
+}
+
 //==========================================================================================================
 
 void ModelViewer::PrepareApp()
@@ -961,27 +1005,8 @@ void ModelViewer::PrepareApp()
 	// set up the camera position
 	SetUpCameraProperties(m_MainCamera);
 
-
-	//GLFWwindow* a_window, ImGui_ImplVulkan_InitInfo a_GUIInitInfo, VkRenderPass a_renderPass, VkQueue a_graphicsQueue,
-	//VkCommandPoolCreateFlags a_poolFlags, uint32_t a_queueFamilyIndex
-
-	ImGui_ImplVulkan_InitInfo imguiInfo = {};
-
-	imguiInfo.Instance = m_VulkanInstance;
-	imguiInfo.Allocator = nullptr;
-	imguiInfo.Device = m_device;
-	imguiInfo.PhysicalDevice = m_physicalDevice;
-	imguiInfo.DescriptorPool = nullptr;//this will be gui created descriptor pool
-	imguiInfo.ImageCount = IMAGE_COUNT;
-	imguiInfo.MinImageCount = 2;
-	imguiInfo.Queue = m_graphicsQueue;
-	imguiInfo.QueueFamily = findQueueFamilies(m_physicalDevice).graphicsFamily.value();
-	imguiInfo.PipelineCache = nullptr;
-
-
-	//Init the GUI for IMGUI
-	Imgui_Impl::getInstance()->Init(m_window, imguiInfo, m_renderPass, m_CommandPool);
-	
+	//Initialize Dear ImGui
+	InitGui();
 
 }
 

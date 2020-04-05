@@ -68,6 +68,10 @@ public:
 
 	void CreateDepthResources();
 
+	void InitGui();
+
+	void DrawGui(VkCommandBuffer a_cmdBuffer);
+
 
 private:
 
@@ -89,6 +93,8 @@ private:
 	//Depth Related variables
 	TextureBufferDesc depthImageInfo;
 	VkImageView depthImageView;
+
+	bool m_showGUILight;
 
 };
 
