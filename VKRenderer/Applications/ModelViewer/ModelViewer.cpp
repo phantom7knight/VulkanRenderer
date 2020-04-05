@@ -901,9 +901,8 @@ void ModelViewer::CreateDepthResources()
 	depthImageInfo.ImageWidth = m_swapChainExtent.width;
 	depthImageInfo.imageFormat = depthFormat;
 	depthImageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	depthImageInfo.usageFlags = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	depthImageInfo.usageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	depthImageInfo.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-
 	CreateImage(&depthImageInfo);
 
 	createImageView(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &depthImageView);
