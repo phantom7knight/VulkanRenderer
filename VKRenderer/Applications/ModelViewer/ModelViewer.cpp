@@ -92,7 +92,7 @@ void ModelViewer::CreateRenderPass()
 	VkRenderPassCreateInfo renderpassInfo = {};
 
 	renderpassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderpassInfo.attachmentCount = attachments.size();
+	renderpassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 	renderpassInfo.pAttachments = attachments.data();
 	renderpassInfo.subpassCount = 1;
 	renderpassInfo.pSubpasses = &subpassInfo;
@@ -365,7 +365,7 @@ void ModelViewer::CreateFrameBuffers()
 
 		fbcreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		fbcreateInfo.renderPass = m_renderPass;
-		fbcreateInfo.attachmentCount = attachments->size();
+		fbcreateInfo.attachmentCount = static_cast<uint32_t>(attachments->size());
 		fbcreateInfo.pAttachments = attachments->data();
 		fbcreateInfo.width = m_swapChainExtent.width;
 		fbcreateInfo.height = m_swapChainExtent.height;
@@ -747,7 +747,7 @@ void ModelViewer::LoadAModel(std::string fileName)
 	SetUpVertexBuffer(modelinfor, &VertexBUffer);
 	SetUpIndexBuffer(modelinfor	, &IndexBUffer);
 
-	m_indexBufferCount = modelinfor.indexbufferData.size();
+	m_indexBufferCount = static_cast<uint32_t>(modelinfor.indexbufferData.size());
 
 }
 
