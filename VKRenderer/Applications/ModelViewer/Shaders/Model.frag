@@ -24,7 +24,7 @@ void main()
 	//remove the hard coded values
 	vec3 ambLightColor	= vec3(0.8,0.8,0.8);
 	vec3 LightColor		= light_ubo.lightColor;
-	vec3 objColor		= vec3(0.8,0.22,0.1);
+	vec3 objColor		= vec3(0.5,0.5,0.5);
 	vec3 camPos			= light_ubo.camPosition;//vec3(0.0, 0.0, -10.5);
 	float specIntensity = light_ubo.specularIntensity;
 

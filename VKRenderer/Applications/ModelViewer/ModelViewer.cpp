@@ -1058,6 +1058,7 @@ void ModelViewer::PrepareApp()
 
 	//LoadAModel("../../Assets/Models/cornell_box/cornell_box.obj");
 	LoadAModel("../../Assets/Models/monkey/monkey.obj");
+	//LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
 	//LoadAModel("../../Assets/Models/venus/venus.fbx");
 
 	//LoadTexture("../../Assets/Textures/Statue.jpg");
