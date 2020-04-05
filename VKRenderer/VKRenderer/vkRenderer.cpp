@@ -650,7 +650,6 @@ void vkRenderer::CreateSwapChain()
 
 
 //===================================================================
-//TODO: GENERALIZE IT!!!!!
 // Creating Image Views[Used to view Images]
 //===================================================================
 void vkRenderer::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView *a_imageView)
