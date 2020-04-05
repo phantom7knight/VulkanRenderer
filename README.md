@@ -11,3 +11,8 @@ Model Loading
 
 Added UI using Dear ImGui
 ![imgui UI](https://user-images.githubusercontent.com/32849841/78473222-d0c62b00-76f3-11ea-8719-46bfb58d5e2d.PNG)
+
+
+UI light control for the model
+![ModelwithUI](https://user-images.githubusercontent.com/32849841/78512741-bf186e00-775b-11ea-87f4-338c21f90b6f.PNG)
+
