@@ -347,3 +347,4 @@ ASALocalRun/
 
 
 *.spv
+/VKRenderer/Applications/ModelViewer/main.exe

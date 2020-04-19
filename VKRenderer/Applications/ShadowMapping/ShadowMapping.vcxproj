@@ -71,7 +71,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(VULKAN_SDK)\Include;$(SolutionDir)Dependencies\STB;$(SolutionDir)Dependencies\ASSIMP\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Dependencies\Vulkan\Include;$(SolutionDir)Dependencies\STB;$(SolutionDir)Dependencies\ASSIMP\Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -82,7 +82,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VULKAN_SDK)\Include;$(SolutionDir)Dependencies\STB;$(SolutionDir)Dependencies\ASSIMP\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Dependencies\Vulkan\Include;$(SolutionDir)Dependencies\Vulkan\Include;$(SolutionDir)Dependencies\STB;$(SolutionDir)Dependencies\ASSIMP\Include;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)$(Platform)\$(Configuration);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -97,7 +97,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>IMGUI.lib;VKRenderer.lib;vulkan-1.lib;glfw3.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;$(SolutionDir)Dependencies\assimp\Lib;$(SolutionDir)\Dependencies\GLFW\lib-vc2017;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\Vulkan\Lib;$(VULKAN_SDK)\Lib;$(SolutionDir)Dependencies\assimp\Lib;$(SolutionDir)\Dependencies\GLFW\lib-vc2017;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -144,7 +144,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>IMGUI.lib;VKRenderer.lib;vulkan-1.lib;glfw3.lib;assimp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(VULKAN_SDK)\Lib;$(SolutionDir)Dependencies\assimp\Lib;$(SolutionDir)\Dependencies\GLFW\lib-vc2017;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\Vulkan\Lib;$(SolutionDir)Dependencies\Vulkan\Lib;$(SolutionDir)Dependencies\assimp\Lib;$(SolutionDir)\Dependencies\GLFW\lib-vc2017;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
