@@ -4,7 +4,7 @@
 
 
 
-ModelViewer::ModelViewer() : m_showGUILight(true)
+ModelViewer::ModelViewer() : m_showGUILight(true), m_showPhongGUILight(false), m_showBRDFGUILight(true)
 {
 }
 
@@ -16,7 +16,7 @@ ModelViewer::~ModelViewer()
 void ModelViewer::SetUpCameraProperties(Camera* a_cam)
 {
 	//SetUp Camera Properties
-	a_cam->set_position(glm::vec3(0.0, 0.0, -10.5));
+	a_cam->set_position(glm::vec3(0.0, 0.0, -1.5));
 	a_cam->camProperties.rotation_speed	   = 0.2f;
 	a_cam->camProperties.translation_speed = 0.002f;
 
@@ -622,6 +622,10 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices pro
 
 	lightInfo_UBO.camPosition = glm::vec3(0.0, 0.0, -10.5);
 
+	lightInfo_UBO.lightModel = m_lightModelGUILight;
+
+	lightInfo_UBO.ObjRoughness = m_roughnessGUILight;
+
 	
 	//Copy the data
 
@@ -642,19 +646,58 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 	if (m_showGUILight)
 	{
 		
-		ImGui::Begin("Another Window", &m_showGUILight);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-				
-		ImGui::Text("Hello from another window!");
+		ImGui::Begin("Light Properties", &m_showGUILight);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+		
+		//Lighting Mode
+		{
+			//ImGuiIO& io = ImGui::GetIO();
+			//ImFont* font_current = ImGui::GetFont();
 
+			ImGui::Checkbox("Phong Model", &m_showPhongGUILight);
+			ImGui::Checkbox("BRDF Model", &m_showBRDFGUILight);
+
+			if (m_showPhongGUILight)
+			{
+				m_lightModelGUILight = 0;
+			}
+						
+			if (m_showBRDFGUILight)
+			{
+				m_lightModelGUILight = 1;
+			}
+
+
+
+
+			
+			/*if (ImGui::BeginCombo(" ","Choose a lighting model"))
+			{
+				for (int n = 0; n < 1; n++)
+				{
+					int currentMode = m_lightModelGUILight;
+					ImGui::PushID((void*)currentMode);
+					
+					if (ImGui::Selectable("Phong Model", m_lightModelShowGUILight))
+						m_lightModelGUILight = 0;
+					else if (ImGui::Selectable("BRDF Model", m_lightModelShowGUILight))
+						m_lightModelGUILight = 1;
+
+					
+
+					ImGui::PopID();
+				}
+				ImGui::EndCombo();
+			}*/
+
+		}
+		
 		ImGui::SliderFloat3("Light Position", &m_lightPosGUILight.x, -200.0f, 200.0f);
 
 		ImGui::SliderFloat3("Light Color", &m_lightColorGUILight.x, 0.0f, 1.0f);
 
 		ImGui::SliderInt("Spec Intensity", &m_SpecularIntensityGUILight, 2, 256);
 
-
-		if (ImGui::Button("Close Me"))
-			m_showGUILight = false;
+		ImGui::SliderFloat("OBJ Roughness", &m_roughnessGUILight, 0.0f, 2.0f);
 		
 		ImGui::End();
 	}
@@ -662,7 +705,6 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 
 	Imgui_Impl::getInstance()->Gui_Render(a_cmdBuffer);
 }
-
 
 void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 {
@@ -1008,9 +1050,11 @@ void ModelViewer::CreateDepthResources()
 
 void ModelViewer::setGuiVariables()
 {
-	m_lightPosGUILight = glm::vec3(0.0, -100.0, 0.0);
+	m_lightPosGUILight = glm::vec3(91.30, -73.913, 160.870);
 	m_lightColorGUILight = glm::vec3(1.0, 1.0, 1.0);
 	m_SpecularIntensityGUILight = 4;
+	m_lightModelGUILight = 0;
+	m_roughnessGUILight = 1.058f;
 }
 
 void ModelViewer::InitGui()
@@ -1056,13 +1100,18 @@ void ModelViewer::PrepareApp()
 
 	CreateGraphicsPipeline();
 
-	//LoadAModel("../../Assets/Models/cornell_box/cornell_box.obj");
-	LoadAModel("../../Assets/Models/monkey/monkey.obj");
-	//LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
-	//LoadAModel("../../Assets/Models/venus/venus.fbx");
+#pragma region Model_Load
+		//LoadAModel("../../Assets/Models/cornell_box/cornell_box.obj");
+		LoadAModel("../../Assets/Models/monkey/monkey.obj");
+		//LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
+		//LoadAModel("../../Assets/Models/venus/venus.fbx");
+#pragma endregion
 
-	//LoadTexture("../../Assets/Textures/Statue.jpg");
-	LoadTexture("../../Assets/Textures/green.jpg");
+
+#pragma region Models_Tex
+		//LoadTexture("../../Assets/Textures/Statue.jpg");
+		LoadTexture("../../Assets/Textures/green.jpg");
+#pragma endregion
 
 	CreateImageTextureView();
 

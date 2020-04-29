@@ -14,8 +14,11 @@ Current Pipeline plans
 4.	Make Model Loader. - Done
 5.	Generate Scene Heirarchy.
 6.	Generalize Graphics/Compute Pipeline addition to the Command Buffers
-7.	Integrate UI into the engine as a seperate static lib [preferably Ant-Tweak Bar].
-8.	Implement Lighting in scene Phong and BRDF(also explore into UE's method).
+7.	Integrate UI into the engine as a seperate static lib. - Done
+8.	Implement Lighting in scene.
+	a. Phong	- Done
+	b. BRDF		- 
+	c. UE4's method for IBL
 9.	Implement Point Lights and also Line Light[Look into the article "http://www.elopezr.com/rendering-line-lights/"]
 10. Implement HDR Skymap/Skydome.
 11. Text Rendering

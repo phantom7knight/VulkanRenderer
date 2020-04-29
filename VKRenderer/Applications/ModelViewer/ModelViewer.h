@@ -12,13 +12,15 @@ struct ModelUBO
 
 struct LightInfoUBO
 {
-	glm::vec3 lightColor;
-	int specularIntensity;
-	glm::vec3 lightPosition;
-	glm::vec3 camPosition;
+	glm::vec3	lightColor;
+	int			specularIntensity;
+	glm::vec3	lightPosition;
+	int			lightModel;
+	glm::vec3	camPosition;
+	float		ObjRoughness;
 
 	LightInfoUBO() : lightColor(glm::vec3(1.0, 1.0, 1.0)), specularIntensity(4)
-		, lightPosition(glm::vec3(0.0, 0.0, 0.0)), camPosition(glm::vec3(0.0, 0.0, 0.0))
+		, lightPosition(glm::vec3(0.0, 0.0, 0.0)), camPosition(glm::vec3(0.0, 0.0, 0.0)), lightModel(0), ObjRoughness(0.3f)
 	{
 		
 	}
@@ -117,6 +119,10 @@ private:
 	glm::vec3	m_lightPosGUILight;
 	glm::vec3	m_lightColorGUILight;
 	int		m_SpecularIntensityGUILight;
+	int		m_lightModelGUILight;
+	bool m_showPhongGUILight;
+	bool m_showBRDFGUILight;
+	float m_roughnessGUILight;
 
 };
 
