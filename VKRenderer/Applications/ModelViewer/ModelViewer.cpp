@@ -16,7 +16,7 @@ ModelViewer::~ModelViewer()
 void ModelViewer::SetUpCameraProperties(Camera* a_cam)
 {
 	//SetUp Camera Properties
-	a_cam->set_position(glm::vec3(0.0, 0.0, -10.5));
+	a_cam->set_position(glm::vec3(0.0, 0.0, -1.5));
 	a_cam->camProperties.rotation_speed	   = 0.2f;
 	a_cam->camProperties.translation_speed = 0.002f;
 
@@ -642,10 +642,28 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 	if (m_showGUILight)
 	{
 		
-		ImGui::Begin("Another Window", &m_showGUILight);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-				
-		ImGui::Text("Hello from another window!");
+		ImGui::Begin("Light Properties", &m_showGUILight);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+		
+		//Lighting Mode
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			ImFont* font_current = ImGui::GetFont();
+			
+			if (ImGui::BeginCombo(" ","Choose a lighting model"))
+			{
+				for (int n = 0; n < io.Fonts->Fonts.Size; n++)
+				{
+					ImFont* font = io.Fonts->Fonts[n];
+					ImGui::PushID((void*)font);
+					
 
+					ImGui::PopID();
+				}
+				ImGui::EndCombo();
+			}
+
+		}
+		
 		ImGui::SliderFloat3("Light Position", &m_lightPosGUILight.x, -200.0f, 200.0f);
 
 		ImGui::SliderFloat3("Light Color", &m_lightColorGUILight.x, 0.0f, 1.0f);
@@ -662,7 +680,6 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 
 	Imgui_Impl::getInstance()->Gui_Render(a_cmdBuffer);
 }
-
 
 void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 {
@@ -1008,7 +1025,7 @@ void ModelViewer::CreateDepthResources()
 
 void ModelViewer::setGuiVariables()
 {
-	m_lightPosGUILight = glm::vec3(0.0, -100.0, 0.0);
+	m_lightPosGUILight = glm::vec3(0.0, -100.0, 122.2);
 	m_lightColorGUILight = glm::vec3(1.0, 1.0, 1.0);
 	m_SpecularIntensityGUILight = 4;
 }
@@ -1056,13 +1073,18 @@ void ModelViewer::PrepareApp()
 
 	CreateGraphicsPipeline();
 
-	//LoadAModel("../../Assets/Models/cornell_box/cornell_box.obj");
-	LoadAModel("../../Assets/Models/monkey/monkey.obj");
-	//LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
-	//LoadAModel("../../Assets/Models/venus/venus.fbx");
+#pragma region Model_Load
+		//LoadAModel("../../Assets/Models/cornell_box/cornell_box.obj");
+		LoadAModel("../../Assets/Models/monkey/monkey.obj");
+		//LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
+		//LoadAModel("../../Assets/Models/venus/venus.fbx");
+#pragma endregion
 
-	//LoadTexture("../../Assets/Textures/Statue.jpg");
-	LoadTexture("../../Assets/Textures/green.jpg");
+
+#pragma region Models_Tex
+		//LoadTexture("../../Assets/Textures/Statue.jpg");
+		LoadTexture("../../Assets/Textures/green.jpg");
+#pragma endregion
 
 	CreateImageTextureView();
 
