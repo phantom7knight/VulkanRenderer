@@ -90,7 +90,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>$(LibraryPath)</LibraryPath>
-    <IncludePath>D:\DIGIPEN\Other stuff\Vulkan\VulkanRenderer\VKRenderer\Dependencies\GLFW\include;$(VULKAN_SDK)\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Dependencies\GLFW\Include;$(SolutionDir)Dependencies\Vulkan\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
@@ -101,7 +101,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>$(LibraryPath)</LibraryPath>
-    <IncludePath>D:\DIGIPEN\Other stuff\Vulkan\VulkanRenderer\VKRenderer\Dependencies\GLFW\include;$(VULKAN_SDK)\Include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Dependencies\GLFW\Include;$(SolutionDir)Dependencies\Vulkan\Include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
