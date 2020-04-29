@@ -17,7 +17,9 @@ layout(binding = 2) uniform LightInfoUBO
 	vec3 lightColor;
 	int specularIntensity;
 	vec3 lightPosition;
+	int lightModel;
 	vec3 camPosition;
+	float ObjRoughness;
 }light_ubo;
 
 
@@ -116,7 +118,7 @@ void CalculateBRDF(inout vec4 result)
 	vec4 specularPart = vec4(1.);
 
 	vec3 diffAlbedoColor = vec3(0.5,0.5,0.5);
-	vec3 specularColor = vec3(0.3,0.4,0.5);
+	vec3 specularColor = vec3(0.5,0.5,0.5);
 
 	diffusePart = vec4(diffAlbedoColor, 1.0);
 	diffusePart /= PI;
@@ -131,12 +133,11 @@ void CalculateBRDF(inout vec4 result)
 	
 
 	// H = (l+v) / ||l+v||
-
-	vec3 H = vec3(lightPos + camPos) / length(lightPos + camPos);
+	vec3 H = normalize(lightPos + camPos);
 
 	float NH = dot(normalize(Normals), H);
 
-	float roughness = light_ubo.specularIntensity;
+	float roughness = light_ubo.ObjRoughness * light_ubo.ObjRoughness;
 
 	float NDF = NormalDistributionFunction(roughness,NH);
 
@@ -150,6 +151,7 @@ void CalculateBRDF(inout vec4 result)
 	float NV = dot(normalize(Normals), ViewDir);
 	
 
+	//specularPart = (( NDF * FF ) / (4 * NL * NV) )* GF;
 	specularPart = (( NDF * FF ) / (4 * NL * NV) )* GF;
 
 
@@ -160,7 +162,7 @@ void CalculateBRDF(inout vec4 result)
 
 void main()
 {
-	int num = 1;
+	int num = light_ubo.lightModel;
 
 	switch(num)
 	{

@@ -4,7 +4,7 @@
 
 
 
-ModelViewer::ModelViewer() : m_showGUILight(true)
+ModelViewer::ModelViewer() : m_showGUILight(true), m_showPhongGUILight(false), m_showBRDFGUILight(true)
 {
 }
 
@@ -622,6 +622,10 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices pro
 
 	lightInfo_UBO.camPosition = glm::vec3(0.0, 0.0, -10.5);
 
+	lightInfo_UBO.lightModel = m_lightModelGUILight;
+
+	lightInfo_UBO.ObjRoughness = m_roughnessGUILight;
+
 	
 	//Copy the data
 
@@ -646,21 +650,44 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 		
 		//Lighting Mode
 		{
-			ImGuiIO& io = ImGui::GetIO();
-			ImFont* font_current = ImGui::GetFont();
-			
-			if (ImGui::BeginCombo(" ","Choose a lighting model"))
+			//ImGuiIO& io = ImGui::GetIO();
+			//ImFont* font_current = ImGui::GetFont();
+
+			ImGui::Checkbox("Phong Model", &m_showPhongGUILight);
+			ImGui::Checkbox("BRDF Model", &m_showBRDFGUILight);
+
+			if (m_showPhongGUILight)
 			{
-				for (int n = 0; n < io.Fonts->Fonts.Size; n++)
+				m_lightModelGUILight = 0;
+			}
+						
+			if (m_showBRDFGUILight)
+			{
+				m_lightModelGUILight = 1;
+			}
+
+
+
+
+			
+			/*if (ImGui::BeginCombo(" ","Choose a lighting model"))
+			{
+				for (int n = 0; n < 1; n++)
 				{
-					ImFont* font = io.Fonts->Fonts[n];
-					ImGui::PushID((void*)font);
+					int currentMode = m_lightModelGUILight;
+					ImGui::PushID((void*)currentMode);
+					
+					if (ImGui::Selectable("Phong Model", m_lightModelShowGUILight))
+						m_lightModelGUILight = 0;
+					else if (ImGui::Selectable("BRDF Model", m_lightModelShowGUILight))
+						m_lightModelGUILight = 1;
+
 					
 
 					ImGui::PopID();
 				}
 				ImGui::EndCombo();
-			}
+			}*/
 
 		}
 		
@@ -670,9 +697,7 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 
 		ImGui::SliderInt("Spec Intensity", &m_SpecularIntensityGUILight, 2, 256);
 
-
-		if (ImGui::Button("Close Me"))
-			m_showGUILight = false;
+		ImGui::SliderFloat("OBJ Roughness", &m_roughnessGUILight, 0.0f, 2.0f);
 		
 		ImGui::End();
 	}
@@ -1025,9 +1050,11 @@ void ModelViewer::CreateDepthResources()
 
 void ModelViewer::setGuiVariables()
 {
-	m_lightPosGUILight = glm::vec3(0.0, -100.0, 122.2);
+	m_lightPosGUILight = glm::vec3(91.30, -73.913, 160.870);
 	m_lightColorGUILight = glm::vec3(1.0, 1.0, 1.0);
 	m_SpecularIntensityGUILight = 4;
+	m_lightModelGUILight = 0;
+	m_roughnessGUILight = 1.058f;
 }
 
 void ModelViewer::InitGui()
