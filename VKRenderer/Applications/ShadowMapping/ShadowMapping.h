@@ -80,7 +80,7 @@ public:
 
 	void CreateImageTextureView();
 
-	void CreateTextureSampler();
+	void CreateTextureSampler(VkSampler* a_textureSampler, VkSamplerAddressMode a_addressMode);
 
 	void CreateDepthResources();
 
@@ -89,6 +89,16 @@ public:
 	void InitGui();
 
 	void DrawGui(VkCommandBuffer a_cmdBuffer);
+
+	//Shadows
+
+	void InitShadowsSetup();
+
+	void InitShadowsFrameBuffer();
+
+	void CreateShadowsRenderPass();
+
+	void CreateShadowsImageViews();
 
 
 private:
@@ -117,6 +127,16 @@ private:
 	glm::vec3	m_lightPosGUILight;
 	glm::vec3	m_lightColorGUILight;
 	int		m_SpecularIntensityGUILight;
+
+	//Shadows
+	VkRenderPass m_ShadowsRenderPass;
+	
+	TextureBufferDesc ShadowPassImageInfo;
+	VkImageView ShadowPassImageView;
+
+	VkSampler ShadowPassSampler;
+
+	VkFramebuffer m_ShadowPassFrameBuffer;
 
 };
 

@@ -16,7 +16,7 @@ ShadowMapping::~ShadowMapping()
 void ShadowMapping::SetUpCameraProperties(Camera* a_cam)
 {
 	//SetUp Camera Properties
-	a_cam->set_position(glm::vec3(0.0, 0.0, -10.5));
+	a_cam->set_position(glm::vec3(0.0, 0.0, -1.5));
 	a_cam->camProperties.rotation_speed	   = 0.2f;
 	a_cam->camProperties.translation_speed = 0.002f;
 
@@ -232,8 +232,8 @@ void ShadowMapping::CreateGraphicsPipeline()
 
 	viewPort.x = 0.0f;
 	viewPort.y = 0.0f;
-	viewPort.width = (float)m_swapChainExtent.width;
-	viewPort.height = (float)m_swapChainExtent.height;
+	viewPort.width =	(float)m_swapChainExtent.width;
+	viewPort.height =	(float)m_swapChainExtent.height;
 	viewPort.minDepth = 0.0f;
 	viewPort.maxDepth = 1.0f;
 
@@ -948,7 +948,7 @@ void ShadowMapping::CreateImageTextureView()
 	createImageView(image1.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &textureImageView);
 }
 
-void ShadowMapping::CreateTextureSampler()
+void ShadowMapping::CreateTextureSampler(VkSampler * a_textureSampler, VkSamplerAddressMode a_addressMode)
 {
 	VkSamplerCreateInfo createInfo = {};
 
@@ -958,9 +958,9 @@ void ShadowMapping::CreateTextureSampler()
 	createInfo.magFilter = VK_FILTER_LINEAR;
 	createInfo.minFilter = VK_FILTER_LINEAR;
 
-	createInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	createInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	createInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	createInfo.addressModeU = a_addressMode;
+	createInfo.addressModeV = a_addressMode;
+	createInfo.addressModeW = a_addressMode;
 
 	createInfo.anisotropyEnable = VK_TRUE;
 	createInfo.maxAnisotropy = 16; // lower value bad quality more performance
@@ -978,7 +978,7 @@ void ShadowMapping::CreateTextureSampler()
 	createInfo.minLod = 0.0f;
 	createInfo.maxLod = 0.0f;
 
-	if (vkCreateSampler(m_device, &createInfo, nullptr, &textureSampler) != VK_SUCCESS)
+	if (vkCreateSampler(m_device, &createInfo, nullptr, a_textureSampler) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to create sampler for the texture provided");
 		return;
@@ -987,7 +987,6 @@ void ShadowMapping::CreateTextureSampler()
 
 
 }
-
 
 void ShadowMapping::CreateDepthResources()
 {
@@ -1038,6 +1037,137 @@ void ShadowMapping::InitGui()
 
 }
 
+
+#pragma region Shadows-Setup
+void ShadowMapping::CreateShadowsRenderPass()
+{
+	std::array<VkAttachmentDescription, 1> ShadowRenderPassAttachment;
+
+	ShadowRenderPassAttachment[0].format = VK_FORMAT_D16_UNORM;
+	ShadowRenderPassAttachment[0].samples = VK_SAMPLE_COUNT_1_BIT;
+
+	ShadowRenderPassAttachment[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	ShadowRenderPassAttachment[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+	ShadowRenderPassAttachment[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	ShadowRenderPassAttachment[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	
+	ShadowRenderPassAttachment[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	ShadowRenderPassAttachment[0].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+
+	VkAttachmentReference depthAttachmentRef = {};
+
+	depthAttachmentRef.attachment = 0;
+	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription subpassInfo = {};
+
+	subpassInfo.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpassInfo.colorAttachmentCount = 0;	//layout(location = 0) out vec4 outColor this is where it will be referenced
+	subpassInfo.pColorAttachments = NULL;
+	subpassInfo.pDepthStencilAttachment = &depthAttachmentRef;
+
+	std::array< VkSubpassDependency, 2> subpassDependencies;
+
+	subpassDependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+	subpassDependencies[0].dstSubpass = 0;
+	subpassDependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	subpassDependencies[0].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	subpassDependencies[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	subpassDependencies[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	subpassDependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+	subpassDependencies[1].srcSubpass = 0;
+	subpassDependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+	subpassDependencies[1].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+	subpassDependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	subpassDependencies[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	subpassDependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	subpassDependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+	
+	
+	VkRenderPassCreateInfo createInfo = {};
+
+	createInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	createInfo.pNext = NULL;
+	createInfo.attachmentCount = ShadowRenderPassAttachment.size();
+	createInfo.pAttachments = ShadowRenderPassAttachment.data();
+	createInfo.pSubpasses = &subpassInfo;
+	createInfo.subpassCount = 1;
+	createInfo.dependencyCount = static_cast<uint32_t>(subpassDependencies.size());
+	createInfo.pDependencies = subpassDependencies.data();
+
+	if (vkCreateRenderPass(m_device, &createInfo, nullptr, &m_ShadowsRenderPass) == VK_NULL_HANDLE)
+	{
+		throw std::runtime_error("Unable to create Shadow Render Pass");
+		return;
+	}
+
+	return;
+}
+
+void ShadowMapping::CreateShadowsImageViews()
+{
+	//TODO: Check this! if doesn't work add 
+	// "VK_FORMAT_D16_UNORM" as the image format 
+	VkFormat depthFormat = FindDepthFormat();
+
+	ShadowPassImageInfo.ImageHeight = 2048;
+	ShadowPassImageInfo.ImageWidth = 2048;
+	ShadowPassImageInfo.imageFormat = depthFormat;
+	ShadowPassImageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	ShadowPassImageInfo.usageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	ShadowPassImageInfo.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	
+	CreateImage(&ShadowPassImageInfo);
+
+	createImageView(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &ShadowPassImageView);
+
+	return;
+}
+
+//Also known as OffScreenFrameBuffer....
+void ShadowMapping::InitShadowsFrameBuffer()
+{
+	CreateShadowsImageViews();
+
+	//TODO: Check the borderColor
+	CreateTextureSampler(&ShadowPassSampler, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE);
+
+	//Create Render Pass for the Shadows Pass
+	CreateShadowsRenderPass();
+
+	//create Frame Buffer
+	VkFramebufferCreateInfo createInfo = {};
+
+	createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+	createInfo.layers = 1;
+	createInfo.height	= (float)m_swapChainExtent.width;
+	createInfo.width	= (float)m_swapChainExtent.height;
+	createInfo.renderPass = m_ShadowsRenderPass;
+	createInfo.attachmentCount = 1;
+	createInfo.pAttachments = &ShadowPassImageView;
+
+
+	if (vkCreateFramebuffer(m_device, &createInfo, nullptr, &m_ShadowPassFrameBuffer) == VK_NULL_HANDLE)
+	{
+		throw std::runtime_error("Unable to setup the Frame Buffer for Shadow Pass creation");
+		return;
+	}
+
+
+	return;
+}
+
+void ShadowMapping::InitShadowsSetup()
+{
+	InitShadowsFrameBuffer();
+
+	
+}
+#pragma endregion
+
 //==========================================================================================================
 
 void ShadowMapping::PrepareApp()
@@ -1066,7 +1196,7 @@ void ShadowMapping::PrepareApp()
 
 	CreateImageTextureView();
 
-	CreateTextureSampler();
+	CreateTextureSampler(&textureSampler, VK_SAMPLER_ADDRESS_MODE_REPEAT);
 
 	CreateUniformBuffer();
 
@@ -1083,6 +1213,8 @@ void ShadowMapping::PrepareApp()
 
 	//Initialize Dear ImGui
 	InitGui();
+
+	InitShadowsSetup();
 
 }
 
