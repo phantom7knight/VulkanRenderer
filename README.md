@@ -1,6 +1,31 @@
 # VulkanRenderer
 My first Vulkan Renderer.
 
+
+### Goal List
+  - [X] Lighting
+  - [X] Model Loading
+  - [X] Integrate UI[Using Dear Imgui]
+  - [ ] Shadows
+  - [ ] Vulkan Scene
+  - [ ] Normal Mapping
+  - [ ] Implement Pipeline Cache
+  - [ ] Text Rendering
+  - [ ] Deferred Shading
+  
+  
+### Tentative Goal List
+  - [ ] Vulkan Ray Tracing
+  - [ ] Anti-Aliasing Techniques
+  - [ ] Advanced Shadow Maps[Preferably MSM]
+  - [ ] Reflections using SSR
+  - [ ] GPU Collision Detection
+  - [ ] GLTF Model Loader
+
+
+### Screenshots
+
+
 First Rectangle
 ![VkRenderer_Init](https://user-images.githubusercontent.com/32849841/64492905-3b7eb900-d22e-11e9-9962-7275371cdef4.PNG)
 
