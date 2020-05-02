@@ -5,7 +5,7 @@
 
 
 ----------------------------------------------
-Current Pipeline plans
+A. Current Pipeline plans
 ----------------------------------------------
 
 1.	Implement Uniform Buffers -Done
@@ -17,9 +17,9 @@ Current Pipeline plans
 7.	Integrate UI into the engine as a seperate static lib. - Done
 8.	Implement Lighting in scene.
 	a. Phong	- Done
-	b. BRDF		- 
-	c. UE4's method for IBL
-9.	Implement Point Lights and also Line Light[Look into the article "http://www.elopezr.com/rendering-line-lights/"]
+	b. BRDF		- DONE[Based off UE4's paper]
+	c. UE4's method for IBL [Pre-Requisite A.10]
+9.	Implement Point Lights and also Line Light[Look into the article "http://www.elopezr.com/rendering-line-lights/"][https://wickedengine.net/2017/09/07/area-lights/]
 10. Implement HDR Skymap/Skydome.
 11. Text Rendering
 12. Reading Framebuffers getting familiar with it[See Sascha Willems's post]
@@ -36,7 +36,7 @@ Current Pipeline plans
 
 
 ----------------------------------------------
-Tentative Project Plans
+B. Tentative Project Plans
 ----------------------------------------------
 
 1.	Make Post Processing Pipeline
@@ -47,10 +47,10 @@ Tentative Project Plans
 6.	Implement Compute Shaders		[Implement some simulation	]
 7.	Implement Geometry Shader		[ ""		""		""		]
 8.	Implement Tesselation Shader	[ ""		""		""		]
-9.	Reflection[SSR]
+9.	Reflection[SSR][Pre-Requisite A.4]
 10. Offscreen Rendering[Look at Sascha Willems example]
-11. Culling Techniques
-12. Add GLTF model loader.
+11. Culling Techniques.[Pre-Requisite A.5]
+12. Add GLTF model loader.[Pre-Requisite A.4]
 13. Add Debug Markers for RenderDoc.[https://www.saschawillems.de/blog/2016/05/28/tutorial-on-using-vulkans-vk_ext_debug_marker-with-renderdoc/]
 14. Parallelize command Buffer recording, resource loading, etc.
 
