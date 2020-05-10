@@ -2,6 +2,14 @@
 #include "../../VKRenderer/vkRenderer.h"
 
 
+struct DepthCalcUBO
+{
+	// MVP matrix calculated from 
+	// the light's point of view
+	glm::mat4 mvp;
+};
+
+
 struct ModelUBO
 {
 	glm::mat4 ModelMatrix;
@@ -100,6 +108,10 @@ public:
 
 	void CreateShadowsImageViews();
 
+	void InitShadowPassDescriptorLayouts();
+
+	void InitShadowPassDescriptorSets();
+
 
 private:
 
@@ -137,6 +149,13 @@ private:
 	VkSampler ShadowPassSampler;
 
 	VkFramebuffer m_ShadowPassFrameBuffer;
+
+	//Uniform buffer for the shadow's related matrices
+	std::vector<BufferDesc>				m_ShadowUniformBuffer;
+
+	VkDescriptorSetLayout				m_ShadowDescriptorSetLayout;
+
+	std::vector<VkDescriptorSet>		m_ShadowPassDescriptorSets;
 
 };
 

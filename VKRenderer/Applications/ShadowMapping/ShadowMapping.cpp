@@ -137,8 +137,6 @@ void ShadowMapping::CreateDescriptorSetLayout()
 	LightlayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	LightlayoutBinding.pImmutableSamplers = nullptr;
 
-
-
 	//create an array of descriptors
 	std::array< VkDescriptorSetLayoutBinding, 3> descriptorsArray = { layoutBinding ,samplerBinding, LightlayoutBinding };
 
@@ -412,6 +410,7 @@ void ShadowMapping::CreateUniformBuffer()
 
 	m_ModelUniformBuffer.resize(m_SwapChainImages.size());
 	m_LightInfoUniformBuffer.resize(m_SwapChainImages.size());
+	m_ShadowUniformBuffer.resize(m_SwapChainImages.size());
 
 	for (int i = 0; i < m_SwapChainImages.size(); ++i)
 	{
@@ -422,13 +421,17 @@ void ShadowMapping::CreateUniformBuffer()
 		//light info uniform buffer creation
 		CreateBuffer(lightBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 			, m_LightInfoUniformBuffer[i].Buffer, m_LightInfoUniformBuffer[i].BufferMemory);
+		
+		//Shadows uniform buffer creation
+		CreateBuffer(lightBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+			, m_ShadowUniformBuffer[i].Buffer, m_ShadowUniformBuffer[i].BufferMemory);
 	}
 }
 
 void ShadowMapping::CreateDescriptorPool()
 {
 	
-	std::array<VkDescriptorPoolSize, 3> poolSizes = {};
+	std::array<VkDescriptorPoolSize, 4> poolSizes = {};
 
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_SwapChainImages.size());
@@ -438,6 +441,12 @@ void ShadowMapping::CreateDescriptorPool()
 
 	poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[2].descriptorCount = static_cast<uint32_t>(m_SwapChainImages.size());
+
+	// TODO: add description for the other Uniform buffers to send for the depth-shadow-pass
+
+	//one for the uniform buffer which is used in the MVP from light's point of view
+	poolSizes[3].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSizes[3].descriptorCount = static_cast<uint32_t>(m_SwapChainImages.size());
 
 	VkDescriptorPoolCreateInfo createInfo = {};
 
@@ -456,7 +465,7 @@ void ShadowMapping::CreateDescriptorPool()
 void ShadowMapping::CreateDescriptorSets()
 {
 	std::vector<VkDescriptorSetLayout> layouts(m_SwapChainImages.size(), m_descriptorSetLayout);
-
+	
 	VkDescriptorSetAllocateInfo allocateInfo = {};
 
 	allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -581,6 +590,11 @@ void ShadowMapping::CreateSemaphoresandFences()
 
 void ShadowMapping::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices properties_Cam)
 {
+
+#pragma region Shadows_Update
+
+
+#pragma endregion
 
 #pragma region MVP_Update
 	ModelUBO mvp_UBO = {};
@@ -1160,9 +1174,93 @@ void ShadowMapping::InitShadowsFrameBuffer()
 	return;
 }
 
+void ShadowMapping::InitShadowPassDescriptorLayouts()
+{
+
+	//TODO: Setup another VkDescriptorSetLayoutBinding for the depth-pass
+	VkDescriptorSetLayoutBinding depthShadowBinding = {};
+
+	depthShadowBinding.binding = 0;
+	depthShadowBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	depthShadowBinding.descriptorCount = 1;
+	depthShadowBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	depthShadowBinding.pImmutableSamplers = nullptr;
+
+	//create an array of descriptors
+	std::array< VkDescriptorSetLayoutBinding, 1> descriptorsArray = { depthShadowBinding };
+
+
+	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+
+	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layoutInfo.bindingCount = static_cast<uint32_t>(descriptorsArray.size());
+	layoutInfo.pBindings = descriptorsArray.data();
+
+	//create descriptor set layout for the depth - shadow - pass 
+	if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_ShadowDescriptorSetLayout) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create Descriptor Set Layout");
+	}
+
+}
+
+void ShadowMapping::InitShadowPassDescriptorSets()
+{
+	std::vector<VkDescriptorSetLayout> layouts(m_SwapChainImages.size(), m_ShadowDescriptorSetLayout);
+
+	VkDescriptorSetAllocateInfo allocateInfo = {};
+
+	allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocateInfo.descriptorPool = m_DescriptorPool;
+	allocateInfo.descriptorSetCount = static_cast<uint32_t>(m_SwapChainImages.size());
+	allocateInfo.pSetLayouts = layouts.data();
+
+	m_ShadowPassDescriptorSets.resize(m_SwapChainImages.size());
+
+	if (vkAllocateDescriptorSets(m_device, &allocateInfo, m_ShadowPassDescriptorSets.data()) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to create Desciptor Sets for the Shadow Pass");
+	}
+
+	for (size_t i = 0; i < m_SwapChainImages.size(); ++i)
+	{
+		VkDescriptorBufferInfo bufferInfo = {};
+
+		bufferInfo.buffer = m_ShadowUniformBuffer[i].Buffer;
+		bufferInfo.offset = 0;
+		bufferInfo.range = sizeof(DepthCalcUBO);
+
+		std::array< VkWriteDescriptorSet, 1> descriptorWriteInfo = {};
+
+		descriptorWriteInfo[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWriteInfo[0].dstSet = m_ShadowPassDescriptorSets[i];
+		descriptorWriteInfo[0].dstBinding = 0;
+		descriptorWriteInfo[0].dstArrayElement = 0;
+		descriptorWriteInfo[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWriteInfo[0].descriptorCount = 1;
+		descriptorWriteInfo[0].pBufferInfo = &bufferInfo;
+		descriptorWriteInfo[0].pImageInfo = nullptr;
+		descriptorWriteInfo[0].pTexelBufferView = nullptr;
+		
+
+		vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWriteInfo.size()), descriptorWriteInfo.data(), 0, nullptr);
+
+	}
+
+}
+
 void ShadowMapping::InitShadowsSetup()
 {
 	InitShadowsFrameBuffer();
+
+	InitShadowPassDescriptorLayouts();
+
+	//InitShadowPassUniformBuffers();
+
+	InitShadowPassDescriptorSets();
+	
+	//InitShadowPassGraphicsPipeline();
+	
 
 	
 }
