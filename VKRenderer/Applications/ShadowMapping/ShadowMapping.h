@@ -112,6 +112,12 @@ public:
 
 	void InitShadowPassDescriptorSets();
 
+	void InitShadowPassGraphicsPipeline();
+
+	void ShadowsPass(uint32_t i);
+
+	void ScenePass(uint32_t i);
+
 
 private:
 
@@ -119,36 +125,35 @@ private:
 	void LoadTexture(std::string fileName);
 	void CreateImage(TextureBufferDesc *a_texBufferDesc);
 
-	BufferDesc IndexBUffer;
-	BufferDesc VertexBUffer;
+	BufferDesc							IndexBUffer;
+	BufferDesc							VertexBUffer;
 
-	int m_indexBufferCount = 0;
+	int									m_indexBufferCount = 0;
 
-	TextureBufferDesc image1 = {};
-	VkImageView textureImageView;
-	VkSampler textureSampler;
-	CameraMatrices cam_matrices;
-	//glm::vec3 getCamProperties
-
+	TextureBufferDesc					image1 = {};
+	VkImageView							textureImageView;
+	VkSampler							textureSampler;
+	CameraMatrices						cam_matrices;
+	
 	
 	//Depth Related variables
-	TextureBufferDesc depthImageInfo;
-	VkImageView depthImageView;
+	TextureBufferDesc					depthImageInfo;
+	VkImageView							depthImageView;
 
-	bool m_showGUILight;
-	glm::vec3	m_lightPosGUILight;
-	glm::vec3	m_lightColorGUILight;
-	int		m_SpecularIntensityGUILight;
+	bool								m_showGUILight;
+	glm::vec3							m_lightPosGUILight;
+	glm::vec3							m_lightColorGUILight;
+	int									m_SpecularIntensityGUILight;
 
 	//Shadows
-	VkRenderPass m_ShadowsRenderPass;
+	VkRenderPass						m_ShadowsRenderPass;
 	
-	TextureBufferDesc ShadowPassImageInfo;
-	VkImageView ShadowPassImageView;
+	TextureBufferDesc					ShadowPassImageInfo;
+	VkImageView							ShadowPassImageView;
 
-	VkSampler ShadowPassSampler;
+	VkSampler							ShadowPassSampler;
 
-	VkFramebuffer m_ShadowPassFrameBuffer;
+	VkFramebuffer						m_ShadowPassFrameBuffer;
 
 	//Uniform buffer for the shadow's related matrices
 	std::vector<BufferDesc>				m_ShadowUniformBuffer;
@@ -156,6 +161,10 @@ private:
 	VkDescriptorSetLayout				m_ShadowDescriptorSetLayout;
 
 	std::vector<VkDescriptorSet>		m_ShadowPassDescriptorSets;
+
+	VkPipelineLayout					m_ShadowPassPipelineLayout;
+
+	VkPipeline							m_ShadowPassGraphicsPipeline;
 
 };
 

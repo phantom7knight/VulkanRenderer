@@ -155,8 +155,10 @@
     <ClInclude Include="ShadowMapping.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\Model.frag" />
-    <None Include="Shaders\Model.vert" />
+    <None Include="Shaders\DepthShadow.frag" />
+    <None Include="Shaders\DepthShadow.vert" />
+    <None Include="Shaders\Scene.frag" />
+    <None Include="Shaders\Scene.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

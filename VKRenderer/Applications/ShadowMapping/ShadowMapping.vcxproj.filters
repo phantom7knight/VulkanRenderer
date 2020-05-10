@@ -16,6 +16,12 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{c5f82972-39d5-4fcb-9c1c-62af5ceb73da}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\VS">
+      <UniqueIdentifier>{24c4d553-aa04-4358-9253-6f7cbe6b0ba9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\FS">
+      <UniqueIdentifier>{8dd66607-227d-48fa-8376-55c5e83a9c91}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -31,11 +37,17 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\Model.frag">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\DepthShadow.frag">
+      <Filter>Shaders\FS</Filter>
     </None>
-    <None Include="Shaders\Model.vert">
-      <Filter>Shaders</Filter>
+    <None Include="Shaders\Scene.frag">
+      <Filter>Shaders\FS</Filter>
+    </None>
+    <None Include="Shaders\DepthShadow.vert">
+      <Filter>Shaders\VS</Filter>
+    </None>
+    <None Include="Shaders\Scene.vert">
+      <Filter>Shaders\VS</Filter>
     </None>
   </ItemGroup>
 </Project>
