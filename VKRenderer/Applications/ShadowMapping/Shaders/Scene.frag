@@ -9,7 +9,7 @@ layout(location = 1) in		vec2 TexCoords;
 layout(location = 2) in		vec3 Normals;
 
 //take the sampler data
-layout(binding = 1) uniform sampler2D samplerTexture1;
+layout(binding = 1) uniform sampler2D DepthTexture;
 
 layout(binding = 2) uniform LightInfoUBO
 {
@@ -28,7 +28,8 @@ void main()
 	vec3 camPos			= light_ubo.camPosition;//vec3(0.0, 0.0, -10.5);
 	float specIntensity = light_ubo.specularIntensity;
 
-	vec4 samplerOutput = texture(samplerTexture1, TexCoords);
+	//Sample the depth texture
+	vec4 samplerOutput = texture(DepthTexture, TexCoords);
 
 	//Simple Lighting
 	//===================
@@ -53,6 +54,6 @@ void main()
 
 	vec4 lightCalcs = vec4((AmbLight + DiffLight + SpecLight) * objColor, 1.0f);
 
-	OutColor = lightCalcs;
-	//OutColor = samplerOutput;
+	//OutColor = lightCalcs;
+	OutColor = samplerOutput;
 }
