@@ -110,6 +110,8 @@ public:
 
 	void InitShadowPassDescriptorLayouts();
 
+	void InitShadowPassDescriptorPool();
+
 	void InitShadowPassDescriptorSets();
 
 	void InitShadowPassGraphicsPipeline();
@@ -166,5 +168,6 @@ private:
 
 	VkPipeline							m_ShadowPassGraphicsPipeline;
 
+	VkDescriptorPool					m_ShadowPassDescriptorPool;
 };
 

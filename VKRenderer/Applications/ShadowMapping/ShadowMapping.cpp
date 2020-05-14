@@ -76,15 +76,23 @@ void ShadowMapping::CreateRenderPass()
 	subpassInfo.pColorAttachments = &colorAttachmentRef;
 	subpassInfo.pDepthStencilAttachment = &depthAttachmentRef;
 
-	VkSubpassDependency dependency = {};
+	std::array< VkSubpassDependency, 2> dependency = {};
 
-	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	dependency.dstSubpass = 0;
-	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependency.srcAccessMask = 0;
-	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	dependency[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+	dependency[0].dstSubpass = 0;
+	dependency[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	dependency[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+	dependency[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	dependency[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
+	dependency[1].srcSubpass = 0;
+	dependency[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+	dependency[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	dependency[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	dependency[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+	dependency[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 	//array of attachments for this render pass
 	std::array< VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
@@ -97,8 +105,8 @@ void ShadowMapping::CreateRenderPass()
 	renderpassInfo.pAttachments = attachments.data();
 	renderpassInfo.subpassCount = 1;
 	renderpassInfo.pSubpasses = &subpassInfo;
-	renderpassInfo.dependencyCount = 1;
-	renderpassInfo.pDependencies = &dependency;
+	renderpassInfo.dependencyCount = dependency.size();
+	renderpassInfo.pDependencies = dependency.data();
 
 	if (vkCreateRenderPass(m_device, &renderpassInfo, nullptr, &m_renderPass) != VK_SUCCESS)
 	{
@@ -160,16 +168,16 @@ void ShadowMapping::CreateGraphicsPipeline()
 
 	ShaderFileNames.resize(2);
 
-	ShaderFileNames[0] = "Model.vert";
-	ShaderFileNames[1] = "Model.frag";
+	ShaderFileNames[0] = "Scene.vert";
+	ShaderFileNames[1] = "Scene.frag";
 
 	rsrcLdr.GenerateSPIRVShaders(ShaderFileNames);
 
 	//=============================================
 
 	//Read Shader Binary Code
-	auto VertexShaderCode = rsrcLdr.getFileOperationobj().readFile("Shaders/BinaryCode/Model.vert.spv");
-	auto PixelShaderCode = rsrcLdr.getFileOperationobj().readFile("Shaders/BinaryCode/Model.frag.spv");
+	auto VertexShaderCode = rsrcLdr.getFileOperationobj().readFile("Shaders/BinaryCode/Scene.vert.spv");
+	auto PixelShaderCode = rsrcLdr.getFileOperationobj().readFile("Shaders/BinaryCode/Scene.frag.spv");
 
 	//Generate respective Shader Modules
 	ShaderDesc shader_info = {};
@@ -407,6 +415,7 @@ void ShadowMapping::CreateUniformBuffer()
 {
 	VkDeviceSize bufferSize = sizeof(ModelUBO);
 	VkDeviceSize lightBufferSize = sizeof(LightInfoUBO);
+	VkDeviceSize DepthMVPBufferSize = sizeof(DepthCalcUBO);
 
 	m_ModelUniformBuffer.resize(m_SwapChainImages.size());
 	m_LightInfoUniformBuffer.resize(m_SwapChainImages.size());
@@ -423,7 +432,7 @@ void ShadowMapping::CreateUniformBuffer()
 			, m_LightInfoUniformBuffer[i].Buffer, m_LightInfoUniformBuffer[i].BufferMemory);
 		
 		//Shadows uniform buffer creation
-		CreateBuffer(lightBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+		CreateBuffer(DepthMVPBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 			, m_ShadowUniformBuffer[i].Buffer, m_ShadowUniformBuffer[i].BufferMemory);
 	}
 }
@@ -431,7 +440,7 @@ void ShadowMapping::CreateUniformBuffer()
 void ShadowMapping::CreateDescriptorPool()
 {
 	
-	std::array<VkDescriptorPoolSize, 4> poolSizes = {};
+	std::array<VkDescriptorPoolSize, 3> poolSizes = {};
 
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_SwapChainImages.size());
@@ -442,12 +451,6 @@ void ShadowMapping::CreateDescriptorPool()
 	poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[2].descriptorCount = static_cast<uint32_t>(m_SwapChainImages.size());
 
-	// TODO: add description for the other Uniform buffers to send for the depth-shadow-pass
-
-	//one for the uniform buffer which is used in the MVP from light's point of view
-	poolSizes[3].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[3].descriptorCount = static_cast<uint32_t>(m_SwapChainImages.size());
-
 	VkDescriptorPoolCreateInfo createInfo = {};
 
 	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -455,11 +458,12 @@ void ShadowMapping::CreateDescriptorPool()
 	createInfo.pPoolSizes = poolSizes.data();
 	createInfo.maxSets = static_cast<uint32_t>(m_SwapChainImages.size());
 
-
+	//create the descriptor pool
 	if (vkCreateDescriptorPool(m_device, &createInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Unable to create Desciptor Pool");
 	}
+		
 }
 
 void ShadowMapping::CreateDescriptorSets()
@@ -478,6 +482,7 @@ void ShadowMapping::CreateDescriptorSets()
 	if (vkAllocateDescriptorSets(m_device, &allocateInfo, m_DescriptorSets.data()) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Unable to create Desciptor Sets");
+		return;
 	}
 
 	for (size_t i = 0; i < m_SwapChainImages.size(); ++i)
@@ -494,11 +499,12 @@ void ShadowMapping::CreateDescriptorSets()
 		lightBufferInfo.offset = 0;
 		lightBufferInfo.range = sizeof(LightInfoUBO);
 
+		//settings of what the image's properties would be.
 		VkDescriptorImageInfo imageInfo = {};
 
-		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo.sampler = textureSampler;
-		imageInfo.imageView = textureImageView;
+		imageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+		imageInfo.sampler = ShadowPassSampler;
+		imageInfo.imageView = ShadowPassImageView;
 
 		std::array< VkWriteDescriptorSet,3> descriptorWriteInfo = {};
 
@@ -1105,7 +1111,8 @@ void ShadowMapping::CreateShadowsRenderPass()
 {
 	std::array<VkAttachmentDescription, 1> ShadowRenderPassAttachment;
 
-	ShadowRenderPassAttachment[0].format = VK_FORMAT_D16_UNORM;
+	ShadowRenderPassAttachment[0].flags = 0;
+	ShadowRenderPassAttachment[0].format = VK_FORMAT_D32_SFLOAT;
 	ShadowRenderPassAttachment[0].samples = VK_SAMPLE_COUNT_1_BIT;
 
 	ShadowRenderPassAttachment[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -1126,7 +1133,6 @@ void ShadowMapping::CreateShadowsRenderPass()
 
 	subpassInfo.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpassInfo.colorAttachmentCount = 0;	//layout(location = 0) out vec4 outColor this is where it will be referenced
-	subpassInfo.pColorAttachments = NULL;
 	subpassInfo.pDepthStencilAttachment = &depthAttachmentRef;
 
 	std::array< VkSubpassDependency, 2> subpassDependencies;
@@ -1160,7 +1166,7 @@ void ShadowMapping::CreateShadowsRenderPass()
 	createInfo.dependencyCount = static_cast<uint32_t>(subpassDependencies.size());
 	createInfo.pDependencies = subpassDependencies.data();
 
-	if (vkCreateRenderPass(m_device, &createInfo, nullptr, &m_ShadowsRenderPass) == VK_NULL_HANDLE)
+	if (vkCreateRenderPass(m_device, &createInfo, nullptr, &m_ShadowsRenderPass) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Unable to create Shadow Render Pass");
 		return;
@@ -1205,14 +1211,14 @@ void ShadowMapping::InitShadowsFrameBuffer()
 
 	createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 	createInfo.layers = 1;
-	createInfo.height	= (float)m_swapChainExtent.width;
-	createInfo.width	= (float)m_swapChainExtent.height;
+	createInfo.height	= (float)m_swapChainExtent.height;
+	createInfo.width	= (float)m_swapChainExtent.width;
 	createInfo.renderPass = m_ShadowsRenderPass;
 	createInfo.attachmentCount = 1;
 	createInfo.pAttachments = &ShadowPassImageView;
 
 
-	if (vkCreateFramebuffer(m_device, &createInfo, nullptr, &m_ShadowPassFrameBuffer) == VK_NULL_HANDLE)
+	if (vkCreateFramebuffer(m_device, &createInfo, nullptr, &m_ShadowPassFrameBuffer) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Unable to setup the Frame Buffer for Shadow Pass creation");
 		return;
@@ -1234,6 +1240,8 @@ void ShadowMapping::InitShadowPassDescriptorLayouts()
 	depthShadowBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	depthShadowBinding.pImmutableSamplers = nullptr;
 
+
+
 	//create an array of descriptors
 	std::array< VkDescriptorSetLayoutBinding, 1> descriptorsArray = { depthShadowBinding };
 
@@ -1252,6 +1260,30 @@ void ShadowMapping::InitShadowPassDescriptorLayouts()
 
 }
 
+void ShadowMapping::InitShadowPassDescriptorPool()
+{
+	//Shadow Pass Command Pool
+
+	std::array<VkDescriptorPoolSize, 1> ShadowpoolSizes = {};
+
+	ShadowpoolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	ShadowpoolSizes[0].descriptorCount = static_cast<uint32_t>(m_SwapChainImages.size());
+
+	VkDescriptorPoolCreateInfo createInfo = {};
+
+	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	createInfo.maxSets = static_cast<uint32_t>(m_SwapChainImages.size());
+	createInfo.poolSizeCount = static_cast<uint32_t>(ShadowpoolSizes.size());
+	createInfo.pPoolSizes = ShadowpoolSizes.data();
+
+	//create the descriptor pool
+	if (vkCreateDescriptorPool(m_device, &createInfo, nullptr, &m_ShadowPassDescriptorPool) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to create Shadow Pass Desciptor Pool");
+	}
+
+}
+
 void ShadowMapping::InitShadowPassDescriptorSets()
 {
 	std::vector<VkDescriptorSetLayout> layouts(m_SwapChainImages.size(), m_ShadowDescriptorSetLayout);
@@ -1259,7 +1291,7 @@ void ShadowMapping::InitShadowPassDescriptorSets()
 	VkDescriptorSetAllocateInfo allocateInfo = {};
 
 	allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocateInfo.descriptorPool = m_DescriptorPool;
+	allocateInfo.descriptorPool = m_ShadowPassDescriptorPool;
 	allocateInfo.descriptorSetCount = static_cast<uint32_t>(m_SwapChainImages.size());
 	allocateInfo.pSetLayouts = layouts.data();
 
@@ -1458,7 +1490,7 @@ void ShadowMapping::InitShadowPassGraphicsPipeline()
 	colorBlending.blendConstants[2] = 0.0f;
 	colorBlending.blendConstants[3] = 0.0f;
 
-	//Create Pipeline Layout b4 creating Graphics Pipeline
+	//Create Pipeline Layout before creating Graphics Pipeline
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -1474,7 +1506,7 @@ void ShadowMapping::InitShadowPassGraphicsPipeline()
 	VkGraphicsPipelineCreateInfo createGraphicsPipelineInfo = {};
 
 	createGraphicsPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	createGraphicsPipelineInfo.stageCount = 2;
+	createGraphicsPipelineInfo.stageCount = 2; // i.e VS and PS
 	createGraphicsPipelineInfo.pStages = shaderStages;
 	createGraphicsPipelineInfo.pVertexInputState = &VertexInputInfo;
 	createGraphicsPipelineInfo.pInputAssemblyState = &inputAssembly;
@@ -1490,6 +1522,10 @@ void ShadowMapping::InitShadowPassGraphicsPipeline()
 
 	createGraphicsPipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 	createGraphicsPipelineInfo.basePipelineIndex = -1;
+
+	// WARNING: Validation will throw an error since we are using the same vertex attributes for the model 
+	// and it uses all the vertex attributes and in this pipeline we don't use all except "aPos"
+
 
 	//TODO: Make this Generic for creating Pipeline's
 	if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &createGraphicsPipelineInfo, nullptr, &m_ShadowPassGraphicsPipeline) != VK_SUCCESS)
@@ -1511,6 +1547,8 @@ void ShadowMapping::InitShadowsSetup()
 	InitShadowsFrameBuffer();
 
 	InitShadowPassDescriptorLayouts();
+
+	InitShadowPassDescriptorPool();
 
 	InitShadowPassDescriptorSets();
 	
@@ -1555,6 +1593,12 @@ void ShadowMapping::PrepareApp()
 
 	CreateDescriptorPool();
 
+	/////////////////////////
+	//Shadows related Setup
+
+	InitShadowsSetup();
+	/////////////////////////
+
 	CreateDescriptorSets();
 
 	CreateCommandBuffers();
@@ -1566,8 +1610,6 @@ void ShadowMapping::PrepareApp()
 
 	//Initialize Dear ImGui
 	InitGui();
-
-	InitShadowsSetup();
 
 }
 
