@@ -689,7 +689,7 @@ void ShadowMapping::ShadowsPass(uint32_t i)
 
 	renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderpassBeginInfo.renderPass = m_ShadowsRenderPass;
-	renderpassBeginInfo.framebuffer = m_swapChainFrameBuffer[i];
+	renderpassBeginInfo.framebuffer = m_ShadowPassFrameBuffer;
 	renderpassBeginInfo.renderArea.offset = { 0,0 };
 	renderpassBeginInfo.renderArea.extent = m_swapChainExtent;
 
@@ -718,6 +718,8 @@ void ShadowMapping::ShadowsPass(uint32_t i)
 
 	//Call Draw Indexed for the model
 	vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_indexBufferCount), 1, 0, 0, 0);
+
+	vkCmdEndRenderPass(m_commandBuffers[i]);
 }
 
 void ShadowMapping::ScenePass(uint32_t i)
@@ -1064,7 +1066,7 @@ void ShadowMapping::CreateDepthResources()
 	depthImageInfo.ImageWidth = m_swapChainExtent.width;
 	depthImageInfo.imageFormat = depthFormat;
 	depthImageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	depthImageInfo.usageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	depthImageInfo.usageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	depthImageInfo.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	CreateImage(&depthImageInfo);
 
@@ -1109,6 +1111,7 @@ void ShadowMapping::InitGui()
 #pragma region Shadows-Setup
 void ShadowMapping::CreateShadowsRenderPass()
 {
+	//this is "what attachment does this Render Pass have?"
 	std::array<VkAttachmentDescription, 1> ShadowRenderPassAttachment;
 
 	ShadowRenderPassAttachment[0].flags = 0;
@@ -1132,8 +1135,9 @@ void ShadowMapping::CreateShadowsRenderPass()
 	VkSubpassDescription subpassInfo = {};
 
 	subpassInfo.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpassInfo.colorAttachmentCount = 0;	//layout(location = 0) out vec4 outColor this is where it will be referenced
+	subpassInfo.colorAttachmentCount = 0;
 	subpassInfo.pDepthStencilAttachment = &depthAttachmentRef;
+	subpassInfo.pColorAttachments = nullptr;
 
 	std::array< VkSubpassDependency, 2> subpassDependencies;
 
@@ -1185,7 +1189,7 @@ void ShadowMapping::CreateShadowsImageViews()
 	ShadowPassImageInfo.ImageWidth = 2048;
 	ShadowPassImageInfo.imageFormat = depthFormat;
 	ShadowPassImageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	ShadowPassImageInfo.usageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	ShadowPassImageInfo.usageFlags = VK_IMAGE_USAGE_SAMPLED_BIT; 
 	ShadowPassImageInfo.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	
 	CreateImage(&ShadowPassImageInfo);
@@ -1334,10 +1338,9 @@ void ShadowMapping::InitShadowPassGraphicsPipeline()
 	//generate SPIRV binary code
 	std::vector<std::string> ShaderFileNames;
 
-	ShaderFileNames.resize(2);
+	ShaderFileNames.resize(1);
 
 	ShaderFileNames[0] = "DepthShadow.vert";
-	ShaderFileNames[1] = "DepthShadow.frag";
 
 	rsrcLdr.GenerateSPIRVShaders(ShaderFileNames);
 
@@ -1345,8 +1348,7 @@ void ShadowMapping::InitShadowPassGraphicsPipeline()
 
 	//Read Shader Binary Code
 	auto VertexShaderCode	= rsrcLdr.getFileOperationobj().readFile("Shaders/BinaryCode/DepthShadow.vert.spv");
-	auto PixelShaderCode	= rsrcLdr.getFileOperationobj().readFile("Shaders/BinaryCode/DepthShadow.frag.spv");
-
+	
 	//Generate respective Shader Modules
 	ShaderDesc shader_info = {};
 
@@ -1355,11 +1357,7 @@ void ShadowMapping::InitShadowPassGraphicsPipeline()
 	//Vertex shader module
 	shader_info.shaderCode = &VertexShaderCode;
 	VkShaderModule vertexShaderModule = rsrcLdr.createShaderModule(shader_info);
-
-	//pixel shader module
-	shader_info.shaderCode = &PixelShaderCode;
-	VkShaderModule pixelShaderModule = rsrcLdr.createShaderModule(shader_info);
-
+		
 	//Vertex Shader Pipeline
 	VkPipelineShaderStageCreateInfo vertexShaderCreateInfo = {};
 
@@ -1368,15 +1366,7 @@ void ShadowMapping::InitShadowPassGraphicsPipeline()
 	vertexShaderCreateInfo.module = vertexShaderModule;
 	vertexShaderCreateInfo.pName = "main";
 
-	//Pixel Shader Pipeline
-	VkPipelineShaderStageCreateInfo pixelShaderCreateInfo = {};
-
-	pixelShaderCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	pixelShaderCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	pixelShaderCreateInfo.module = pixelShaderModule;
-	pixelShaderCreateInfo.pName = "main";
-
-	VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderCreateInfo ,pixelShaderCreateInfo };
+	VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderCreateInfo };
 
 
 	// Vertex Input
@@ -1506,7 +1496,7 @@ void ShadowMapping::InitShadowPassGraphicsPipeline()
 	VkGraphicsPipelineCreateInfo createGraphicsPipelineInfo = {};
 
 	createGraphicsPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	createGraphicsPipelineInfo.stageCount = 2; // i.e VS and PS
+	createGraphicsPipelineInfo.stageCount = 1; // i.e only VS
 	createGraphicsPipelineInfo.pStages = shaderStages;
 	createGraphicsPipelineInfo.pVertexInputState = &VertexInputInfo;
 	createGraphicsPipelineInfo.pInputAssemblyState = &inputAssembly;
@@ -1537,7 +1527,6 @@ void ShadowMapping::InitShadowPassGraphicsPipeline()
 	//Destroy all shader modules
 
 	vkDestroyShaderModule(m_device, vertexShaderModule, nullptr);
-	vkDestroyShaderModule(m_device, pixelShaderModule, nullptr);
 
 	return;
 }
