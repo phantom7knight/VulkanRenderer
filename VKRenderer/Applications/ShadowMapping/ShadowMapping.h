@@ -148,6 +148,8 @@ private:
 	int									m_SpecularIntensityGUILight;
 
 	//Shadows
+
+
 	VkRenderPass						m_ShadowsRenderPass;
 	
 	TextureBufferDesc					ShadowPassImageInfo;

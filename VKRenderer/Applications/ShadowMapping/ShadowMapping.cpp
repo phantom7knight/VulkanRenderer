@@ -757,6 +757,9 @@ void ShadowMapping::ScenePass(uint32_t i)
 
 	//Call Draw Indexed for the model
 	vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_indexBufferCount), 1, 0, 0, 0);
+
+	vkCmdEndRenderPass(m_commandBuffers[i]);
+
 }
 
 void ShadowMapping::UpdateCommandBuffers(uint32_t a_imageIndex)
@@ -789,8 +792,6 @@ void ShadowMapping::UpdateCommandBuffers(uint32_t a_imageIndex)
 	DrawGui(m_commandBuffers[i]);	
 	//==================================================
 	
-	vkCmdEndRenderPass(m_commandBuffers[i]);
-
 	//End Recording
 	if (vkEndCommandBuffer(m_commandBuffers[i]) != VK_SUCCESS)
 	{
@@ -1109,6 +1110,26 @@ void ShadowMapping::InitGui()
 
 
 #pragma region Shadows-Setup
+void ShadowMapping::CreateShadowsImageViews()
+{
+	//TODO: Check this! if doesn't work add 
+	// "VK_FORMAT_D16_UNORM" as the image format 
+	VkFormat depthFormat = FindDepthFormat();
+
+	ShadowPassImageInfo.ImageHeight = 2048;
+	ShadowPassImageInfo.ImageWidth = 2048;
+	ShadowPassImageInfo.imageFormat = depthFormat;
+	ShadowPassImageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+	ShadowPassImageInfo.usageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	ShadowPassImageInfo.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+	CreateImage(&ShadowPassImageInfo);
+
+	createImageView(ShadowPassImageInfo.BufferImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &ShadowPassImageView);
+
+	return;
+}
+
 void ShadowMapping::CreateShadowsRenderPass()
 {
 	//this is "what attachment does this Render Pass have?"
@@ -1175,26 +1196,6 @@ void ShadowMapping::CreateShadowsRenderPass()
 		throw std::runtime_error("Unable to create Shadow Render Pass");
 		return;
 	}
-
-	return;
-}
-
-void ShadowMapping::CreateShadowsImageViews()
-{
-	//TODO: Check this! if doesn't work add 
-	// "VK_FORMAT_D16_UNORM" as the image format 
-	VkFormat depthFormat = FindDepthFormat();
-
-	ShadowPassImageInfo.ImageHeight = 2048;
-	ShadowPassImageInfo.ImageWidth = 2048;
-	ShadowPassImageInfo.imageFormat = depthFormat;
-	ShadowPassImageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	ShadowPassImageInfo.usageFlags = VK_IMAGE_USAGE_SAMPLED_BIT; 
-	ShadowPassImageInfo.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-	
-	CreateImage(&ShadowPassImageInfo);
-
-	createImageView(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &ShadowPassImageView);
 
 	return;
 }

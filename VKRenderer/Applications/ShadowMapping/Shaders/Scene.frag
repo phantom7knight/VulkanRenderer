@@ -55,5 +55,6 @@ void main()
 	vec4 lightCalcs = vec4((AmbLight + DiffLight + SpecLight) * objColor, 1.0f);
 
 	//OutColor = lightCalcs;
-	OutColor = samplerOutput;
+	//OutColor = samplerOutput;
+	OutColor = vec4(1.0f);
 }
