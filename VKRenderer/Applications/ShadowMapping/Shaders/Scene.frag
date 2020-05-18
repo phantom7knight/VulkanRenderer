@@ -7,6 +7,7 @@ layout(location = 0) out 	vec4 OutColor;
 layout(location = 0) in 	vec4 vertPos;
 layout(location = 1) in		vec2 TexCoords;
 layout(location = 2) in		vec3 Normals;
+layout(location = 3) in		vec4 LightSpaceVertPos;
 
 //take the sampler data
 layout(binding = 1) uniform sampler2D ShadowMap;
@@ -19,17 +20,23 @@ layout(binding = 2) uniform LightInfoUBO
 	vec3 camPosition;
 }light_ubo;
 
-void main()
+float LinearizeDepth(float depth)
 {
+  float n = 1.0; // camera z near
+  float f = 128.0; // camera z far
+  float z = depth;
+  return (2.0 * n) / (f + n - z * (f - n));	
+}
+
+void CalculatePhong(inout vec3 result, float shadowValue)
+{
+	
 	//remove the hard coded values
 	vec3 ambLightColor	= vec3(0.8,0.8,0.8);
 	vec3 LightColor		= light_ubo.lightColor;
 	vec3 objColor		= vec3(0.5,0.5,0.5);
-	vec3 camPos			= light_ubo.camPosition;//vec3(0.0, 0.0, -10.5);
+	vec3 camPos			= light_ubo.camPosition;
 	float specIntensity = light_ubo.specularIntensity;
-
-	//Sample the shadow - depth texture
-	vec4 samplerOutput = texture(ShadowMap, TexCoords);
 
 	//Simple Lighting
 	//===================
@@ -51,10 +58,51 @@ void main()
 	vec3 SpecLight = spec * LightColor;
 
 
+	if(shadowValue == 0.0f)
+		result = (AmbLight) * objColor;
+	else
+		result = (AmbLight + DiffLight + SpecLight) * objColor;
 
-	vec4 lightCalcs = vec4((AmbLight + DiffLight + SpecLight) * objColor, 1.0f);
 
-	//OutColor = lightCalcs;
-	//OutColor = samplerOutput;
-	OutColor = vec4(1.0f);
+}
+
+float BasicShadowResult(vec4 LightSpaceVertPos)
+{
+	float result;
+
+	//perspective divide of the LightSpaceVertPos
+	vec3 projectedCoords = LightSpaceVertPos.xyz / LightSpaceVertPos.w;
+
+	//bring to [0,1] from [-1,1]
+	projectedCoords = projectedCoords * 0.5 + 0.5;
+
+	//
+	float lightDepth =  texture(ShadowMap, projectedCoords.xy).r;
+
+	//
+	float pixelDepth = projectedCoords.z;
+
+	//check if the pixel is in light or outside
+
+	result = pixelDepth >  lightDepth ? 1.0 : 0.0;
+
+	return result;
+}
+
+
+
+void main()
+{
+	
+	
+	//calculate Shadow
+	float shadowResult = BasicShadowResult(LightSpaceVertPos);
+
+	vec3 lightResult;
+	CalculatePhong(lightResult,shadowResult);
+
+
+	//OutColor = vec4(vec3(shadowResult),1.0);
+	OutColor = vec4(lightResult, 1.0);
+
 }

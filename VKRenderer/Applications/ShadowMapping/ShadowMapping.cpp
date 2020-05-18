@@ -600,6 +600,17 @@ void ShadowMapping::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices p
 #pragma region Shadows_Update
 	DepthCalcUBO depthMVP = {};
 
+	//Model Matrix
+	glm::mat4 modelMat = glm::mat4(1);
+
+	//view matrix
+	glm::mat4 viewMat = glm::lookAt(m_lightPosGUILight, glm::vec3(0.0f), glm::vec3(0, 1, 0));
+
+	glm::mat4 projMat = cam_matrices.perspective;
+	//projMat[1][1] *= -1;
+
+	depthMVP.mvp = projMat * viewMat * modelMat;
+
 #pragma endregion
 
 #pragma region MVP_Update
@@ -619,6 +630,8 @@ void ShadowMapping::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices p
 	//Projection Matrix
 	mvp_UBO.ProjectionMatrix = cam_matrices.perspective;
 	mvp_UBO.ProjectionMatrix[1][1] *= -1;
+
+	mvp_UBO.LightSpaceVP = projMat * viewMat;
 
 
 	//Copy the data
@@ -720,6 +733,7 @@ void ShadowMapping::ShadowsPass(uint32_t i)
 	vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_indexBufferCount), 1, 0, 0, 0);
 
 	vkCmdEndRenderPass(m_commandBuffers[i]);
+
 }
 
 void ShadowMapping::ScenePass(uint32_t i)
@@ -758,8 +772,6 @@ void ShadowMapping::ScenePass(uint32_t i)
 	//Call Draw Indexed for the model
 	vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_indexBufferCount), 1, 0, 0, 0);
 
-	vkCmdEndRenderPass(m_commandBuffers[i]);
-
 }
 
 void ShadowMapping::UpdateCommandBuffers(uint32_t a_imageIndex)
@@ -790,7 +802,11 @@ void ShadowMapping::UpdateCommandBuffers(uint32_t a_imageIndex)
 	//==================================================
 	//Draw UI
 	DrawGui(m_commandBuffers[i]);	
+
+
+	vkCmdEndRenderPass(m_commandBuffers[i]);
 	//==================================================
+
 	
 	//End Recording
 	if (vkEndCommandBuffer(m_commandBuffers[i]) != VK_SUCCESS)
@@ -1709,6 +1725,9 @@ void ShadowMapping::Draw(float deltaTime)
 
 void ShadowMapping::Destroy()
 {
+	//TODO: delete all the resources allocated in this application here!
+
+
 	//depth Image
 	vkDestroyImageView(m_device, depthImageView, nullptr);
 	vkDestroyImage(m_device, depthImageInfo.BufferImage, nullptr);

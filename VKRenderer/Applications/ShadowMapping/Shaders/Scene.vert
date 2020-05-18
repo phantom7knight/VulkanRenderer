@@ -7,6 +7,7 @@ layout(binding = 0) uniform ModelUBO
 	mat4 ModelMatrix;
 	mat4 ViewMatrix;
 	mat4 ProjectionMatrix;
+	mat4 LightSpaceVP;
 }ubo;
 
 
@@ -29,11 +30,14 @@ layout(location = 0) out 	vec4 vertPos;
 layout(location = 1) out	vec2 TexCoords;
 
 layout(location = 2) out	vec3 Normals;
+
+layout(location = 3) out	vec4 LightSpaceVertPos;
 	
 void main()
 {
-	vertPos		= ubo.ModelMatrix * vec4(aPos, 1.0);
-	TexCoords	= aTexCoords;
-	Normals		= mat3(transpose(inverse(ubo.ModelMatrix))) * aNormal;
-	gl_Position = ubo.ProjectionMatrix * ubo.ViewMatrix * vec4(vertPos.xyz,1.0f);
+	vertPos				= ubo.ModelMatrix * vec4(aPos, 1.0);
+	TexCoords			= aTexCoords;
+	Normals				= mat3(transpose(inverse(ubo.ModelMatrix))) * aNormal;
+	LightSpaceVertPos	= ubo.LightSpaceVP * vec4(vertPos.xyz,1.0f);
+	gl_Position			= ubo.ProjectionMatrix * ubo.ViewMatrix * vec4(vertPos.xyz,1.0f);
 }

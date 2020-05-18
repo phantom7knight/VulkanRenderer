@@ -15,6 +15,7 @@ struct ModelUBO
 	glm::mat4 ModelMatrix;
 	glm::mat4 ViewMatrix;
 	glm::mat4 ProjectionMatrix;
+	glm::mat4 LightSpaceVP;
 };
 
 
