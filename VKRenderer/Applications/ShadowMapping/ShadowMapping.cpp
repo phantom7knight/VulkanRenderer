@@ -611,6 +611,17 @@ void ShadowMapping::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices p
 
 	depthMVP.mvp = projMat * viewMat * modelMat;
 
+	//Copy the data
+
+	void* data;
+
+	data = NULL;
+
+	vkMapMemory(m_device, m_ShadowUniformBuffer[a_imageIndex].BufferMemory, 0, sizeof(depthMVP), 0, &data);
+	memcpy(data, &depthMVP, sizeof(depthMVP));
+	vkUnmapMemory(m_device, m_ShadowUniformBuffer[a_imageIndex].BufferMemory);
+
+
 #pragma endregion
 
 #pragma region MVP_Update
@@ -635,8 +646,6 @@ void ShadowMapping::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices p
 
 
 	//Copy the data
-
-	void* data;
 
 	vkMapMemory(m_device, m_ModelUniformBuffer[a_imageIndex].BufferMemory, 0, sizeof(mvp_UBO), 0, &data);
 	memcpy(data, &mvp_UBO, sizeof(mvp_UBO));
@@ -1132,8 +1141,8 @@ void ShadowMapping::CreateShadowsImageViews()
 	// "VK_FORMAT_D16_UNORM" as the image format 
 	VkFormat depthFormat = FindDepthFormat();
 
-	ShadowPassImageInfo.ImageHeight = 2048;
-	ShadowPassImageInfo.ImageWidth = 2048;
+	ShadowPassImageInfo.ImageHeight = (float)m_swapChainExtent.height;
+	ShadowPassImageInfo.ImageWidth = (float)m_swapChainExtent.width;
 	ShadowPassImageInfo.imageFormat = depthFormat;
 	ShadowPassImageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	ShadowPassImageInfo.usageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
@@ -1152,7 +1161,7 @@ void ShadowMapping::CreateShadowsRenderPass()
 	std::array<VkAttachmentDescription, 1> ShadowRenderPassAttachment;
 
 	ShadowRenderPassAttachment[0].flags = 0;
-	ShadowRenderPassAttachment[0].format = VK_FORMAT_D32_SFLOAT;
+	ShadowRenderPassAttachment[0].format = FindDepthFormat();
 	ShadowRenderPassAttachment[0].samples = VK_SAMPLE_COUNT_1_BIT;
 
 	ShadowRenderPassAttachment[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -1340,8 +1349,6 @@ void ShadowMapping::InitShadowPassDescriptorSets()
 		descriptorWriteInfo[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		descriptorWriteInfo[0].descriptorCount = 1;
 		descriptorWriteInfo[0].pBufferInfo = &bufferInfo;
-		descriptorWriteInfo[0].pImageInfo = nullptr;
-		descriptorWriteInfo[0].pTexelBufferView = nullptr;
 		
 
 		vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWriteInfo.size()), descriptorWriteInfo.data(), 0, nullptr);
@@ -1476,7 +1483,7 @@ void ShadowMapping::InitShadowPassGraphicsPipeline()
 	//Color Blending
 	VkPipelineColorBlendAttachmentState colorBlendAttachment = {};//For individual attached frame buffer settings
 
-	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorBlendAttachment.colorWriteMask = 0xf;// VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	colorBlendAttachment.blendEnable = VK_FALSE;
 	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
 	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;

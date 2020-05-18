@@ -102,7 +102,7 @@ void main()
 	CalculatePhong(lightResult,shadowResult);
 
 
-	//OutColor = vec4(vec3(shadowResult),1.0);
-	OutColor = vec4(lightResult, 1.0);
+	OutColor = vec4(vec3(texture(ShadowMap, TexCoords).r),1.0);
+	//OutColor = vec4(lightResult, 1.0);
 
 }
