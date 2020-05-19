@@ -33,7 +33,7 @@ void MainLoop(vkRenderer* rendererExample)
 		
 		//Add other updates here
 		//camera update
-		rendererExample->m_MainCamera->update(deltaTime);
+		//rendererExample->m_MainCamera->update(deltaTime);
 
 		if (deltaTimeDiff > 1000.0f)
 		{

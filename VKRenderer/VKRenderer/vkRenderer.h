@@ -2,6 +2,11 @@
 
 #include "stdafx.h"
 
+static bool firstMouse = true;
+static float lastX = WIDTH / 2.0f;
+static float lastY = HEIGHT / 2.0f;
+
+
 class Camera;
 class vkRenderer
 {
@@ -80,9 +85,8 @@ public:
 
 	void InitializeVulkan();
 	
-	void ProcessInput(GLFWwindow* window);
-
-
+	void ProcessInput(GLFWwindow* window, float deltaTime);
+		
 	//Pure Virtual so that the inherited class can override.
 	virtual void PrepareApp();
 	
@@ -92,7 +96,7 @@ public:
 	
 	virtual void Destroy();
 
-	MousePositions mousePos;
+	//MousePositions mousePos;
 
 	Camera* m_MainCamera;
 

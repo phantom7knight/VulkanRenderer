@@ -16,12 +16,16 @@ ShadowMapping::~ShadowMapping()
 void ShadowMapping::SetUpCameraProperties(Camera* a_cam)
 {
 	//SetUp Camera Properties
-	a_cam->set_position(glm::vec3(0.0, 0.0, -1.5));
-	a_cam->camProperties.rotation_speed	   = 0.2f;
-	a_cam->camProperties.translation_speed = 0.002f;
+	//a_cam->set_position(glm::vec3(0.0, 0.0, -1.5));
+	//a_cam->camProperties.rotation_speed	   = 0.2f;
+	//a_cam->camProperties.translation_speed = 0.002f;
 
-	//set proj matrix
-	a_cam->set_perspective(glm::radians(45.0f), (float)m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 1000.0f);
+	////set proj matrix
+	//a_cam->set_perspective(glm::radians(45.0f), (float)m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 1000.0f);
+
+	a_cam->SetPerspectiveMatrix(glm::radians(45.0f), (float)m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 1000.0f);
+	cam_matrices.perspective = a_cam->GetPerspectiveMatrix();
+	cam_matrices.view = a_cam->GetViewMatrix();
 
 }
 
@@ -606,8 +610,11 @@ void ShadowMapping::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices p
 	//view matrix
 	glm::mat4 viewMat = glm::lookAt(m_lightPosGUILight, glm::vec3(0.0f), glm::vec3(0, 1, 0));
 
-	glm::mat4 projMat = cam_matrices.perspective;
-	//projMat[1][1] *= -1;
+	float near_plane = 1.0f, far_plane = 7.5f;
+	//glm::mat4 projMat = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+	glm::mat4 projMat = glm::perspective(glm::radians(45.0f), 1.0f, near_plane, far_plane);
+	//glm::mat4 projMat = cam_matrices.perspective;
+	projMat[1][1] *= -1;
 
 	depthMVP.mvp = projMat * viewMat * modelMat;
 
@@ -629,9 +636,9 @@ void ShadowMapping::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices p
 
 	//Model Matrix
 	mvp_UBO.ModelMatrix = glm::mat4(1);
-	mvp_UBO.ModelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0, 0.0, 0.0));
+	mvp_UBO.ModelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0, 0.0, -30.0));
 	//mvp_UBO.ModelMatrix = glm::rotate(mvp_UBO.ModelMatrix, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	mvp_UBO.ModelMatrix = glm::scale(mvp_UBO.ModelMatrix, glm::vec3(0.005f));
+	mvp_UBO.ModelMatrix = glm::scale(mvp_UBO.ModelMatrix, glm::vec3(0.05f));
 
 
 	//View Matrix
@@ -662,7 +669,7 @@ void ShadowMapping::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices p
 
 	lightInfo_UBO.specularIntensity = m_SpecularIntensityGUILight;
 
-	lightInfo_UBO.camPosition = glm::vec3(0.0, 0.0, -10.5);
+	lightInfo_UBO.camPosition = m_MainCamera->GetCameraPosition();
 
 	
 	//Copy the data
@@ -1103,7 +1110,8 @@ void ShadowMapping::CreateDepthResources()
 
 void ShadowMapping::setGuiVariables()
 {
-	m_lightPosGUILight = glm::vec3(0.0, -38.0, 200.0);
+	//m_lightPosGUILight = glm::vec3(0.0, -38.0, 200.0);
+	m_lightPosGUILight = glm::vec3(0.0, 0.0, -40.0);
 	m_lightColorGUILight = glm::vec3(1.0, 1.0, 1.0);
 	m_SpecularIntensityGUILight = 4;
 }
@@ -1628,12 +1636,12 @@ void ShadowMapping::PrepareApp()
 
 void ShadowMapping::Update(float deltaTime)
 {
-	ProcessInput(m_window);
+	ProcessInput(m_window, deltaTime);
 
-	cam_matrices.perspective = m_MainCamera->matrices.perspective;
+	cam_matrices.perspective = m_MainCamera->GetPerspectiveMatrix();
 
 	//set view matrix
-	cam_matrices.view = m_MainCamera->matrices.view;
+	cam_matrices.view = m_MainCamera->GetViewMatrix();
 
 
 }
@@ -1726,7 +1734,7 @@ void ShadowMapping::Draw(float deltaTime)
 
 	m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
-	m_MainCamera->update(deltaTime);
+	//m_MainCamera->update(deltaTime);
 
 }
 

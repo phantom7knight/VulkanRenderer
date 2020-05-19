@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "Camera.h"
 
-Camera::Camera()
+/*Camera::Camera()
 {
 	camProperties.updated = false;
 	camProperties.rotation_speed = 1.0f;
@@ -182,4 +182,122 @@ bool Camera::update_gamepad(glm::vec2 axis_left, glm::vec2 axis_right, float del
 	}
 
 	return changed;
-}
+}*/
+
+
+//===========================================================================================
+
+	// Constructor with vectors
+	Camera::Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) 
+	{
+		camProperties.Front = glm::vec3(0.0f, 0.0f, -1.0f); 
+		camProperties.MovementSpeed = SPEED;
+		camProperties.MouseSensitivity = SENSITIVITY; 
+		camProperties.Zoom = ZOOM;
+		camProperties.Position = position;
+		camProperties.WorldUp = up;
+		camProperties.Yaw = yaw;
+		camProperties.Pitch = pitch;
+		updateCameraVectors();
+	}
+	// Constructor with scalar values
+	Camera::Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch) 
+	{
+		camProperties.Front = glm::vec3(0.0f, 0.0f, -1.0f);
+		camProperties.MovementSpeed = SPEED;
+		camProperties.MouseSensitivity = SENSITIVITY;
+		camProperties.Zoom = ZOOM;
+		camProperties.Position = glm::vec3(posX, posY, posZ);
+		camProperties.WorldUp = glm::vec3(upX, upY, upZ);
+		camProperties.Yaw = yaw;
+		camProperties.Pitch = pitch;
+		updateCameraVectors();
+	}
+
+	// Returns the view matrix calculated using Euler Angles and the LookAt Matrix
+	glm::mat4 Camera::GetViewMatrix()
+	{
+		return glm::lookAt(camProperties.Position, camProperties.Position + camProperties.Front, camProperties.Up);
+	}
+
+	void Camera::SetPerspectiveMatrix(float fov, float aspect, float znear, float zfar)
+	{
+		this->camProperties.fov = fov;
+		this->camProperties.znear = znear;
+		this->camProperties.zfar = zfar;
+		matrices.perspective = glm::perspective(glm::radians(fov), aspect, znear, zfar);
+
+		return ;
+	}
+
+	glm::mat4 Camera::GetPerspectiveMatrix()
+	{	
+		return matrices.perspective;
+	}
+
+	glm::vec3 Camera::GetCameraPosition()
+	{
+		return camProperties.Position;
+	}
+
+
+	// Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
+	void Camera::ProcessKeyboard(Camera_Movement direction, float deltaTime)
+	{
+		float velocity = camProperties.MovementSpeed * deltaTime;
+		if (direction == FORWARD)
+			camProperties.Position += camProperties.Front * velocity;
+		if (direction == BACKWARD)
+			camProperties.Position -= camProperties.Front * velocity;
+		if (direction == LEFT)
+			camProperties.Position -= camProperties.Right * velocity;
+		if (direction == RIGHT)
+			camProperties.Position += camProperties.Right * velocity;
+	}
+
+	// Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
+	void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
+	{
+		xoffset *= camProperties.MouseSensitivity;
+		yoffset *= camProperties.MouseSensitivity;
+
+		camProperties.Yaw += xoffset;
+		camProperties.Pitch += yoffset;
+
+		// Make sure that when pitch is out of bounds, screen doesn't get flipped
+		if (constrainPitch)
+		{
+			if (camProperties.Pitch > 89.0f)
+				camProperties.Pitch = 89.0f;
+			if (camProperties.Pitch < -89.0f)
+				camProperties.Pitch = -89.0f;
+		}
+
+		// Update Front, Right and Up Vectors using the updated Euler angles
+		updateCameraVectors();
+	}
+
+	// Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
+	void Camera::ProcessMouseScroll(float yoffset)
+	{
+		if (camProperties.Zoom >= 1.0f && camProperties.Zoom <= 45.0f)
+			camProperties.Zoom -= yoffset;
+		if (camProperties.Zoom <= 1.0f)
+			camProperties.Zoom = 1.0f;
+		if (camProperties.Zoom >= 45.0f)
+			camProperties.Zoom = 45.0f;
+	}
+
+	// Calculates the front vector from the Camera's (updated) Euler Angles
+	void Camera::updateCameraVectors()
+	{
+		// Calculate the new Front vector
+		glm::vec3 front;
+		front.x = cos(glm::radians(camProperties.Yaw)) * cos(glm::radians(camProperties.Pitch));
+		front.y = sin(glm::radians(camProperties.Pitch));
+		front.z = sin(glm::radians(camProperties.Yaw)) * cos(glm::radians(camProperties.Pitch));
+		camProperties.Front = glm::normalize(front);
+		// Also re-calculate the Right and Up vector
+		camProperties.Right = glm::normalize(glm::cross(camProperties.Front, camProperties.WorldUp));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+		camProperties.Up = glm::normalize(glm::cross(camProperties.Right, camProperties.Front));
+	}

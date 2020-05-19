@@ -136,6 +136,7 @@ private:
 	TextureBufferDesc					image1 = {};
 	VkImageView							textureImageView;
 	VkSampler							textureSampler;
+
 	CameraMatrices						cam_matrices;
 	
 	

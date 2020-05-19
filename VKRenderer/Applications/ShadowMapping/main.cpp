@@ -7,6 +7,9 @@
 
 
 int i = 0;
+static float deltaTime = 0.0f;
+static float lastFrame = 0.0f;
+
 std::chrono::time_point<std::chrono::high_resolution_clock>lastTimeStamp;
 
 void MainLoop(vkRenderer* rendererExample)
@@ -14,31 +17,35 @@ void MainLoop(vkRenderer* rendererExample)
 	
 	while (!glfwWindowShouldClose(rendererExample->getWindow()))
 	{
-		auto timeStart = std::chrono::high_resolution_clock::now();
+		//auto timeStart = std::chrono::high_resolution_clock::now();
+
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
 
 		glfwPollEvents();
 
 		//Renderer Update
-		rendererExample->Update(0.0f);
+		rendererExample->Update(deltaTime);
 		
-		rendererExample->Draw(0.0f);
+		rendererExample->Draw(deltaTime);
 
 		auto timeEnd = std::chrono::high_resolution_clock::now();
 
 		float deltaTimeDiff = (float)(std::chrono::duration<double, std::milli>(timeEnd - lastTimeStamp).count());
 
 		//Frame Rate Manager Init
-		float deltaTime = (float)deltaTimeDiff / 1000.0f;
+		//float deltaTime = (float)deltaTimeDiff / 1000.0f;
 
 		
 		//Add other updates here
 		//camera update
-		rendererExample->m_MainCamera->update(deltaTime);
+		//rendererExample->m_MainCamera->update(deltaTime);
 
-		if (deltaTimeDiff > 1000.0f)
-		{
-			lastTimeStamp = timeEnd;
-		}
+		//if (deltaTimeDiff > 1000.0f)
+		//{
+		//	lastTimeStamp = timeEnd;
+		//}
 
 	}
 
