@@ -25,8 +25,8 @@ typedef struct
 	VkImageTiling			tiling;
 	VkImageUsageFlags		usageFlags;
 	VkMemoryPropertyFlags	propertyFlags;
-	int						ImageWidth = 0;
-	int						ImageHeight = 0;
+	uint32_t				ImageWidth = 0;
+	uint32_t				ImageHeight = 0;
 }TextureBufferDesc;
 
 struct QueueFamilyIndices

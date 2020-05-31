@@ -7,6 +7,8 @@
 //Forward Decleration
 static void MousePosCallBack(GLFWwindow* window, double xpos, double ypos);
 
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
 
 //We add Swap Chain Extenstion to the Current Device
 const std::vector<const char*> deviceExtenstion = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
@@ -23,7 +25,7 @@ VkDebugUtilsMessengerEXT vkRenderer::getDebugMessenger()
 }
 
 												//Set Camera Position
-vkRenderer::vkRenderer() :m_MainCamera(new Camera(glm::vec3(0.0, 0.0, -10.5), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f))
+vkRenderer::vkRenderer() :m_MainCamera(new Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, 0.0f))//glm::vec3(0.0, 0.0, -10.5)
 {
 }
 
@@ -49,6 +51,7 @@ bool vkRenderer::InitGLFW()
 	glfwSetWindowUserPointer(m_window, this);
 	glfwSetFramebufferSizeCallback(m_window, framebufferResizeCallback);
 	glfwSetCursorPosCallback(m_window, MousePosCallBack);
+	glfwSetScrollCallback(m_window, scroll_callback);
 
 	if (!m_window)
 		return false;
@@ -831,10 +834,7 @@ void vkRenderer::ProcessInput(GLFWwindow* window, float deltaTime)
 	//m_MainCamera->keys.down		= glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS ? true : false;
 	//m_MainCamera->keys.right	= glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS ? true : false;
 	//m_MainCamera->keys.left		= glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS ? true : false;
-
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, true);
-
+		
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		m_MainCamera->ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -871,25 +871,33 @@ static void MousePosCallBack(GLFWwindow* window, double xpos, double ypos)
 	
 	auto app = reinterpret_cast<vkRenderer*>(glfwGetWindowUserPointer(window));
 
-	int mouseState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+	int mouseState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
 
 	if (firstMouse)
 	{
-		lastX = xpos;
-		lastY = ypos;
+		lastX = (float)xpos;
+		lastY = (float)ypos;
 		firstMouse = false;
 	}
 
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+	float xoffset = (float)(xpos - lastX);
+	float yoffset = (float)(lastY - ypos); // reversed since y-coordinates go from bottom to top
 
-	lastX = xpos;
-	lastY = ypos;
+	lastX = (float)xpos;
+	lastY = (float)ypos;
+	
 	if (mouseState)
 		app->m_MainCamera->ProcessMouseMovement(xoffset, yoffset, true);
 
 
 
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	auto app = reinterpret_cast<vkRenderer*>(glfwGetWindowUserPointer(window));
+
+	app->m_MainCamera->ProcessMouseScroll((float)yoffset);
 }
 
 

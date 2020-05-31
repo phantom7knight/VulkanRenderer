@@ -39,5 +39,5 @@ void main()
 	TexCoords			= aTexCoords;
 	Normals				= mat3(transpose(inverse(ubo.ModelMatrix))) * aNormal;
 	LightSpaceVertPos	= ubo.LightSpaceVP * vec4(vertPos.xyz,1.0f);
-	gl_Position			= ubo.ProjectionMatrix * ubo.ViewMatrix * vec4(vertPos.xyz,1.0f);
+	gl_Position			= ubo.ProjectionMatrix * ubo.ViewMatrix * vertPos;
 }

@@ -20,12 +20,8 @@ void ShadowMapping::SetUpCameraProperties(Camera* a_cam)
 	//a_cam->camProperties.rotation_speed	   = 0.2f;
 	//a_cam->camProperties.translation_speed = 0.002f;
 
-	////set proj matrix
-	//a_cam->set_perspective(glm::radians(45.0f), (float)m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 1000.0f);
-
-	a_cam->SetPerspectiveMatrix(glm::radians(45.0f), (float)m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 1000.0f);
-	cam_matrices.perspective = a_cam->GetPerspectiveMatrix();
-	cam_matrices.view = a_cam->GetViewMatrix();
+	cam_matrices.perspective = a_cam->SetGetPerspectiveMatrix(glm::radians(45.0f), (float)m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 1000.0f);
+	cam_matrices.view = glm::mat4(1);
 
 }
 
@@ -109,7 +105,7 @@ void ShadowMapping::CreateRenderPass()
 	renderpassInfo.pAttachments = attachments.data();
 	renderpassInfo.subpassCount = 1;
 	renderpassInfo.pSubpasses = &subpassInfo;
-	renderpassInfo.dependencyCount = dependency.size();
+	renderpassInfo.dependencyCount = static_cast<uint32_t>(dependency.size());
 	renderpassInfo.pDependencies = dependency.data();
 
 	if (vkCreateRenderPass(m_device, &renderpassInfo, nullptr, &m_renderPass) != VK_SUCCESS)
@@ -566,7 +562,7 @@ void ShadowMapping::CreateCommandBuffers()
 	}
 
 }
-
+ 
 void ShadowMapping::CreateSemaphoresandFences()
 {
 
@@ -608,13 +604,12 @@ void ShadowMapping::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices p
 	glm::mat4 modelMat = glm::mat4(1);
 
 	//view matrix
-	glm::mat4 viewMat = glm::lookAt(m_lightPosGUILight, glm::vec3(0.0f), glm::vec3(0, 1, 0));
+	glm::mat4 viewMat = glm::lookAt(m_lightPosGUILight, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
 
-	float near_plane = 1.0f, far_plane = 7.5f;
-	//glm::mat4 projMat = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-	glm::mat4 projMat = glm::perspective(glm::radians(45.0f), 1.0f, near_plane, far_plane);
-	//glm::mat4 projMat = cam_matrices.perspective;
-	projMat[1][1] *= -1;
+	float near_plane = 1.0f, far_plane = 10.0f;
+	glm::mat4 projMat = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);//
+	//glm::mat4 projMat = glm::perspective(glm::radians(45.0f), 1.0f, near_plane, far_plane);
+	//projMat[1][1] *= -1;
 
 	depthMVP.mvp = projMat * viewMat * modelMat;
 
@@ -636,14 +631,13 @@ void ShadowMapping::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices p
 
 	//Model Matrix
 	mvp_UBO.ModelMatrix = glm::mat4(1);
-	mvp_UBO.ModelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0, 0.0, -30.0));
+	//mvp_UBO.ModelMatrix = glm::translate(mvp_UBO.ModelMatrix, glm::vec3(0.0, -0.22, -5.0));
 	//mvp_UBO.ModelMatrix = glm::rotate(mvp_UBO.ModelMatrix, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	mvp_UBO.ModelMatrix = glm::scale(mvp_UBO.ModelMatrix, glm::vec3(0.05f));
+	mvp_UBO.ModelMatrix = glm::scale(mvp_UBO.ModelMatrix, glm::vec3(0.005f));
 
 
 	//View Matrix
 	mvp_UBO.ViewMatrix = cam_matrices.view;
-
 
 	//Projection Matrix
 	mvp_UBO.ProjectionMatrix = cam_matrices.perspective;
@@ -1111,7 +1105,8 @@ void ShadowMapping::CreateDepthResources()
 void ShadowMapping::setGuiVariables()
 {
 	//m_lightPosGUILight = glm::vec3(0.0, -38.0, 200.0);
-	m_lightPosGUILight = glm::vec3(0.0, 0.0, -40.0);
+	//m_lightPosGUILight = glm::vec3(16.6,11.11,77.77);
+	m_lightPosGUILight = glm::vec3(0.0, 0.0, 15.0);
 	m_lightColorGUILight = glm::vec3(1.0, 1.0, 1.0);
 	m_SpecularIntensityGUILight = 4;
 }
@@ -1149,8 +1144,8 @@ void ShadowMapping::CreateShadowsImageViews()
 	// "VK_FORMAT_D16_UNORM" as the image format 
 	VkFormat depthFormat = FindDepthFormat();
 
-	ShadowPassImageInfo.ImageHeight = (float)m_swapChainExtent.height;
-	ShadowPassImageInfo.ImageWidth = (float)m_swapChainExtent.width;
+	ShadowPassImageInfo.ImageHeight = static_cast<uint32_t>(m_swapChainExtent.height);
+	ShadowPassImageInfo.ImageWidth	= static_cast<uint32_t>(m_swapChainExtent.width);
 	ShadowPassImageInfo.imageFormat = depthFormat;
 	ShadowPassImageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	ShadowPassImageInfo.usageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
@@ -1217,7 +1212,7 @@ void ShadowMapping::CreateShadowsRenderPass()
 
 	createInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	createInfo.pNext = NULL;
-	createInfo.attachmentCount = ShadowRenderPassAttachment.size();
+	createInfo.attachmentCount = static_cast<uint32_t>(ShadowRenderPassAttachment.size());
 	createInfo.pAttachments = ShadowRenderPassAttachment.data();
 	createInfo.pSubpasses = &subpassInfo;
 	createInfo.subpassCount = 1;
@@ -1249,8 +1244,8 @@ void ShadowMapping::InitShadowsFrameBuffer()
 
 	createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 	createInfo.layers = 1;
-	createInfo.height	= (float)m_swapChainExtent.height;
-	createInfo.width	= (float)m_swapChainExtent.width;
+	createInfo.height	= static_cast<uint32_t>(m_swapChainExtent.height);
+	createInfo.width	= static_cast<uint32_t>(m_swapChainExtent.width);
 	createInfo.renderPass = m_ShadowsRenderPass;
 	createInfo.attachmentCount = 1;
 	createInfo.pAttachments = &ShadowPassImageView;
@@ -1602,6 +1597,7 @@ void ShadowMapping::PrepareApp()
 	//LoadAModel("../../Assets/Models/monkey/monkey.obj");
 	LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
 	//LoadAModel("../../Assets/Models/venus/venus.fbx");
+	//LoadAModel("../../Assets/Models/camera/camera.obj");
 
 	//LoadTexture("../../Assets/Textures/Statue.jpg");
 	LoadTexture("../../Assets/Textures/green.jpg");
@@ -1638,7 +1634,7 @@ void ShadowMapping::Update(float deltaTime)
 {
 	ProcessInput(m_window, deltaTime);
 
-	cam_matrices.perspective = m_MainCamera->GetPerspectiveMatrix();
+	cam_matrices.perspective = m_MainCamera->SetGetPerspectiveMatrix(glm::radians(45.0f), (float)m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 1000.0f);
 
 	//set view matrix
 	cam_matrices.view = m_MainCamera->GetViewMatrix();

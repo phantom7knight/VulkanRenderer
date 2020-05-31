@@ -2,7 +2,7 @@
 #include "../../VKRenderer/vkRenderer.h"
 #include "../../VKRenderer/vkTimer.h"
 #include "ShadowMapping.h"
-#include "../../VKRenderer/Camera.h"
+//#include "../../VKRenderer/Camera.h"
 #include "../../Dependencies/Imgui/IMGUI/Imgui_Impl.h"
 
 
@@ -19,7 +19,7 @@ void MainLoop(vkRenderer* rendererExample)
 	{
 		//auto timeStart = std::chrono::high_resolution_clock::now();
 
-		float currentFrame = glfwGetTime();
+		float currentFrame = (float)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 

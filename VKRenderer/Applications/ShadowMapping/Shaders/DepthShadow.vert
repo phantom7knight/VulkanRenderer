@@ -5,6 +5,7 @@
 layout(binding = 0) uniform DepthCalcUBO
 {
 	mat4 mvp;
+	vec3 lightPos;
 }ubo;
 
 layout(location = 0) in 	vec3 aPos;
