@@ -60,12 +60,15 @@ public:
 	void CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDeviceSize a_size);
 	void CopyBufferToImage(VkBuffer buffer, TextureBufferDesc desc);
 
+	void CreateBuffer(const ModelInfo a_modelDesc, BufferDesc* a_BufferToCreate, VkBufferUsageFlags a_usage,
+		VkMemoryPropertyFlags a_properties, VkCommandPool a_commandPool);
 
 	//Command Buffer Related
-	VkCommandBuffer BeginSingleTimeCommands();
-	void EndSingleTimeCommands(VkCommandBuffer a_commandBuffer);
+	VkCommandBuffer BeginSingleTimeCommands(VkCommandPool a_commandPool);
+	void EndSingleTimeCommands(VkCommandBuffer* a_commandBuffer, VkCommandPool a_commandPool);
+	void TransitionImageLayouts(VkCommandPool a_commandPool, VkCommandBuffer* a_commandBuffer,
+		VkImage a_image, VkFormat a_format, VkImageLayout a_oldLayout, VkImageLayout a_newLayout);
 
-	void TransitionImageLayouts(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 
 	VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 	VkFormat FindDepthFormat();
@@ -115,11 +118,6 @@ protected:
 	VkQueue								m_graphicsQueue;
 	VkSurfaceKHR						m_surface; // This is for relating Windows and Vulkan
 	VkQueue								m_PresentQueue;
-
-	//VkSwapchainKHR						m_swapChain;
-	//std::vector<VkImage>				m_SwapChainImages;
-	//VkFormat							m_swapChainFormat;
-	//VkExtent2D							m_swapChainExtent;
 
 	SwapChainDesc						m_swapChainDescription;
 

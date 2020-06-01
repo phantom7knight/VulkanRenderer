@@ -1,7 +1,7 @@
 
 #include "vkRenderer.h"
-#include "ResourceLoader.h"
-#include "Camera.h"
+#include "../../ResourceLoading/ResourceLoader.h"
+#include "../../Camera/Camera.h"
 #include "../../Helper/Validation Layer/ValidationLayer.hpp"
 
 #include "../VulkanHelper/VulkanHelper.hpp"
@@ -28,6 +28,30 @@ vkRenderer::vkRenderer() :m_MainCamera(new Camera())
 
 vkRenderer::~vkRenderer()
 {
+}
+
+//===================================================================
+//GLFW Input recording
+//===================================================================
+void vkRenderer::ProcessInput(GLFWwindow* window)
+{
+	//If Esc button is pressed we close
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	{
+		glfwSetWindowShouldClose(window, true);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		m_MainCamera->camProperties.position = m_MainCamera->camProperties.defPosition;
+	}
+
+	//Update Keys pressed status for the camera update
+	m_MainCamera->keys.up = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS ? true : false;
+	m_MainCamera->keys.down = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS ? true : false;
+	m_MainCamera->keys.right = glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS ? true : false;
+	m_MainCamera->keys.left = glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS ? true : false;
+
 }
 
 void vkRenderer::framebufferResizeCallback(GLFWwindow* window, int width, int height)
@@ -83,53 +107,12 @@ bool vkRenderer::InitGLFW()
 //===================================================================
 // Creating Image Views[Used to view Images]
 //===================================================================
-void vkRenderer::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView *a_imageView)
+void vkRenderer::createImageView(VkImage a_image, VkFormat a_format, VkImageAspectFlags a_aspectFlags, VkImageView *a_imageView)
 {
-	VkImageViewCreateInfo createInfo = {};
-
-	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	createInfo.image = image;
-	createInfo.format = format;
-	createInfo.pNext = nullptr;
-	createInfo.viewType = VkImageViewType::VK_IMAGE_VIEW_TYPE_2D;
-	createInfo.subresourceRange.aspectMask = aspectFlags;
-	createInfo.subresourceRange.baseMipLevel = 0;
-	createInfo.subresourceRange.levelCount = 1;
-	createInfo.subresourceRange.baseArrayLayer = 0;
-	createInfo.subresourceRange.layerCount = 1;
-
-	if (vkCreateImageView(m_device, &createInfo, nullptr, a_imageView) != VK_SUCCESS)
-	{
-		std::cout << "Unable Image view for the texture provided \n";
-		return;
-	}
-
+	VulkanHelper::CreateImageView(m_device, a_image, a_format, a_aspectFlags, a_imageView);
+	return;
 }
 
-
-//===================================================================
-//GLFW Input recording
-//===================================================================
-void vkRenderer::ProcessInput(GLFWwindow* window)
-{
-	//If Esc button is pressed we close
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-	{
-		glfwSetWindowShouldClose(window, true);
-	}
-
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-	{
-		m_MainCamera->camProperties.position = m_MainCamera->camProperties.defPosition;
-	}
-
-	//Update Keys pressed status for the camera update
-	m_MainCamera->keys.up		= glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS ? true : false;
-	m_MainCamera->keys.down		= glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS ? true : false;
-	m_MainCamera->keys.right	= glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS ? true : false;
-	m_MainCamera->keys.left		= glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS ? true : false;
-
-}
 
 
 
@@ -168,6 +151,64 @@ bool vkRenderer::hasStencilComponent(VkFormat format)
 {
 	return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
+
+//===================================================================
+//Command Buffer Recording Related
+//===================================================================
+
+VkCommandBuffer vkRenderer::BeginSingleTimeCommands(VkCommandPool a_commandPool)
+{
+	VulkanHelper::BeginSingleTimeCommands(m_device, a_commandPool);
+}
+
+void vkRenderer::EndSingleTimeCommands(VkCommandBuffer* a_commandBuffer, VkCommandPool a_commandPool)
+{
+	VulkanHelper::EndSingleTimeCommands(a_commandBuffer, a_commandPool, m_device, m_graphicsQueue);
+}
+
+void vkRenderer::TransitionImageLayouts(VkCommandPool a_commandPool, VkCommandBuffer* a_commandBuffer,
+	VkImage a_image, VkFormat a_format, VkImageLayout a_oldLayout, VkImageLayout a_newLayout)
+{
+	VulkanHelper::TransitionImageLayouts(m_device, a_commandPool, a_commandBuffer, m_graphicsQueue, a_image,
+		a_format, a_oldLayout, a_newLayout);
+}
+
+
+//===================================================================
+//Buffer Creation
+//===================================================================
+
+void vkRenderer::CreateBuffer(const ModelInfo a_modelDesc, BufferDesc* a_BufferToCreate, VkBufferUsageFlags a_usage,
+	VkMemoryPropertyFlags a_properties, VkCommandPool a_commandPool)
+{
+	VkDeviceSize bufferSize = a_modelDesc.indexBufferSize;
+	
+	//Create Staging Buffer before transfering
+	
+	BufferDesc stagingBuffer;
+
+	VulkanHelper::CreateBuffer(m_device, m_physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer.Buffer, stagingBuffer.BufferMemory);
+	
+	void* data;
+	vkMapMemory(m_device, stagingBuffer.BufferMemory, 0, bufferSize, 0, &data);
+	
+	memcpy(data, a_modelDesc.indexbufferData.data(), (size_t)bufferSize);
+	
+	vkUnmapMemory(m_device, stagingBuffer.BufferMemory);
+	
+	VulkanHelper::CreateBuffer(m_device, m_physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | a_usage, 
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, a_BufferToCreate->Buffer, a_BufferToCreate->BufferMemory);
+
+	VulkanHelper::CopyBuffer(m_device, a_commandPool, m_graphicsQueue, stagingBuffer.Buffer, a_BufferToCreate->Buffer, bufferSize);
+	//Get rid of the staging buffers
+	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
+	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
+	
+	return;
+}
+
+
 
 //===================================================================
 //Vulkan Initialization Function

@@ -201,7 +201,8 @@ namespace VulkanHelper
 	//===================================================================
 	//Logical Device
 	//===================================================================
-	VkDevice CreateLogicalDevice(VkPhysicalDevice a_physicalDevice, VkSurfaceKHR a_surface, VkQueue	*a_GraphicsQueue, VkQueue *a_PresentQueue)
+	VkDevice CreateLogicalDevice(VkPhysicalDevice a_physicalDevice, VkSurfaceKHR a_surface, VkQueue	*a_GraphicsQueue,
+		VkQueue *a_PresentQueue)
 	{
 		VkDevice a_device;
 
@@ -508,7 +509,8 @@ namespace VulkanHelper
 	}
 
 	//TODO: Check This
-	void EndSingleTimeCommands(VkCommandBuffer *a_commandBuffer, VkCommandPool a_commandPool, VkDevice a_device, VkQueue a_graphicsQueue)
+	void EndSingleTimeCommands(VkCommandBuffer *a_commandBuffer, VkCommandPool a_commandPool, VkDevice a_device,
+		VkQueue a_graphicsQueue)
 	{
 		vkEndCommandBuffer(*a_commandBuffer);
 
@@ -524,8 +526,8 @@ namespace VulkanHelper
 	}
 
 
-	void TransitionImageLayouts(VkDevice a_device, VkCommandPool a_commandPool, VkCommandBuffer* a_commandBuffer, VkQueue a_graphicsQueue,
-		VkImage image, VkFormat format, VkImageLayout a_oldLayout, VkImageLayout a_newLayout)
+	void TransitionImageLayouts(VkDevice a_device, VkCommandPool a_commandPool, VkCommandBuffer* a_commandBuffer,
+		VkQueue a_graphicsQueue, VkImage image, VkFormat format, VkImageLayout a_oldLayout, VkImageLayout a_newLayout)
 	{
 		VkCommandBuffer cmdBuffer = BeginSingleTimeCommands(a_device, a_commandPool);
 
@@ -605,8 +607,7 @@ namespace VulkanHelper
 	//===================================================================
 	//Buffer Description
 	//===================================================================
-
-
+	
 	uint32_t FindMemoryType(VkPhysicalDevice a_physicalDevice, uint32_t typeFiler, VkMemoryPropertyFlags properties)
 	{
 		VkPhysicalDeviceMemoryProperties memProperties;
@@ -626,7 +627,8 @@ namespace VulkanHelper
 	}
 
 
-	void CreateBuffer(VkDevice a_device, VkPhysicalDevice a_physicalDevice, VkDeviceSize a_size, VkBufferUsageFlags a_usage, VkMemoryPropertyFlags a_properties, VkBuffer& a_buffer, VkDeviceMemory& a_bufferMemory)
+	void CreateBuffer(VkDevice a_device, VkPhysicalDevice a_physicalDevice, VkDeviceSize a_size, VkBufferUsageFlags a_usage,
+		VkMemoryPropertyFlags a_properties,	VkBuffer& a_buffer, VkDeviceMemory& a_bufferMemory)
 	{
 		/////For EX: Buffer for the coordinates of Triangle which are being sent to the VS
 		VkBufferCreateInfo bufferCreateInfo = {};
@@ -661,7 +663,8 @@ namespace VulkanHelper
 	}
 
 
-	void CopyBuffer(VkDevice a_device, VkCommandPool a_commandPool, VkQueue a_graphicsQueue, VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDeviceSize a_size)
+	void CopyBuffer(VkDevice a_device, VkCommandPool a_commandPool, VkQueue a_graphicsQueue, VkBuffer a_srcBuffer, VkBuffer a_dstBuffer,
+		VkDeviceSize a_size)
 	{
 		
 		VkCommandBuffer a_cmdBuffer = BeginSingleTimeCommands(a_device, a_commandPool);
@@ -706,5 +709,36 @@ namespace VulkanHelper
 
 		EndSingleTimeCommands(&cmdBuffer, a_commandPool, a_device, a_graphicsQueue);
 	}
+
+
+
+	//===================================================================
+	// Creating Image Views
+	//===================================================================
+	void CreateImageView(VkDevice a_device,	VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView* a_imageView)
+	{
+		VkImageViewCreateInfo createInfo = {};
+
+		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		createInfo.image = image;
+		createInfo.format = format;
+		createInfo.pNext = nullptr;
+		createInfo.viewType = VkImageViewType::VK_IMAGE_VIEW_TYPE_2D;
+		createInfo.subresourceRange.aspectMask = aspectFlags;
+		createInfo.subresourceRange.baseMipLevel = 0;
+		createInfo.subresourceRange.levelCount = 1;
+		createInfo.subresourceRange.baseArrayLayer = 0;
+		createInfo.subresourceRange.layerCount = 1;
+
+		if (vkCreateImageView(a_device, &createInfo, nullptr, a_imageView) != VK_SUCCESS)
+		{
+			std::cout << "Unable Image view for the texture provided \n";
+			return;
+		}
+
+	}
+
+
+
 
 }
