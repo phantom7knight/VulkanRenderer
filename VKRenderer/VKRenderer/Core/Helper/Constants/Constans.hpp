@@ -50,6 +50,14 @@ struct SwapChainSupportDetails
 
 };
 
+struct SwapChainDesc
+{
+	VkSwapchainKHR						m_swapChain;
+	std::vector<VkImage>				m_SwapChainImages;
+	VkFormat							m_swapChainFormat;
+	VkExtent2D							m_swapChainExtent;
+};
+
 
 struct CameraMatrices
 {

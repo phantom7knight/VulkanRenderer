@@ -1,6 +1,6 @@
 #pragma once
 
-#include "stdafx.h"
+#include "../../PCH/stdafx.h"
 
 class Camera;
 class vkRenderer
@@ -116,10 +116,12 @@ protected:
 	VkSurfaceKHR						m_surface; // This is for relating Windows and Vulkan
 	VkQueue								m_PresentQueue;
 
-	VkSwapchainKHR						m_swapChain;
-	std::vector<VkImage>				m_SwapChainImages;
-	VkFormat							m_swapChainFormat;
-	VkExtent2D							m_swapChainExtent;
+	//VkSwapchainKHR						m_swapChain;
+	//std::vector<VkImage>				m_SwapChainImages;
+	//VkFormat							m_swapChainFormat;
+	//VkExtent2D							m_swapChainExtent;
+
+	SwapChainDesc						m_swapChainDescription;
 
 	std::vector<VkImageView>			m_SwapChainImageViews;
 
