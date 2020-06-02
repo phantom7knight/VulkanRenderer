@@ -74,6 +74,11 @@ public:
 	VkFormat FindDepthFormat();
 	bool hasStencilComponent(VkFormat format);
 
+#pragma region New_Fns
+	void CreateRenderPass(RenderPassInfo a_renderPassDesc, VkRenderPass* a_renderPass);
+	void CreatePipeline();
+#pragma endregion
+
 	
 	void Init();
 
@@ -85,21 +90,22 @@ public:
 	
 	void ProcessInput(GLFWwindow* window);
 
-
-	//Pure Virtual so that the inherited class can override.
-	virtual void PrepareApp();
+	//Setup Swap-Chain for the App
+	void PrepareApp();
 	
 	//Pure Virtual
-	virtual void Draw(float deltaTime) = 0;
-	virtual void Update(float deltaTime) = 0;
+	void Draw(float deltaTime) ;
+	void Update(float deltaTime) ;
 	
 	virtual void Destroy();
+
+	//Variables
 
 	MousePositions mousePos;
 
 	Camera* m_MainCamera;
 
-protected:
+public:
 	
 #pragma region Variables
 	bool m_frameBufferResized = false;

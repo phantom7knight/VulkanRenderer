@@ -95,9 +95,9 @@ void ShadowMapping::CreateRenderPass()
 	renderpassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	renderpassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 	renderpassInfo.pAttachments = attachments.data();
-	renderpassInfo.subpassCount = 1;
+	renderpassInfo.subpassCount = 1; //TODO: Check this
 	renderpassInfo.pSubpasses = &subpassInfo;
-	renderpassInfo.dependencyCount = 1;
+	renderpassInfo.dependencyCount = 1;//subpassDependecy.count
 	renderpassInfo.pDependencies = &dependency;
 
 	if (vkCreateRenderPass(m_device, &renderpassInfo, nullptr, &m_renderPass) != VK_SUCCESS)

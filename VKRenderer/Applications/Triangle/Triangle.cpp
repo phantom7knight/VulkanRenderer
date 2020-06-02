@@ -1,5 +1,5 @@
 #include "Triangle.h"
-#include "../../VKRenderer/stdafx.h"
+#include "../../VKRenderer/Core/PCH/stdafx.h"
 
 
 //===================================================================
@@ -82,6 +82,16 @@ struct UniformBufferObject
 	glm::mat4 ViewMatrix;
 	glm::mat4 ProjectionMatrix;
 };
+
+
+Triangle::Triangle()
+{
+	//Initialize Renderer
+	m_renderer = new vkRenderer();
+
+
+}
+
 
 
 
@@ -296,64 +306,47 @@ void Triangle::CreateGraphicsPipeline()
 
 void Triangle::CreateRenderPass()
 {
-	VkAttachmentDescription colorAttachment = {};
+	std::vector< VkAttachmentDescription> attachmentDescriptions;
 
-	colorAttachment.format = m_swapChainFormat;
-	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;//TODO : Programmable
+	attachmentDescriptions.resize(1);
 
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	attachmentDescriptions[0].format = m_renderer->m_swapChainDescription.m_swapChainFormat;
+	attachmentDescriptions[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;	
+	attachmentDescriptions[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	std::vector<VkAttachmentReference> attachmentReferences;
 
-	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass shud start with
-	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;		//How render pass final image shud translate at end of render pass
+	attachmentReferences.resize(attachmentDescriptions.size());
 
-
-	//Each renderpass can have multiple sub-passes
-	//which will help or can be used for the Post-Processing,...etc
-
-	VkAttachmentReference colorAttachmentRef = {};
-
-	colorAttachmentRef.attachment = 0;
-	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	attachmentReferences[0].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkSubpassDescription subpassInfo = {};
 
 	subpassInfo.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpassInfo.colorAttachmentCount = 1;					//layout(location = 0) out vec4 outColor this is where it will be referenced
-	subpassInfo.pColorAttachments = &colorAttachmentRef;
+	subpassInfo.pColorAttachments = &attachmentReferences[0];
 
-	VkSubpassDependency dependency = {};
+	std::vector< VkSubpassDependency> subpassDependecy;
 
-	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	dependency.dstSubpass = 0;
-	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependency.srcAccessMask = 0;
-	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	subpassDependecy.resize(1);
 
+	subpassDependecy[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+	subpassDependecy[0].dstSubpass = 0;
+	subpassDependecy[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subpassDependecy[0].srcAccessMask = 0;
+	subpassDependecy[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subpassDependecy[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
+	RenderPassInfo renderPassdesc = {};
 
-	//Render Pass Info
+	renderPassdesc.attachmentDescriptions	= attachmentDescriptions;
+	renderPassdesc.attachmentReferences		= attachmentReferences;
+	renderPassdesc.subpassInfo				= subpassInfo;
+	renderPassdesc.subpassDependecy			= subpassDependecy;
 
-	VkRenderPassCreateInfo renderpassInfo = {};
+	m_renderer->CreateRenderPass(renderPassdesc, &m_TriangleRenderPass);
 
-	renderpassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderpassInfo.attachmentCount = 1;
-	renderpassInfo.pAttachments = &colorAttachment;
-	renderpassInfo.subpassCount = 1;
-	renderpassInfo.pSubpasses = &subpassInfo;
-	renderpassInfo.dependencyCount = 1;
-	renderpassInfo.pDependencies = &dependency;
-
-	if (vkCreateRenderPass(m_device, &renderpassInfo, nullptr, &m_renderPass) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to create Render Pass");
-	}
-
-
+	
 }
 
 
@@ -774,13 +767,17 @@ void Triangle::ReCreateSwapChain()
 	}
 
 
-	vkDeviceWaitIdle(m_device);
+	//vkDeviceWaitIdle(m_device);
+	vkDeviceWaitIdle(m_renderer->getDevice());
 
+	//TODO: call VkRenderer
 	CleanUpSwapChain();
 
-	CreateSwapChain();
+	//CreateSwapChain();
+	//
+	//CreateSwapChainImageView();
 
-	CreateSwapChainImageView();
+	m_renderer->PrepareApp();
 
 	CreateRenderPass();
 
@@ -801,12 +798,18 @@ void Triangle::ReCreateSwapChain()
 
 }
 
+void Triangle::Init()
+{
+	m_renderer->Init();
+
+	return;
+}
 
 void Triangle::PrepareApp()
 {
-	//First call base app's Preperations
-	vkRenderer::PrepareApp();
-
+	//Renderer's Prepare App Sequence
+	m_renderer->PrepareApp();
+	
 	CreateRenderPass();
 
 	CreateDescriptorSetLayout();
@@ -934,4 +937,8 @@ void Triangle::Draw(float deltaTime)
 void Triangle::Destroy()
 {
 
+
+	//Destroy the renderer
+	if (m_renderer != NULL)
+		delete m_renderer;
 }

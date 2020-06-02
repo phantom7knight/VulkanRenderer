@@ -1,4 +1,5 @@
-#include "stdafx.h"
+
+#include "../../PCH/stdafx.h"
 
 
 const int WIDTH		= 1600;
@@ -58,7 +59,6 @@ struct SwapChainDesc
 	VkExtent2D							m_swapChainExtent;
 };
 
-
 struct CameraMatrices
 {
 	glm::mat4 perspective;
@@ -77,7 +77,6 @@ struct CameraKeys
 	bool up = false;
 	bool down = false;
 } ;
-
 
 struct CameraProperties
 {
@@ -98,11 +97,23 @@ struct CameraProperties
 	bool updated;
 };
 
-
 struct MousePositions
 {
 	float currentPosX = 0;
 	float currentPosY = 0;
 	float PrevPosX = 0;
 	float PrevPosY = 0;
+};
+
+struct RenderPassInfo
+{
+	std::vector< VkAttachmentDescription> attachmentDescriptions;
+	std::vector<VkAttachmentReference> attachmentReferences;
+	std::vector< VkSubpassDependency> subpassDependecy;
+	VkSubpassDescription subpassInfo = {};
+};
+
+struct PipelineInfo
+{
+
 };

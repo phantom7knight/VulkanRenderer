@@ -1,0 +1,43 @@
+application .h & .cpp
+app: start->end
+
+vkRenderer .h & .cpp
+holds rendererSequence
+
+VulkanHelper.hpp
+holds all the vulkan base functions
+
+ShaderLoader .h & .cpp
+Creates Shader Modules and also generates SPIR-V code
+which will be used my Resource Loader
+
+DebugUtils .h & .cpp
+Used for RenderDoc Captures look at Sascha Willems
+
+FLOW
+=====
+
+Application
+Init()
+-Renderer's Initial Setup
+-GUI Init Setup
+-GUI variable's setup
+-Camera Setup
+
+PrepareApp()
+-Setup all RT's,...etc here
+which are related to the apps
+
+Update()
+-UBO's data update
+-Camera Properties Update
+
+Draw()
+-Cmd Buffer Updates
+-Draw Commands
+-UI Draw
+
+Destroy()
+-Calls App's Destroy Call and unassign ptr's,...etc
+-Call Renderer's Destroy
+

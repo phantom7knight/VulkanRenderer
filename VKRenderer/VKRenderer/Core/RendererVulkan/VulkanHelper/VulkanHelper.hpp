@@ -741,7 +741,19 @@ namespace VulkanHelper
 
 	}
 
+	//===================================================================
+	//Render Pass Creation
+	//===================================================================
 
+	void CreateRenderPass(VkDevice a_device, VkRenderPassCreateInfo a_renderpassInfo, VkRenderPass *a_renderPass)
+	{
+		if (vkCreateRenderPass(a_device, &a_renderpassInfo, nullptr, a_renderPass) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Unable to create Render Pass");
+		}
+		
+		return;
+	}
 
 
 }

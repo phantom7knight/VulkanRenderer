@@ -109,6 +109,40 @@ void vkRenderer::createImageView(VkImage a_image, VkFormat a_format, VkImageAspe
 }
 
 
+//===================================================================
+//RenderPass Creation
+//===================================================================
+void vkRenderer::CreateRenderPass(RenderPassInfo a_renderPassDesc, VkRenderPass* a_renderPass)
+{
+	
+	//Render Pass Info
+
+	VkRenderPassCreateInfo renderpassInfo = {};
+
+	renderpassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	renderpassInfo.attachmentCount = static_cast<uint32_t>(a_renderPassDesc.attachmentDescriptions.size());
+	renderpassInfo.pAttachments = a_renderPassDesc.attachmentDescriptions.data();
+	renderpassInfo.subpassCount = 1;
+	renderpassInfo.pSubpasses = &(a_renderPassDesc.subpassInfo);
+	renderpassInfo.dependencyCount = a_renderPassDesc.subpassDependecy.size();
+	renderpassInfo.pDependencies = a_renderPassDesc.subpassDependecy.data();
+
+	VulkanHelper::CreateRenderPass(m_device, renderpassInfo, a_renderPass);
+
+	
+}
+
+//===================================================================
+//Pipeline Creation
+//===================================================================
+
+void vkRenderer::CreatePipeline()
+{
+
+
+	return;
+}
+
 
 
 //===================================================================

@@ -1,8 +1,9 @@
 #pragma once
 
-#include "../../VKRenderer/vkRenderer.h"
+#include "../../VKRenderer/Core/Application/Application.h"
+#include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
 
-class Triangle : public vkRenderer
+class Triangle : public Application
 {
 
 private:
@@ -38,11 +39,18 @@ private:
 
 
 	//variables
+	vkRenderer* m_renderer;
 
+	VkRenderPass m_TriangleRenderPass;
 
 public:
 
+	Triangle();
 	
+	~Triangle() {}
+
+	//Init Initialization of the properties here
+	virtual void Init();
 
 	// Inherited via vkRenderer
 	virtual void PrepareApp();
