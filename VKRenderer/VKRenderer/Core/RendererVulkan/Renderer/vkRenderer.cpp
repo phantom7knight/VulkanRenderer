@@ -2,13 +2,8 @@
 #include "vkRenderer.h"
 #include "../../ResourceLoading/ResourceLoader.h"
 #include "../../Camera/Camera.h"
-#include "../../Helper/Validation Layer/ValidationLayer.hpp"
 
 #include "../VulkanHelper/VulkanHelper.hpp"
-
-
-//We add Swap Chain Extenstion to the Current Device
-const std::vector<const char*> deviceExtenstion = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
 
 VkInstance vkRenderer::getVulkanInstance()
@@ -158,7 +153,8 @@ bool vkRenderer::hasStencilComponent(VkFormat format)
 
 VkCommandBuffer vkRenderer::BeginSingleTimeCommands(VkCommandPool a_commandPool)
 {
-	VulkanHelper::BeginSingleTimeCommands(m_device, a_commandPool);
+	VkCommandBuffer resultCmdBuffer = VulkanHelper::BeginSingleTimeCommands(m_device, a_commandPool);
+	return resultCmdBuffer;
 }
 
 void vkRenderer::EndSingleTimeCommands(VkCommandBuffer* a_commandBuffer, VkCommandPool a_commandPool)
@@ -201,6 +197,7 @@ void vkRenderer::CreateBuffer(const ModelInfo a_modelDesc, BufferDesc* a_BufferT
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, a_BufferToCreate->Buffer, a_BufferToCreate->BufferMemory);
 
 	VulkanHelper::CopyBuffer(m_device, a_commandPool, m_graphicsQueue, stagingBuffer.Buffer, a_BufferToCreate->Buffer, bufferSize);
+
 	//Get rid of the staging buffers
 	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
 	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);

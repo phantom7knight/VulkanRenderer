@@ -1,7 +1,7 @@
 /* Copyright (c) 2019, Sascha Willems*/
 
 
-#include "stdafx.h"
+#include"../PCH/stdafx.h"
 #include "Camera.h"
 
 Camera::Camera()

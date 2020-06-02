@@ -1,4 +1,5 @@
-#include "stdafx.h"
+
+#include "../PCH/stdafx.h"
 #include "ResourceLoader.h"
 
 #pragma region File-Operations
