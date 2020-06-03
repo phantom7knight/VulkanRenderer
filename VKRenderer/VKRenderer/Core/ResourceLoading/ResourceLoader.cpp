@@ -24,7 +24,7 @@ std::vector<char, std::allocator<char>> FileOperations::readFile(const std::stri
 	return buffer;
 }
 
-bool ResourceLoader::checkIfCharacterExists(const std::string a_string, char a_toSearch)
+bool FileOperations::checkIfCharacterExists(const std::string a_string, char a_toSearch)
 {
 	if (a_string.find(a_toSearch))
 	{
@@ -153,7 +153,7 @@ void ResourceLoader::GenerateBatchFile(std::vector<std::string> fileNames)
 	
 	std::string vulkansdk_name_replaced;
 
-	if (checkIfCharacterExists(vulkansdk_name, '\\'))
+	if (m_fileOpsObj.checkIfCharacterExists(vulkansdk_name, '\\'))
 	{
 		vulkansdk_name_replaced = m_fileOpsObj.ReplaceCharacter(vulkansdk_name, '/', '\\' );
 	}
@@ -342,7 +342,6 @@ ModelInfo ResourceLoader::LoadModelResource(std::string fileName)
 }
 
 #pragma endregion
-
 
 #pragma region Texture-Loading
 

@@ -133,11 +133,79 @@ void vkRenderer::CreateRenderPass(RenderPassInfo a_renderPassDesc, VkRenderPass*
 }
 
 //===================================================================
+//Shader Related Functions
+//===================================================================
+
+std::vector<VkPipelineShaderStageCreateInfo> vkRenderer::ShaderStageInfoGeneration(std::vector<std::string> ShaderNames)
+{
+	std::vector<VkPipelineShaderStageCreateInfo>	shaderStages;
+	std::vector<VkShaderModule>						shadermodules;
+
+
+	shaderStages.resize(ShaderNames.size());
+	shadermodules.resize(ShaderNames.size());
+
+	for (int i = 0; i < ShaderNames.size(); ++i)
+	{
+		// Generate SPIRV shader files
+		rsrcLdr.GenerateSPIRVShaders(ShaderNames);
+
+		std::string SPIRVFileNames = "Shaders/BinaryCode/" + ShaderNames[i] + ".spv";
+		auto ShaderCode = rsrcLdr.getFileOperationobj().readFile(SPIRVFileNames);
+
+		ShaderDesc shader_info = {};
+
+		shader_info.a_device = m_device;
+		shader_info.shaderCode = &(ShaderCode);
+
+		shadermodules[i] = rsrcLdr.createShaderModule(shader_info);
+
+		VkPipelineShaderStageCreateInfo  shaderCreateInfo = {};
+
+		shaderCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		shaderCreateInfo.module = shadermodules[i];
+
+		//find the correct shader staga
+		// TODO: Check checkIfCharacterExists() call
+		if (rsrcLdr.getFileOperationobj().checkIfCharacterExists(SPIRVFileNames, 'vert'))
+		{
+			shaderCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+			shaderCreateInfo.pName = "main";
+		}
+		else if (rsrcLdr.getFileOperationobj().checkIfCharacterExists(SPIRVFileNames, 'frag'))
+		{
+			shaderCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+			shaderCreateInfo.pName = "main";
+		}
+		else if (rsrcLdr.getFileOperationobj().checkIfCharacterExists(SPIRVFileNames, 'geom'))
+		{
+			shaderCreateInfo.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
+			shaderCreateInfo.pName = "main";
+		}
+		else if (rsrcLdr.getFileOperationobj().checkIfCharacterExists(SPIRVFileNames, 'comp'))
+		{
+			shaderCreateInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+			shaderCreateInfo.pName = "CSmain";
+		}
+
+		shaderStages.push_back(shaderCreateInfo);
+	}
+
+	return shaderStages;
+}
+
+
+
+
+//===================================================================
 //Pipeline Creation
 //===================================================================
 
-void vkRenderer::CreatePipeline()
+void vkRenderer::CreatePipeline(PipelineInfo * a_pipelineInfo)
 {
+	//Get Shader Info
+	std::vector<VkPipelineShaderStageCreateInfo> shaderInfo = ShaderStageInfoGeneration(a_pipelineInfo->ShaderFileNames);
+
 
 
 	return;

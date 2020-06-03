@@ -16,14 +16,15 @@ public:
 	FileOperations() {}
 	~FileOperations() {}
 
-	bool				IfFileExists(const char* filename);
-	FILE*				OpenFile(std::string a_FileName, const char* flags);
-	long				TellFile(FILE* file);
-	bool				SeekFIle(FILE* fp, long offset, int origin);
-	unsigned			GetFileSize(std::string a_FileName);
+	bool									IfFileExists(const char* filename);
+	FILE*									OpenFile(std::string a_FileName, const char* flags);
+	long									TellFile(FILE* file);
+	bool									SeekFIle(FILE* fp, long offset, int origin);
+	unsigned								GetFileSize(std::string a_FileName);
+	bool									checkIfCharacterExists(const std::string a_string, char a_toSearch);
 	std::vector<char,std::allocator<char>>	readFile(const std::string& filename);
-	std::string ReplaceCharacter(const std::string a_str, char a_toReplaceWith, char a_toSearchFor);
-	std::string get_current_dir();
+	std::string								ReplaceCharacter(const std::string a_str, char a_toReplaceWith, char a_toSearchFor);
+	std::string								get_current_dir();
 };
 
 //==================================
@@ -32,6 +33,7 @@ typedef struct ShaderDesc
 {
 	VkDevice a_device;
 	const std::vector<char>* shaderCode;
+	ShaderStage a_shaderStage;
 }ShaderDesc;
 
 
@@ -162,7 +164,6 @@ public:
 private:
 	
 	bool				CreateDirectoryFolder(std::string pathName);
-	bool				checkIfCharacterExists(const std::string a_string, char a_toSearch);
 	bool				CheckifSPIRVGenerated(std::vector<std::string> ShaderFileNames);
 
 	//Bool to check if the SPIR-V files have been generated

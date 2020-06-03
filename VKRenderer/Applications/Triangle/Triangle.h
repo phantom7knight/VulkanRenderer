@@ -43,6 +43,8 @@ private:
 
 	VkRenderPass m_TriangleRenderPass;
 
+	PipelineInfo TrianglePipeline;
+
 public:
 
 	Triangle();

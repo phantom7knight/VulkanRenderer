@@ -76,7 +76,8 @@ public:
 
 #pragma region New_Fns
 	void CreateRenderPass(RenderPassInfo a_renderPassDesc, VkRenderPass* a_renderPass);
-	void CreatePipeline();
+	void CreatePipeline(PipelineInfo* a_pipelineInfo);
+	std::vector<VkPipelineShaderStageCreateInfo>  ShaderStageInfoGeneration(std::vector<std::string>ShaderNames);
 #pragma endregion
 
 	
@@ -104,6 +105,8 @@ public:
 	MousePositions mousePos;
 
 	Camera* m_MainCamera;
+
+	PipelineInfo GraphicsPipeline;
 
 public:
 	

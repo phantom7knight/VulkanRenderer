@@ -113,7 +113,29 @@ struct RenderPassInfo
 	VkSubpassDescription subpassInfo = {};
 };
 
+enum ShaderStage
+{
+	eVERTEX_SHADER,
+	ePIXEL_SHADER,
+	eGEOMETRY_SHADER,
+	eCOMPUTE_SHADER
+};
+
+
+struct ShaderPipelineModule
+{
+	std::vector<char, std::allocator<char>> ShaderCode;
+	VkShaderModule							shaderModule;
+	VkPipelineShaderStageCreateInfo			shaderCreateInfo;
+	ShaderStage								currentShader;
+};
+
 struct PipelineInfo
 {
+	std::vector<std::string> ShaderFileNames;
 
+	//Final Pipeline Info
+	VkPipelineLayout					m_pipelineLayout;
+	VkPipeline							m_graphicsPipeline;
+	
 };

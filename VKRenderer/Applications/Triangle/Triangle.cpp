@@ -101,7 +101,8 @@ Triangle::Triangle()
 
 void Triangle::CreateGraphicsPipeline()
 {
-
+	//Resize f
+	TrianglePipeline.ShaderPipelineDesc.resize(2);
 	//generate SPIRV binary code
 	std::vector<std::string> ShaderFileNames;
 
