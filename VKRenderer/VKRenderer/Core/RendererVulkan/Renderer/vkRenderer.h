@@ -30,6 +30,7 @@ public:
 
 
 
+
 	//Vulkan Related Functions
 	bool CreateInstance();
 	void setupDebugMessenger();
@@ -76,7 +77,8 @@ public:
 
 #pragma region New_Fns
 	void CreateRenderPass(RenderPassInfo a_renderPassDesc, VkRenderPass* a_renderPass);
-	void CreatePipeline(PipelineInfo* a_pipelineInfo);
+	void CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo);
+	void CreateComputePipeline(ComputePipelineInfo a_computePipelineInfo);
 	std::vector<VkPipelineShaderStageCreateInfo>  ShaderStageInfoGeneration(std::vector<std::string>ShaderNames);
 #pragma endregion
 
@@ -106,7 +108,10 @@ public:
 
 	Camera* m_MainCamera;
 
-	PipelineInfo GraphicsPipeline;
+	GraphicsPipelineInfo GraphicsPipeline;
+
+	//Shader Modules to destroy later
+	std::vector<VkShaderModule>						shadermodules;
 
 public:
 	

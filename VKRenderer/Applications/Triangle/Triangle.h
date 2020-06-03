@@ -43,7 +43,11 @@ private:
 
 	VkRenderPass m_TriangleRenderPass;
 
-	PipelineInfo TrianglePipeline;
+	GraphicsPipelineInfo TrianglePipeline;
+
+	VkRenderPass m_renderPass;
+
+	VkDescriptorSetLayout m_descriptorSetLayout;
 
 public:
 

@@ -130,12 +130,37 @@ struct ShaderPipelineModule
 	ShaderStage								currentShader;
 };
 
-struct PipelineInfo
+struct GraphicsPipelineInfo
 {
-	std::vector<std::string> ShaderFileNames;
+	std::vector<std::string>						ShaderFileNames;
+	VkVertexInputBindingDescription					vertexBindingDesc;
+	std::vector<VkVertexInputAttributeDescription>	AttributeDescriptionsofVertex;
 
+	VkPrimitiveTopology								pipelineTopology;
+
+	float											viewportWidth = 1920.00;
+	float											viewportHeigth = 1080.00;
+
+	VkPolygonMode									polygonMode;
+	VkCullModeFlags									cullMode;
+	VkFrontFace										frontFaceCullingMode;
+	bool											depthBiasEnableMode;
+
+	bool											depthTestEnable;
+	bool											depthWriteEnable;
+	bool											stencilTestEnable;
+	VkCompareOp										depthCompareOperation;
+
+	VkDescriptorSetLayout							a_descriptorSetLayout;
+	VkRenderPass                                    renderPass;
+	uint32_t                                        subpass;
 	//Final Pipeline Info
-	VkPipelineLayout					m_pipelineLayout;
-	VkPipeline							m_graphicsPipeline;
+	VkPipelineLayout								a_pipelineLayout;
+	VkPipeline										a_Pipeline;
 	
+};
+
+struct ComputePipelineInfo
+{
+
 };

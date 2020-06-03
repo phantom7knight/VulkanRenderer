@@ -27,9 +27,11 @@ struct TriangleVertex
 	}
 
 
-	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptionsofVertex()
+	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptionsofVertex()
 	{
-		std::array<VkVertexInputAttributeDescription, 3> attributeDesc = {};
+		std::vector<VkVertexInputAttributeDescription> attributeDesc = {};
+
+		attributeDesc.resize(3);
 
 		//Position
 		attributeDesc[0].binding = 0;
@@ -101,9 +103,7 @@ Triangle::Triangle()
 
 void Triangle::CreateGraphicsPipeline()
 {
-	//Resize f
-	TrianglePipeline.ShaderPipelineDesc.resize(2);
-	//generate SPIRV binary code
+
 	std::vector<std::string> ShaderFileNames;
 
 	ShaderFileNames.resize(2);
@@ -111,191 +111,30 @@ void Triangle::CreateGraphicsPipeline()
 	ShaderFileNames[0] = "Basic.vert";
 	ShaderFileNames[1] = "Basic.frag";
 
-	rsrcLdr.GenerateSPIRVShaders(ShaderFileNames);
-
-	//=============================================
-
-	//Read Shader Binary Code
-	auto VertexShaderCode	= rsrcLdr.getFileOperationobj().readFile("Shaders/BinaryCode/Basic.vert.spv");
-	auto PixelShaderCode	= rsrcLdr.getFileOperationobj().readFile("Shaders/BinaryCode/Basic.frag.spv");
-
-	//Generate respective Shader Modules
-	ShaderDesc shader_info = {};
-	
-	shader_info.a_device = m_device;
-	
-	//Vertex shader module
-	shader_info.shaderCode = &VertexShaderCode;
-	VkShaderModule vertexShaderModule = rsrcLdr.createShaderModule(shader_info);
-
-	//pixel shader module
-	shader_info.shaderCode = &PixelShaderCode;
-	VkShaderModule pixelShaderModule = rsrcLdr.createShaderModule(shader_info);
-
-	//Vertex Shader Pipeline
-	VkPipelineShaderStageCreateInfo vertexShaderCreateInfo = {};
-
-	vertexShaderCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	vertexShaderCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-	vertexShaderCreateInfo.module = vertexShaderModule;
-	vertexShaderCreateInfo.pName = "main";
-
-	//Pixel Shader Pipeline
-	VkPipelineShaderStageCreateInfo pixelShaderCreateInfo = {};
-
-	pixelShaderCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	pixelShaderCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	pixelShaderCreateInfo.module = pixelShaderModule;
-	pixelShaderCreateInfo.pName = "main";
-
-	VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderCreateInfo ,pixelShaderCreateInfo };
-
+	TrianglePipeline.ShaderFileNames = ShaderFileNames;
 
 	// Vertex Input
-	VkPipelineVertexInputStateCreateInfo VertexInputInfo = {};
-
-	VertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-
-	auto bindingDesc = TriangleVertex::getBindingDescription();
-	auto attributeDesc = TriangleVertex::getAttributeDescriptionsofVertex();
-
-	VertexInputInfo.vertexBindingDescriptionCount = 1;
-	VertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDesc.size());
-	VertexInputInfo.pVertexBindingDescriptions = &bindingDesc;
-	VertexInputInfo.pVertexAttributeDescriptions = attributeDesc.data();
-
-
+	TrianglePipeline.vertexBindingDesc = TriangleVertex::getBindingDescription();
+	TrianglePipeline.AttributeDescriptionsofVertex = TriangleVertex::getAttributeDescriptionsofVertex();
+	
 	//Input Assembly
-	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
-
-	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;//TODO :This can be configurable by user
-	inputAssembly.primitiveRestartEnable = VK_FALSE;
-
-	//View Ports
-	VkViewport viewPort = {};//TODO :This can be configurable by user
-
-	viewPort.x = 0.0f;
-	viewPort.y = 0.0f;
-	viewPort.width = (float)m_swapChainExtent.width;
-	viewPort.height = (float)m_swapChainExtent.height;
-	viewPort.minDepth = 0.0f;
-	viewPort.maxDepth = 1.0f;
-
-	//Scissors
-	VkRect2D scissor = {};
-
-	scissor.offset = { 0,0 };
-	scissor.extent = m_swapChainExtent;
-
-	VkPipelineViewportStateCreateInfo viewPortState = {};
-
-	viewPortState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-	viewPortState.viewportCount = 1;
-	viewPortState.pViewports = &viewPort;
-	viewPortState.scissorCount = 1;
-	viewPortState.pScissors = &scissor;
-
+	TrianglePipeline.pipelineTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+		
 	//Rasterizer
-	VkPipelineRasterizationStateCreateInfo rasterizer = {};
 
-	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-	rasterizer.depthClampEnable = VK_FALSE;
-	rasterizer.rasterizerDiscardEnable = VK_FALSE;
-	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;//TODO :This can be configurable by user
-	rasterizer.lineWidth = 1.0f;//TODO :This can be configurable by user
-	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-	rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-	rasterizer.depthBiasEnable = VK_FALSE;
-	rasterizer.depthBiasConstantFactor = 0.0f;	//TODO: look into this later, since these are optional
-	rasterizer.depthBiasClamp = 0.0f;			//TODO: look into this later, since these are optional
-	rasterizer.depthBiasSlopeFactor = 0.0f;		//TODO: look into this later, since these are optional
-
-
-	//Multisampling
-	VkPipelineMultisampleStateCreateInfo multiSampling = {};
-
-	multiSampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-	multiSampling.sampleShadingEnable = VK_FALSE;
-	multiSampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-	multiSampling.minSampleShading = 1.0f;
-	multiSampling.pSampleMask = nullptr;
-	multiSampling.alphaToCoverageEnable = VK_FALSE;
-	multiSampling.alphaToOneEnable = VK_FALSE;
-
-	//Depth Testing and Stencil Testing
-	VkPipelineDepthStencilStateCreateInfo depthStencilInfo = {};
-
-	//Color Blending
-	VkPipelineColorBlendAttachmentState colorBlendAttachment = {};//For individual attached frame buffer settings
-
-	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colorBlendAttachment.blendEnable = VK_FALSE;//TODO : This can be changed later look at the website
-	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
-	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-
-	VkPipelineColorBlendStateCreateInfo colorBlending = {};
-
-	colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-	colorBlending.logicOpEnable = VK_FALSE;
-	colorBlending.logicOp = VK_LOGIC_OP_COPY;
-	colorBlending.attachmentCount = 1;
-	colorBlending.pAttachments = &colorBlendAttachment;
-	colorBlending.blendConstants[0] = 0.0f;
-	colorBlending.blendConstants[1] = 0.0f;
-	colorBlending.blendConstants[2] = 0.0f;
-	colorBlending.blendConstants[3] = 0.0f;
+	TrianglePipeline.polygonMode = VK_POLYGON_MODE_FILL;
+	TrianglePipeline.cullMode = VK_CULL_MODE_BACK_BIT;
+	TrianglePipeline.frontFaceCullingMode = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	TrianglePipeline.depthBiasEnableMode = VK_FALSE;
+	
 
 	//Create Pipeline Layout b4 creating Graphics Pipeline
-	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+	TrianglePipeline.a_descriptorSetLayout = m_descriptorSetLayout;
 
-	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = 1;
-	pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
-	//pipelineLayoutInfo.pushConstantRangeCount = 0;
-	//pipelineLayoutInfo.pPushConstantRanges = nullptr;
+	TrianglePipeline.renderPass = m_renderPass;
+	TrianglePipeline.subpass = 0;
 
-	if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create Pipeline Layout");
-	}
-
-	//Finally create the Graphics Pipeline
-	VkGraphicsPipelineCreateInfo createGraphicsPipelineInfo = {};
-
-	createGraphicsPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	createGraphicsPipelineInfo.stageCount = 2;
-	createGraphicsPipelineInfo.pStages = shaderStages;
-	createGraphicsPipelineInfo.pVertexInputState = &VertexInputInfo;
-	createGraphicsPipelineInfo.pInputAssemblyState = &inputAssembly;
-	createGraphicsPipelineInfo.pViewportState = &viewPortState;
-	createGraphicsPipelineInfo.pRasterizationState = &rasterizer;
-	createGraphicsPipelineInfo.pMultisampleState = &multiSampling;
-	createGraphicsPipelineInfo.pDepthStencilState = nullptr;
-	createGraphicsPipelineInfo.pColorBlendState = &colorBlending;
-	createGraphicsPipelineInfo.pDynamicState = nullptr;
-	createGraphicsPipelineInfo.layout = m_pipelineLayout;
-	createGraphicsPipelineInfo.renderPass = m_renderPass;
-	createGraphicsPipelineInfo.subpass = 0;
-
-	createGraphicsPipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-	createGraphicsPipelineInfo.basePipelineIndex = -1;
-
-	//TODO: Make this Generic for creating Pipeline's
-	if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &createGraphicsPipelineInfo, nullptr, &m_graphicsPipeline) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to Create Graphics Pipeline");
-	}
-
-
-	//Destroy all shader modules
-
-	vkDestroyShaderModule(m_device, vertexShaderModule, nullptr);
-	vkDestroyShaderModule(m_device, pixelShaderModule, nullptr);
+	m_renderer->CreateGraphicsPipeline(&TrianglePipeline);
 
 }
 

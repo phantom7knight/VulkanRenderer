@@ -755,5 +755,42 @@ namespace VulkanHelper
 		return;
 	}
 
+	//===================================================================
+	// Pipeline Creation
+	//===================================================================
+
+	void CreatePipelineLayout(VkDevice a_device, VkPipelineLayoutCreateInfo a_layoutCreateInfo,
+		VkPipelineLayout *a_pipelineLayout)
+	{
+		if (vkCreatePipelineLayout(a_device, &a_layoutCreateInfo, nullptr, a_pipelineLayout) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Failed to create Pipeline Layout");
+		}
+
+		return;
+	}
+
+	void CreateGraphicsPipeline(VkDevice a_device, VkGraphicsPipelineCreateInfo createGraphicsPipelineInfo,
+		VkPipeline * a_Pipeline)
+	{
+		if (vkCreateGraphicsPipelines(a_device, VK_NULL_HANDLE, 1, &createGraphicsPipelineInfo, nullptr, a_Pipeline) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Unable to Create Graphics Pipeline");
+		}
+
+		return;
+	}
+
+	//===================================================================
+	// Shader Module
+	//===================================================================
+
+	void DestroyShaderModule(VkDevice a_device, VkShaderModule a_shaderModule)
+	{
+		vkDestroyShaderModule(a_device, a_shaderModule, nullptr);
+
+		return;
+	}
+
 
 }
