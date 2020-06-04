@@ -135,7 +135,6 @@ void vkRenderer::CreateRenderPass(RenderPassInfo a_renderPassDesc, VkRenderPass*
 //===================================================================
 //Shader Related Functions
 //===================================================================
-
 std::vector<VkPipelineShaderStageCreateInfo> vkRenderer::ShaderStageInfoGeneration(std::vector<std::string> ShaderNames)
 {
 	std::vector<VkPipelineShaderStageCreateInfo>	shaderStages;
@@ -193,12 +192,9 @@ std::vector<VkPipelineShaderStageCreateInfo> vkRenderer::ShaderStageInfoGenerati
 }
 
 
-
-
 //===================================================================
 //Pipeline Creation
 //===================================================================
-
 void vkRenderer::CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo)
 {
 	//Get Shader Info
@@ -459,6 +455,56 @@ void vkRenderer::CreateBuffer(const ModelInfo a_modelDesc, BufferDesc* a_BufferT
 }
 
 
+//===================================================================
+// Create and Set Descriptor Layouts
+
+//This functions is used to set the layout which will be 
+//sent to Shaders. Ex: UBO to Vertex Shader and Sampler to 
+//Fragment/Pixel Shader.
+//===================================================================
+
+void vkRenderer::CreateDescriptorSetLayout(std::vector<VkDescriptorSetLayoutBinding> layoutBindings,
+	VkDescriptorSetLayout *a_descriptorSetLayout)
+{
+	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+
+	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layoutInfo.bindingCount = layoutBindings.size();
+	layoutInfo.pBindings = layoutBindings.data();
+
+	VulkanHelper::CreateDescriptorSetLayout(m_device, layoutInfo, m_descriptorSetLayout);
+	
+	return;
+}
+
+//===================================================================
+//Creating Frame Buffers
+//===================================================================
+void vkRenderer::CreateFrameBuffers()
+{
+	m_swapChainFrameBuffer.resize(m_SwapChainImageViews.size());
+
+	for (uint32_t i = 0; i < m_SwapChainImageViews.size(); ++i)
+	{
+		VkImageView attachments[] = { m_SwapChainImageViews[i] };
+
+		VkFramebufferCreateInfo fbcreateInfo = {};
+
+		fbcreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		fbcreateInfo.renderPass = m_renderPass;
+		fbcreateInfo.attachmentCount = 1;
+		fbcreateInfo.pAttachments = attachments;
+		fbcreateInfo.width = m_swapChainExtent.width;
+		fbcreateInfo.height = m_swapChainExtent.height;
+		fbcreateInfo.layers = 1;
+
+		if (vkCreateFramebuffer(m_device, &fbcreateInfo, nullptr, &m_swapChainFrameBuffer[i]) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Unable to create Frame Buffer");
+		}
+	}
+
+}
 
 //===================================================================
 //Vulkan Initialization Function

@@ -792,5 +792,21 @@ namespace VulkanHelper
 		return;
 	}
 
+	//===================================================================
+	// Create Descriptor Set Layout
+	//===================================================================
+
+	void CreateDescriptorSetLayout(VkDevice a_device, VkDescriptorSetLayoutCreateInfo createInfo, 
+		VkDescriptorSetLayout a_descriptorSetLayout)
+	{
+		if (vkCreateDescriptorSetLayout(a_device, &createInfo, nullptr, &a_descriptorSetLayout) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Failed to create Descriptor Set Layout");
+		}
+
+		return;
+	}
+
+
 
 }

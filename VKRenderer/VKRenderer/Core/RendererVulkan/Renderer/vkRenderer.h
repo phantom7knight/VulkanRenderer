@@ -77,6 +77,8 @@ public:
 
 #pragma region New_Fns
 	void CreateRenderPass(RenderPassInfo a_renderPassDesc, VkRenderPass* a_renderPass);
+	void CreateDescriptorSetLayout(std::vector<VkDescriptorSetLayoutBinding> layoutBindings,
+		VkDescriptorSetLayout *a_descriptorSetLayout);
 	void CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo);
 	void CreateComputePipeline(ComputePipelineInfo a_computePipelineInfo);
 	std::vector<VkPipelineShaderStageCreateInfo>  ShaderStageInfoGeneration(std::vector<std::string>ShaderNames);
