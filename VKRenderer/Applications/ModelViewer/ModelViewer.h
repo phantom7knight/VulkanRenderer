@@ -1,5 +1,5 @@
 #pragma once
-#include "../../VKRenderer/vkRenderer.h"
+#include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
 
 
 struct ModelUBO

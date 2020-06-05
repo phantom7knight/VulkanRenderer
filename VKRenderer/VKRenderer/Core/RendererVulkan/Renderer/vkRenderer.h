@@ -57,11 +57,11 @@ public:
 
 	//Buffer Creation Related
 	uint32_t findMemoryType(uint32_t typeFiler, VkMemoryPropertyFlags properties);
-	void CreateBuffer(VkDeviceSize a_size, VkBufferUsageFlags a_usage, VkMemoryPropertyFlags a_properties, VkBuffer& a_buffer, VkDeviceMemory& a_bufferMemory);
+	//void CreateBuffer(VkDeviceSize a_size, VkBufferUsageFlags a_usage, VkMemoryPropertyFlags a_properties, VkBuffer& a_buffer, VkDeviceMemory& a_bufferMemory);
 	void CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDeviceSize a_size);
 	void CopyBufferToImage(VkBuffer buffer, TextureBufferDesc desc);
 
-	void CreateBuffer(const ModelInfo a_modelDesc, BufferDesc* a_BufferToCreate, VkBufferUsageFlags a_usage,
+	void CreateBuffer(void const* databuffer, VkDeviceSize a_bufferSize, BufferDesc* a_BufferToCreate, VkBufferUsageFlags a_usage,
 		VkMemoryPropertyFlags a_properties, VkCommandPool a_commandPool);
 
 	//Command Buffer Related
@@ -82,6 +82,7 @@ public:
 	void CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo);
 	void CreateComputePipeline(ComputePipelineInfo a_computePipelineInfo);
 	std::vector<VkPipelineShaderStageCreateInfo>  ShaderStageInfoGeneration(std::vector<std::string>ShaderNames);
+	void CreateFrameBuffer(FrameBufferDesc a_fboDesc, VkRenderPass a_renderPass);
 #pragma endregion
 
 	
@@ -113,7 +114,9 @@ public:
 	GraphicsPipelineInfo GraphicsPipeline;
 
 	//Shader Modules to destroy later
-	std::vector<VkShaderModule>						shadermodules;
+	std::vector<VkShaderModule>	shadermodules;
+
+	SwapChainDesc						m_swapChainDescription;
 
 public:
 	
@@ -135,15 +138,15 @@ public:
 	VkSurfaceKHR						m_surface; // This is for relating Windows and Vulkan
 	VkQueue								m_PresentQueue;
 
-	SwapChainDesc						m_swapChainDescription;
 
-	std::vector<VkImageView>			m_SwapChainImageViews;
+	//std::vector<VkImageView>			m_SwapChainImageViews;
 
 	VkRenderPass						m_renderPass;//TODO : This can be modified later
 	VkPipelineLayout					m_pipelineLayout;//TODO : This has to be per Shader/Obj [Look into it]
 	VkPipeline							m_graphicsPipeline;
 
-	std::vector<VkFramebuffer>			m_swapChainFrameBuffer;
+	// Swap Chain Frame Buffer
+	std::vector<FrameBufferDesc>		m_swapChainFrameBuffer;
 
 	VkCommandPool						m_CommandPool;
 
@@ -160,8 +163,7 @@ public:
 
 	BufferDesc							m_RectangleIndexBuffer;
 
-	std::vector<BufferDesc>				m_TriangleUniformBuffer;
-
+	
 	std::vector<BufferDesc>				m_ModelUniformBuffer;
 
 	std::vector<BufferDesc>				m_LightInfoUniformBuffer;

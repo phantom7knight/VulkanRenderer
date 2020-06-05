@@ -808,5 +808,18 @@ namespace VulkanHelper
 	}
 
 
+	//===================================================================
+	//Creating Frame Buffers
+	//===================================================================
+
+	void CreateFrameBuffer(VkDevice a_device, VkFramebufferCreateInfo *createInfo, VkFramebuffer *m_framebuffer)
+	{
+		if (vkCreateFramebuffer(a_device, createInfo, nullptr, m_framebuffer) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Unable to create Frame Buffer");
+		}
+
+		return;
+	}
 
 }

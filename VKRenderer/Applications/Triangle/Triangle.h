@@ -49,6 +49,13 @@ private:
 
 	VkDescriptorSetLayout m_descriptorSetLayout;
 
+	FrameBufferDesc	m_FBO;
+
+	std::vector<BufferDesc>				m_TriangleUniformBuffer;
+
+	VkCommandPool			m_commandPool;
+
+
 public:
 
 	Triangle();

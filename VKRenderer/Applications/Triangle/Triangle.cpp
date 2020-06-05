@@ -196,26 +196,20 @@ void Triangle::CreateRenderPass()
 //===================================================================
 void Triangle::CreateFrameBuffers()
 {
-	m_swapChainFrameBuffer.resize(m_SwapChainImageViews.size());
+	m_renderer->m_swapChainFrameBuffer.resize(m_renderer->m_swapChainDescription.m_SwapChainImageViews.size());
 
-	for (uint32_t i = 0; i < m_SwapChainImageViews.size(); ++i)
+	for (uint32_t i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImageViews.size(); ++i)
 	{
-		VkImageView attachments[] = { m_SwapChainImageViews[i] };
+		VkImageView attachments[] = { m_renderer->m_swapChainDescription.m_SwapChainImageViews[i] };
 
-		VkFramebufferCreateInfo fbcreateInfo = {};
 
-		fbcreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		fbcreateInfo.renderPass = m_renderPass;
-		fbcreateInfo.attachmentCount = 1;
-		fbcreateInfo.pAttachments = attachments;
-		fbcreateInfo.width = m_swapChainExtent.width;
-		fbcreateInfo.height = m_swapChainExtent.height;
-		fbcreateInfo.layers = 1;
+		m_FBO.attachmentCount = 1;
+		m_FBO.FBOHeight = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
+		m_FBO.FBOWidth	= m_renderer->m_swapChainDescription.m_swapChainExtent.width;
+		m_FBO.FrameBuffer = m_renderer->m_swapChainFrameBuffer[i].FrameBuffer;
+		m_FBO.Attachments = attachments;
 
-		if (vkCreateFramebuffer(m_device, &fbcreateInfo, nullptr, &m_swapChainFrameBuffer[i]) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Unable to create Frame Buffer");
-		}
+		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass);
 	}
 
 }
@@ -366,14 +360,13 @@ void Triangle::CreateSemaphoresandFences()
 void Triangle::CreateUniformBuffer()
 {
 	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+	
+	for (int i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImages.size(); ++i)
 
-	m_TriangleUniformBuffer.resize(m_SwapChainImages.size());
-	//m_uniformBuffersMemory.resize(m_SwapChainImages.size());
-
-	for (int i = 0; i < m_SwapChainImages.size(); ++i)
 	{
-		CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_TriangleUniformBuffer[i].Buffer,
-			m_TriangleUniformBuffer[i].BufferMemory);
+		m_renderer->CreateBuffer(, bufferSize, &m_TriangleUniformBuffer[i], VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_commandPool);
+
 	}
 
 

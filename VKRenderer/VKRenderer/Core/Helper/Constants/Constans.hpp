@@ -54,9 +54,10 @@ struct SwapChainSupportDetails
 struct SwapChainDesc
 {
 	VkSwapchainKHR						m_swapChain;
-	std::vector<VkImage>				m_SwapChainImages;
 	VkFormat							m_swapChainFormat;
 	VkExtent2D							m_swapChainExtent;
+	std::vector<VkImage>				m_SwapChainImages;
+	std::vector<VkImageView>			m_SwapChainImageViews;
 };
 
 struct CameraMatrices
@@ -160,7 +161,17 @@ struct GraphicsPipelineInfo
 	
 };
 
+// TODO: Finish this later
 struct ComputePipelineInfo
 {
 
+};
+
+struct FrameBufferDesc
+{
+	uint32_t			attachmentCount;
+	const VkImageView*	Attachments;
+	float				FBOWidth;
+	float				FBOHeight;
+	VkFramebuffer		FrameBuffer;
 };

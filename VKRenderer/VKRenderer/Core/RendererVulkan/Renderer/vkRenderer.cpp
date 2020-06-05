@@ -422,11 +422,20 @@ void vkRenderer::TransitionImageLayouts(VkCommandPool a_commandPool, VkCommandBu
 //===================================================================
 //Buffer Creation
 //===================================================================
-
-void vkRenderer::CreateBuffer(const ModelInfo a_modelDesc, BufferDesc* a_BufferToCreate, VkBufferUsageFlags a_usage,
+//, const ModelInfo a_modelDesc
+void vkRenderer::CreateBuffer(void const* databuffer, VkDeviceSize a_bufferSize, BufferDesc* a_BufferToCreate, VkBufferUsageFlags a_usage,
 	VkMemoryPropertyFlags a_properties, VkCommandPool a_commandPool)
 {
-	VkDeviceSize bufferSize = a_modelDesc.indexBufferSize;
+
+	if (a_usage == VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+	{
+		VulkanHelper::CreateBuffer(m_device, m_physicalDevice, a_bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &a_BufferToCreate.Buffer, stagingBuffer.BufferMemory);
+
+		return;
+	}
+
+	VkDeviceSize bufferSize = a_bufferSize;
 	
 	//Create Staging Buffer before transfering
 	
@@ -438,7 +447,7 @@ void vkRenderer::CreateBuffer(const ModelInfo a_modelDesc, BufferDesc* a_BufferT
 	void* data;
 	vkMapMemory(m_device, stagingBuffer.BufferMemory, 0, bufferSize, 0, &data);
 	
-	memcpy(data, a_modelDesc.indexbufferData.data(), (size_t)bufferSize);
+	memcpy(data, databuffer, (size_t)bufferSize);//a_modelDesc.indexbufferData.data()
 	
 	vkUnmapMemory(m_device, stagingBuffer.BufferMemory);
 	
@@ -480,30 +489,20 @@ void vkRenderer::CreateDescriptorSetLayout(std::vector<VkDescriptorSetLayoutBind
 //===================================================================
 //Creating Frame Buffers
 //===================================================================
-void vkRenderer::CreateFrameBuffers()
+void vkRenderer::CreateFrameBuffer(FrameBufferDesc a_fboDesc, VkRenderPass a_renderPass)
 {
-	m_swapChainFrameBuffer.resize(m_SwapChainImageViews.size());
+	VkFramebufferCreateInfo fbcreateInfo = {};
 
-	for (uint32_t i = 0; i < m_SwapChainImageViews.size(); ++i)
-	{
-		VkImageView attachments[] = { m_SwapChainImageViews[i] };
+	fbcreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+	fbcreateInfo.renderPass = a_renderPass;
+	fbcreateInfo.attachmentCount = a_fboDesc.attachmentCount;
+	fbcreateInfo.pAttachments = a_fboDesc.Attachments;
+	fbcreateInfo.width = a_fboDesc.FBOWidth;
+	fbcreateInfo.height = a_fboDesc.FBOHeight;
+	fbcreateInfo.layers = 1;
 
-		VkFramebufferCreateInfo fbcreateInfo = {};
-
-		fbcreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		fbcreateInfo.renderPass = m_renderPass;
-		fbcreateInfo.attachmentCount = 1;
-		fbcreateInfo.pAttachments = attachments;
-		fbcreateInfo.width = m_swapChainExtent.width;
-		fbcreateInfo.height = m_swapChainExtent.height;
-		fbcreateInfo.layers = 1;
-
-		if (vkCreateFramebuffer(m_device, &fbcreateInfo, nullptr, &m_swapChainFrameBuffer[i]) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Unable to create Frame Buffer");
-		}
-	}
-
+	VulkanHelper::CreateFrameBuffer(m_device, &fbcreateInfo, &a_fboDesc.FrameBuffer);
+	
 }
 
 //===================================================================
@@ -554,7 +553,7 @@ void vkRenderer::SetUpSwapChain()
 void vkRenderer::PrepareApp()
 {
 	SetUpSwapChain();
-	m_SwapChainImageViews = VulkanHelper::CreateSwapChainImageView(m_swapChainDescription, m_device);
+	m_swapChainDescription.m_SwapChainImageViews = VulkanHelper::CreateSwapChainImageView(m_swapChainDescription, m_device);
 }
 
 
@@ -582,7 +581,7 @@ void vkRenderer::CleanUpSwapChain()
 	
 	for (size_t i = 0; i < m_swapChainFrameBuffer.size(); ++i)
 	{
-		vkDestroyFramebuffer(m_device, m_swapChainFrameBuffer[i], nullptr);
+		vkDestroyFramebuffer(m_device, m_swapChainFrameBuffer[i].FrameBuffer, nullptr);
 	}
 
 	vkFreeCommandBuffers(m_device, m_CommandPool, static_cast<uint32_t>(m_commandBuffers.size()), m_commandBuffers.data());
@@ -593,9 +592,9 @@ void vkRenderer::CleanUpSwapChain()
 
 	vkDestroyRenderPass(m_device, m_renderPass, nullptr);
 
-	for (size_t i = 0; i < m_SwapChainImageViews.size(); ++i)
+	for (size_t i = 0; i < m_swapChainDescription.m_SwapChainImageViews.size(); ++i)
 	{
-		vkDestroyImageView(m_device, m_SwapChainImageViews[i], nullptr);
+		vkDestroyImageView(m_device, m_swapChainDescription.m_SwapChainImageViews[i], nullptr);
 	}
 
 	vkDestroySwapchainKHR(m_device, m_swapChainDescription.m_swapChain, nullptr);
