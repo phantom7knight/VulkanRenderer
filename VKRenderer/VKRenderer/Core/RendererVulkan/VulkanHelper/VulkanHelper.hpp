@@ -485,6 +485,38 @@ namespace VulkanHelper
 
 
 	//===================================================================
+	//Command Pool
+	//===================================================================
+
+	void CreateCommandPool(VkDevice a_device, VkCommandPoolCreateInfo createinfo,VkCommandPool *a_commandPool)
+	{
+		if (vkCreateCommandPool(a_device, &createinfo, nullptr, a_commandPool) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Unable to create Command Pool");
+		}
+
+		return;
+	}
+
+
+	//=====================================================================================================================
+	// Descriptor Pool & Set Creation
+	//=====================================================================================================================
+
+	void CreateDescriptorPool(VkDevice a_device, VkDescriptorPoolCreateInfo createInfo, VkDescriptorPool *a_descriptorPool)
+	{
+		if (vkCreateDescriptorPool(a_device, &createInfo, nullptr, a_descriptorPool) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Unable to create Desciptor Pool");
+		}
+
+		return;
+	}
+
+
+
+
+	//===================================================================
 	//Command Buffer Recording Related
 	//===================================================================
 
@@ -797,9 +829,9 @@ namespace VulkanHelper
 	//===================================================================
 
 	void CreateDescriptorSetLayout(VkDevice a_device, VkDescriptorSetLayoutCreateInfo createInfo, 
-		VkDescriptorSetLayout a_descriptorSetLayout)
+		VkDescriptorSetLayout *a_descriptorSetLayout)
 	{
-		if (vkCreateDescriptorSetLayout(a_device, &createInfo, nullptr, &a_descriptorSetLayout) != VK_SUCCESS)
+		if (vkCreateDescriptorSetLayout(a_device, &createInfo, nullptr, a_descriptorSetLayout) != VK_SUCCESS)
 		{
 			throw std::runtime_error("Failed to create Descriptor Set Layout");
 		}

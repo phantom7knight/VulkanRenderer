@@ -57,12 +57,13 @@ public:
 
 	//Buffer Creation Related
 	uint32_t findMemoryType(uint32_t typeFiler, VkMemoryPropertyFlags properties);
-	//void CreateBuffer(VkDeviceSize a_size, VkBufferUsageFlags a_usage, VkMemoryPropertyFlags a_properties, VkBuffer& a_buffer, VkDeviceMemory& a_bufferMemory);
+	void CreateBufferWithoutStaging(VkDeviceSize a_size, VkBufferUsageFlags a_usage, VkMemoryPropertyFlags a_properties,
+		VkBuffer& a_buffer, VkDeviceMemory& a_bufferMemory);
 	void CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDeviceSize a_size);
 	void CopyBufferToImage(VkBuffer buffer, TextureBufferDesc desc);
 
 	void CreateBuffer(void const* databuffer, VkDeviceSize a_bufferSize, BufferDesc* a_BufferToCreate, VkBufferUsageFlags a_usage,
-		VkMemoryPropertyFlags a_properties, VkCommandPool a_commandPool);
+		VkCommandPool a_commandPool);
 
 	//Command Buffer Related
 	VkCommandBuffer BeginSingleTimeCommands(VkCommandPool a_commandPool);
@@ -83,6 +84,13 @@ public:
 	void CreateComputePipeline(ComputePipelineInfo a_computePipelineInfo);
 	std::vector<VkPipelineShaderStageCreateInfo>  ShaderStageInfoGeneration(std::vector<std::string>ShaderNames);
 	void CreateFrameBuffer(FrameBufferDesc a_fboDesc, VkRenderPass a_renderPass);
+	void CreateCommandBuffers(std::vector<VkCommandBuffer> a_cmdBuffer, VkCommandPool a_cmdPool);
+	void CreateCommandPool(VkCommandPool* a_commandPool);
+	void CreateDescriptorPool(VkDescriptorPoolSize a_poolSize, uint32_t a_maxSets, uint32_t a_poolSizeCount,
+		VkDescriptorPool* a_descriptorPool);
+	void CreateDesciptorSets(uint32_t descriptorSetCount, VkDescriptorSetLayout a_descriptorSetLayout,
+		std::vector<BufferDesc> a_descBuffer, VkDeviceSize    a_rangeSize, std::vector<VkWriteDescriptorSet> descriptorWriteInfo,
+		VkDescriptorPool a_descriptorPool, std::vector<VkDescriptorSet> a_descriptorSet);
 #pragma endregion
 
 	
@@ -150,7 +158,7 @@ public:
 
 	VkCommandPool						m_CommandPool;
 
-	std::vector<VkCommandBuffer>		m_commandBuffers;
+	//std::vector<VkCommandBuffer>		m_commandBuffers;
 
 	std::vector<VkSemaphore>			m_imageAvailableSemaphore;
 	std::vector<VkSemaphore>			m_renderFinishedSemaphore;
@@ -158,21 +166,16 @@ public:
 	std::vector<VkFence>				m_inflightFences;
 
 	size_t								m_currentFrame = 0;
-
-	BufferDesc							m_TriangleVertexBuffer;
-
-	BufferDesc							m_RectangleIndexBuffer;
-
-	
+		
 	std::vector<BufferDesc>				m_ModelUniformBuffer;
 
 	std::vector<BufferDesc>				m_LightInfoUniformBuffer;
 
-	VkDescriptorSetLayout				m_descriptorSetLayout;
+	/*VkDescriptorSetLayout				m_descriptorSetLayout;
 
 	VkDescriptorPool					m_DescriptorPool;
 
-	std::vector<VkDescriptorSet>		m_DescriptorSets;
+	std::vector<VkDescriptorSet>		m_DescriptorSets;*/
 
 
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../PCH/stdafx.h"
+#include "../RendererVulkan/Renderer/vkRenderer.h" 
 
 class Application
 {
@@ -9,9 +10,8 @@ public:
 	//Functions
 	Application();
 	virtual ~Application();
-	
-	
-protected:
+
+	virtual vkRenderer* getRenderer() = 0;
 	
 	//Setup Renderer, GUI, Camera Properties
 	virtual void Init() = 0;

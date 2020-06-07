@@ -124,7 +124,7 @@ void vkRenderer::CreateRenderPass(RenderPassInfo a_renderPassDesc, VkRenderPass*
 	renderpassInfo.pAttachments = a_renderPassDesc.attachmentDescriptions.data();
 	renderpassInfo.subpassCount = 1;
 	renderpassInfo.pSubpasses = &(a_renderPassDesc.subpassInfo);
-	renderpassInfo.dependencyCount = a_renderPassDesc.subpassDependecy.size();
+	renderpassInfo.dependencyCount = static_cast<uint32_t>(a_renderPassDesc.subpassDependecy.size());
 	renderpassInfo.pDependencies = a_renderPassDesc.subpassDependecy.data();
 
 	VulkanHelper::CreateRenderPass(m_device, renderpassInfo, a_renderPass);
@@ -226,8 +226,8 @@ void vkRenderer::CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo)
 
 	viewPort.x = 0.0f;
 	viewPort.y = 0.0f;
-	viewPort.width = m_swapChainDescription.m_swapChainExtent.width;	//a_pipelineInfo->viewportWidth;
-	viewPort.height = m_swapChainDescription.m_swapChainExtent.height;	//a_pipelineInfo->viewportHeigth;
+	viewPort.width  = static_cast<float>(m_swapChainDescription.m_swapChainExtent.width);	//a_pipelineInfo->viewportWidth;
+	viewPort.height = static_cast<float>(m_swapChainDescription.m_swapChainExtent.height);	//a_pipelineInfo->viewportHeigth;
 	viewPort.minDepth = 0.0f;
 	viewPort.maxDepth = 1.0f;
 	
@@ -324,7 +324,7 @@ void vkRenderer::CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo)
 	VkGraphicsPipelineCreateInfo createGraphicsPipelineInfo = {};
 
 	createGraphicsPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	createGraphicsPipelineInfo.stageCount = shaderInfo.size();
+	createGraphicsPipelineInfo.stageCount = static_cast<uint32_t>(shaderInfo.size());
 	createGraphicsPipelineInfo.pStages = shaderInfo.data();
 	createGraphicsPipelineInfo.pVertexInputState = &VertexInputInfo;
 	createGraphicsPipelineInfo.pInputAssemblyState = &inputAssembly;
@@ -420,21 +420,50 @@ void vkRenderer::TransitionImageLayouts(VkCommandPool a_commandPool, VkCommandBu
 
 
 //===================================================================
+//Command Pool
+//===================================================================
+
+void vkRenderer::CreateCommandPool(VkCommandPool* a_commandPool)
+{
+	QueueFamilyIndices queuefamilyindeces = VulkanHelper::FindQueueFamilies(m_physicalDevice, m_surface);
+
+	VkCommandPoolCreateInfo createInfo = {};
+
+	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	createInfo.queueFamilyIndex = queuefamilyindeces.graphicsFamily.value();
+	createInfo.flags = 0;
+
+	VulkanHelper::CreateCommandPool(m_device, createInfo, a_commandPool);
+
+	return;
+}
+
+
+void vkRenderer::CreateCommandBuffers(std::vector<VkCommandBuffer> a_cmdBuffer, VkCommandPool a_cmdPool)
+{
+	VkCommandBufferAllocateInfo createInfo = {};
+
+	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	createInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	createInfo.commandPool = a_cmdPool;
+	createInfo.commandBufferCount = (uint32_t)a_cmdBuffer.size();
+
+
+	if (vkAllocateCommandBuffers(m_device, &createInfo, a_cmdBuffer.data()) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to create Command Buffers");
+	}
+}
+
+
+//===================================================================
 //Buffer Creation
 //===================================================================
 //, const ModelInfo a_modelDesc
 void vkRenderer::CreateBuffer(void const* databuffer, VkDeviceSize a_bufferSize, BufferDesc* a_BufferToCreate, VkBufferUsageFlags a_usage,
-	VkMemoryPropertyFlags a_properties, VkCommandPool a_commandPool)
+	VkCommandPool a_commandPool)
 {
-
-	if (a_usage == VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
-	{
-		VulkanHelper::CreateBuffer(m_device, m_physicalDevice, a_bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &a_BufferToCreate.Buffer, stagingBuffer.BufferMemory);
-
-		return;
-	}
-
+		
 	VkDeviceSize bufferSize = a_bufferSize;
 	
 	//Create Staging Buffer before transfering
@@ -464,6 +493,15 @@ void vkRenderer::CreateBuffer(void const* databuffer, VkDeviceSize a_bufferSize,
 }
 
 
+void vkRenderer::CreateBufferWithoutStaging(VkDeviceSize a_size, VkBufferUsageFlags a_usage, VkMemoryPropertyFlags a_properties,
+	VkBuffer& a_buffer, VkDeviceMemory& a_bufferMemory)
+{
+	VulkanHelper::CreateBuffer(m_device, m_physicalDevice, a_size, a_usage, a_properties, a_buffer, a_bufferMemory);
+	
+	return;
+}
+
+
 //===================================================================
 // Create and Set Descriptor Layouts
 
@@ -478,13 +516,73 @@ void vkRenderer::CreateDescriptorSetLayout(std::vector<VkDescriptorSetLayoutBind
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = layoutBindings.size();
+	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());
 	layoutInfo.pBindings = layoutBindings.data();
 
-	VulkanHelper::CreateDescriptorSetLayout(m_device, layoutInfo, m_descriptorSetLayout);
+	VulkanHelper::CreateDescriptorSetLayout(m_device, layoutInfo, a_descriptorSetLayout);
 	
 	return;
 }
+
+//=====================================================================================================================
+// Descriptor Pool & Set Creation
+//=====================================================================================================================
+
+
+void vkRenderer::CreateDescriptorPool(VkDescriptorPoolSize a_poolSize, uint32_t a_maxSets, uint32_t a_poolSizeCount,
+	VkDescriptorPool* a_descriptorPool)
+{
+	VkDescriptorPoolCreateInfo createInfo = {};
+
+	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	createInfo.poolSizeCount = a_poolSizeCount;
+	createInfo.pPoolSizes = &a_poolSize;
+	createInfo.maxSets = a_maxSets;
+
+
+	VulkanHelper::CreateDescriptorPool(m_device, createInfo, a_descriptorPool);
+
+	return;
+}
+
+
+void vkRenderer::CreateDesciptorSets(uint32_t descriptorSetCount, VkDescriptorSetLayout a_descriptorSetLayout,
+	std::vector <BufferDesc> a_descBuffer, VkDeviceSize    a_rangeSize, std::vector<VkWriteDescriptorSet> descriptorWriteInfo,
+	VkDescriptorPool a_descriptorPool, std::vector<VkDescriptorSet> a_descriptorSet)
+{
+	std::vector<VkDescriptorSetLayout> layouts(descriptorSetCount, a_descriptorSetLayout);
+
+	VkDescriptorSetAllocateInfo allocateInfo = {};
+
+	allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocateInfo.descriptorPool = a_descriptorPool;
+	allocateInfo.descriptorSetCount = descriptorSetCount;
+	allocateInfo.pSetLayouts = layouts.data();
+
+	a_descriptorSet.resize(descriptorSetCount);
+
+	if (vkAllocateDescriptorSets(m_device, &allocateInfo, a_descriptorSet.data()) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to create Desciptor Sets");
+	}
+
+	for (size_t i = 0; i < descriptorSetCount; ++i)
+	{
+		VkDescriptorBufferInfo bufferInfo = {};
+
+		bufferInfo.buffer = a_descBuffer[i].Buffer;
+		bufferInfo.offset = 0;
+		bufferInfo.range = a_rangeSize;
+
+
+		descriptorWriteInfo[i].dstSet = a_descriptorSet[i];
+		descriptorWriteInfo[i].pBufferInfo = &bufferInfo;
+
+		vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWriteInfo.size()), descriptorWriteInfo.data(), 0, nullptr);
+
+	}
+}
+
 
 //===================================================================
 //Creating Frame Buffers
@@ -497,8 +595,8 @@ void vkRenderer::CreateFrameBuffer(FrameBufferDesc a_fboDesc, VkRenderPass a_ren
 	fbcreateInfo.renderPass = a_renderPass;
 	fbcreateInfo.attachmentCount = a_fboDesc.attachmentCount;
 	fbcreateInfo.pAttachments = a_fboDesc.Attachments;
-	fbcreateInfo.width = a_fboDesc.FBOWidth;
-	fbcreateInfo.height = a_fboDesc.FBOHeight;
+	fbcreateInfo.width  = static_cast<uint32_t>(a_fboDesc.FBOWidth);
+	fbcreateInfo.height = static_cast<uint32_t>(a_fboDesc.FBOHeight);
 	fbcreateInfo.layers = 1;
 
 	VulkanHelper::CreateFrameBuffer(m_device, &fbcreateInfo, &a_fboDesc.FrameBuffer);
@@ -579,7 +677,7 @@ void vkRenderer::CleanUpSwapChain()
 {
 
 	
-	for (size_t i = 0; i < m_swapChainFrameBuffer.size(); ++i)
+	/*for (size_t i = 0; i < m_swapChainFrameBuffer.size(); ++i)
 	{
 		vkDestroyFramebuffer(m_device, m_swapChainFrameBuffer[i].FrameBuffer, nullptr);
 	}
@@ -610,7 +708,7 @@ void vkRenderer::CleanUpSwapChain()
 		vkFreeMemory(m_device, m_ModelUniformBuffer[i].BufferMemory, nullptr);
 	}
 
-	vkDestroyDescriptorPool(m_device, m_DescriptorPool, nullptr);
+	vkDestroyDescriptorPool(m_device, m_DescriptorPool, nullptr);*/
 
 }
 
@@ -621,7 +719,7 @@ void vkRenderer::Destroy()
 	//Delete Vulkan related things[Generalize when deleting the resources]
 	//=====================================================================
 
-	CleanUpSwapChain();
+	/*CleanUpSwapChain();
 
 
 	vkDestroyDescriptorSetLayout(m_device, m_descriptorSetLayout, nullptr);
@@ -662,7 +760,7 @@ void vkRenderer::Destroy()
 	if (m_MainCamera != NULL)
 	{
 		delete m_MainCamera;
-	}
+	}*/
 	
 }
 

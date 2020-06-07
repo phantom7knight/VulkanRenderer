@@ -39,21 +39,32 @@ private:
 
 
 	//variables
-	vkRenderer* m_renderer;
+	vkRenderer*							m_renderer;
 
-	VkRenderPass m_TriangleRenderPass;
+	VkRenderPass						m_TriangleRenderPass;
 
-	GraphicsPipelineInfo TrianglePipeline;
+	GraphicsPipelineInfo				TrianglePipeline;
 
-	VkRenderPass m_renderPass;
+	VkRenderPass						m_renderPass;
 
-	VkDescriptorSetLayout m_descriptorSetLayout;
-
-	FrameBufferDesc	m_FBO;
+	FrameBufferDesc						m_FBO;
 
 	std::vector<BufferDesc>				m_TriangleUniformBuffer;
 
-	VkCommandPool			m_commandPool;
+	VkCommandPool						m_commandPool;
+	
+	std::vector<VkCommandBuffer>		m_commandBuffers;
+
+	VkDescriptorSetLayout				m_descriptorSetLayout;
+
+	VkDescriptorPool					m_DescriptorPool;
+
+	std::vector<VkDescriptorSet>		m_DescriptorSets;
+
+	BufferDesc							m_TriangleVertexBuffer;
+
+	BufferDesc							m_RectangleIndexBuffer;
+
 
 
 public:
@@ -61,6 +72,11 @@ public:
 	Triangle();
 	
 	~Triangle() {}
+
+	virtual vkRenderer* getRenderer()
+	{
+		return m_renderer;
+	}
 
 	//Init Initialization of the properties here
 	virtual void Init();
