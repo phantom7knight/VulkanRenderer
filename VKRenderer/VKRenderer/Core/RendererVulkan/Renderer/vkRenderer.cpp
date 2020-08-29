@@ -781,18 +781,18 @@ void vkRenderer::CleanUpSwapChain()
 {
 
 	
-	/*for (size_t i = 0; i < m_swapChainFrameBuffer.size(); ++i)
+	for (size_t i = 0; i < m_swapChainFrameBuffer.size(); ++i)
 	{
 		vkDestroyFramebuffer(m_device, m_swapChainFrameBuffer[i].FrameBuffer, nullptr);
 	}
 
-	vkFreeCommandBuffers(m_device, m_CommandPool, static_cast<uint32_t>(m_commandBuffers.size()), m_commandBuffers.data());
+	/*vkFreeCommandBuffers(m_device, m_CommandPool, static_cast<uint32_t>(m_commandBuffers.size()), m_commandBuffers.data());
 
 	vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
 
 	vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
 
-	vkDestroyRenderPass(m_device, m_renderPass, nullptr);
+	vkDestroyRenderPass(m_device, m_renderPass, nullptr);*/
 
 	for (size_t i = 0; i < m_swapChainDescription.m_SwapChainImageViews.size(); ++i)
 	{
@@ -801,18 +801,18 @@ void vkRenderer::CleanUpSwapChain()
 
 	vkDestroySwapchainKHR(m_device, m_swapChainDescription.m_swapChain, nullptr);
 
-	for (size_t i = 0; i < m_swapChainDescription.m_SwapChainImages.size(); ++i)
-	{
-		//Triangle's UBO
-		vkDestroyBuffer(m_device, m_TriangleUniformBuffer[i].Buffer, nullptr);
-		vkFreeMemory(m_device, m_TriangleUniformBuffer[i].BufferMemory, nullptr);
-		
-		//Model's UBO
-		vkDestroyBuffer(m_device, m_ModelUniformBuffer[i].Buffer, nullptr);
-		vkFreeMemory(m_device, m_ModelUniformBuffer[i].BufferMemory, nullptr);
-	}
+	//for (size_t i = 0; i < m_swapChainDescription.m_SwapChainImages.size(); ++i)
+	//{
+	//	//Triangle's UBO
+	//	vkDestroyBuffer(m_device, m_TriangleUniformBuffer[i].Buffer, nullptr);
+	//	vkFreeMemory(m_device, m_TriangleUniformBuffer[i].BufferMemory, nullptr);
+	//	
+	//	//Model's UBO
+	//	vkDestroyBuffer(m_device, m_ModelUniformBuffer[i].Buffer, nullptr);
+	//	vkFreeMemory(m_device, m_ModelUniformBuffer[i].BufferMemory, nullptr);
+	//}
 
-	vkDestroyDescriptorPool(m_device, m_DescriptorPool, nullptr);*/
+	//vkDestroyDescriptorPool(m_device, m_DescriptorPool, nullptr);
 
 }
 
@@ -823,10 +823,10 @@ void vkRenderer::Destroy()
 	//Delete Vulkan related things[Generalize when deleting the resources]
 	//=====================================================================
 
-	/*CleanUpSwapChain();
+	CleanUpSwapChain();
 
 
-	vkDestroyDescriptorSetLayout(m_device, m_descriptorSetLayout, nullptr);
+	/*vkDestroyDescriptorSetLayout(m_device, m_descriptorSetLayout, nullptr);
 
 	//Destroy Rectangle Index Buffer
 	vkDestroyBuffer(m_device, m_RectangleIndexBuffer.Buffer, nullptr);
@@ -834,7 +834,7 @@ void vkRenderer::Destroy()
 
 	//Destroy Triangle Index Buffer
 	vkDestroyBuffer(m_device, m_TriangleVertexBuffer.Buffer, nullptr);
-	vkFreeMemory(m_device, m_TriangleVertexBuffer.BufferMemory, nullptr);
+	vkFreeMemory(m_device, m_TriangleVertexBuffer.BufferMemory, nullptr);*/
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 	{
@@ -864,7 +864,7 @@ void vkRenderer::Destroy()
 	if (m_MainCamera != NULL)
 	{
 		delete m_MainCamera;
-	}*/
+	}
 	
 }
 

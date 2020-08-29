@@ -693,7 +693,6 @@ void Triangle::Draw(float deltaTime)
 	vkWaitForFences(m_renderer->m_device, 1, &m_renderer->m_inflightFences[m_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
 	vkResetFences(m_renderer->m_device, 1, &m_renderer->m_inflightFences[m_currentFrame]);
 
-
 	//===================================================================
 	//1.Acquire Image form SwapChain
 	//2.Execute command buffer on that image
@@ -702,9 +701,6 @@ void Triangle::Draw(float deltaTime)
 
 	uint32_t imageIndex;
 
-	//VkResult result = vkAcquireNextImageKHR(m_renderer->m_device, m_renderer->m_swapChainDescription.m_swapChain, 
-	//	std::numeric_limits<uint64_t>::max(), m_renderer->m_imageAvailableSemaphore[m_currentFrame], VK_NULL_HANDLE, &imageIndex);
-	
 	VkResult result = m_renderer->AcquireNextImage(&imageIndex, m_currentFrame);
 
 
@@ -732,69 +728,42 @@ void Triangle::Draw(float deltaTime)
 
 	m_renderer->SubmissionAndPresentation(submissionDesc);
 
-	//Subit info of which semaphores are being used for Queue
-
-	/*VkSubmitInfo submitInfo = {};
-	
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	
-	VkSemaphore waitSemaphores[] = { m_renderer->m_imageAvailableSemaphore[m_currentFrame] };
-	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-
-	submitInfo.waitSemaphoreCount = 1;
-	submitInfo.pWaitSemaphores = waitSemaphores;
-	submitInfo.pWaitDstStageMask = waitStages;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &m_commandBuffers[imageIndex];
-
-	VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphore[m_currentFrame] };
-
-	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = signalSemaphores;
-
-	vkResetFences(m_device, 1, &m_inflightFences[m_currentFrame]);
-
-	if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inflightFences[m_currentFrame]) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to submit Draw Command Buffers");
-	}
-
-
-	VkPresentInfoKHR presentInfo = {};
-
-	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-	presentInfo.waitSemaphoreCount = 1;
-	presentInfo.pWaitSemaphores = signalSemaphores;
-
-	VkSwapchainKHR swapChains[] = { m_swapChain };
-
-	presentInfo.swapchainCount = 1;
-	presentInfo.pSwapchains = swapChains;
-	presentInfo.pImageIndices = &imageIndex;
-	presentInfo.pResults = nullptr;
-
-	result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
-
-	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_frameBufferResized)
-	{
-		m_frameBufferResized = false;
-		//TODO: need to fix it
-		ReCreateSwapChain();
-	}
-	else if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to present Swap Chain image!");
-	}*/
-
 	m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
-
-
-
 void Triangle::Destroy()
 {
+	vkFreeCommandBuffers(m_renderer->m_device, m_commandPool, static_cast<uint32_t>(m_commandBuffers.size()), m_commandBuffers.data());
 
+	vkDestroyPipeline(m_renderer->m_device, TrianglePipeline.a_Pipeline, nullptr);
+
+	vkDestroyPipelineLayout(m_renderer->m_device, TrianglePipeline.a_pipelineLayout, nullptr);
+
+	vkDestroyRenderPass(m_renderer->m_device, m_renderPass, nullptr);
+
+	for (size_t i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImages.size(); ++i)
+	{
+		//Triangle's UBO
+		vkDestroyBuffer(m_renderer->m_device, m_TriangleUniformBuffer[i].Buffer, nullptr);
+		vkFreeMemory(m_renderer->m_device, m_TriangleUniformBuffer[i].BufferMemory, nullptr);
+	}
+
+	vkDestroyDescriptorPool(m_renderer->m_device, m_DescriptorPool, nullptr);
+
+	vkDestroyDescriptorSetLayout(m_renderer->m_device, m_descriptorSetLayout, nullptr);
+
+	//Destroy Rectangle Index Buffer
+	vkDestroyBuffer(m_renderer->m_device, m_RectangleIndexBuffer.Buffer, nullptr);
+	vkFreeMemory(m_renderer->m_device, m_RectangleIndexBuffer.BufferMemory, nullptr);
+
+	//Destroy Triangle Index Buffer
+	vkDestroyBuffer(m_renderer->m_device, m_TriangleVertexBuffer.Buffer, nullptr);
+	vkFreeMemory(m_renderer->m_device, m_TriangleVertexBuffer.BufferMemory, nullptr);
+
+	vkDestroyCommandPool(m_renderer->m_device, m_commandPool, nullptr);
+
+	// Remove all the Vulkan related intialized values
+	m_renderer->Destroy();
 
 	//Destroy the renderer
 	if (m_renderer != NULL)
