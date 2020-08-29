@@ -514,8 +514,6 @@ namespace VulkanHelper
 	}
 
 
-
-
 	//===================================================================
 	//Command Buffer Recording Related
 	//===================================================================
@@ -745,8 +743,6 @@ namespace VulkanHelper
 		EndSingleTimeCommands(&cmdBuffer, a_commandPool, a_device, a_graphicsQueue);
 	}
 
-
-
 	//===================================================================
 	// Creating Image Views
 	//===================================================================
@@ -852,6 +848,38 @@ namespace VulkanHelper
 		}
 
 		return;
+	}
+
+	//===================================================================
+	//Creating Semaphores and Fences
+	//===================================================================
+
+	void CreateSemaphoresandFences(VkDevice a_device, VkSemaphoreCreateInfo a_createSemaphoreInfo,
+		VkFenceCreateInfo a_createFenceInfo, VkSemaphore *a_imageAvailableSemaphore, 
+		VkSemaphore *a_renderFinishedSemaphore, VkFence *a_inflightFences)
+	{
+		if (vkCreateSemaphore(a_device, &a_createSemaphoreInfo, nullptr, a_imageAvailableSemaphore) != VK_SUCCESS ||
+			vkCreateSemaphore(a_device, &a_createSemaphoreInfo, nullptr, a_renderFinishedSemaphore) != VK_SUCCESS ||
+			vkCreateFence(a_device, &a_createFenceInfo, nullptr, a_inflightFences) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Failed to create Semaphore");
+		}
+
+		return;
+	}
+
+	//===================================================================
+	//Submission and Presentation
+	//===================================================================
+
+	void ResetFence(VkDevice a_device, uint32_t a_fenceCount, VkFence* a_inflightFences)
+	{
+		vkResetFences(a_device, a_fenceCount, a_inflightFences);
+	}
+
+	VkResult QueuePresent(VkQueue a_PresentQueue, VkPresentInfoKHR *a_presentInfo)
+	{
+		return vkQueuePresentKHR(a_PresentQueue, a_presentInfo);
 	}
 
 }

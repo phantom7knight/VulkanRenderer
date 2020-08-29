@@ -139,14 +139,15 @@ std::vector<VkPipelineShaderStageCreateInfo> vkRenderer::ShaderStageInfoGenerati
 {
 	std::vector<VkPipelineShaderStageCreateInfo>	shaderStages;
 	
-	shaderStages.resize(ShaderNames.size());
+	shaderStages.reserve(ShaderNames.size());
 	shadermodules.resize(ShaderNames.size());
+
+	// Generate SPIRV shader files
+	rsrcLdr.GenerateSPIRVShaders(ShaderNames);
 
 	for (int i = 0; i < ShaderNames.size(); ++i)
 	{
-		// Generate SPIRV shader files
-		rsrcLdr.GenerateSPIRVShaders(ShaderNames);
-
+		
 		std::string SPIRVFileNames = "Shaders/BinaryCode/" + ShaderNames[i] + ".spv";
 		auto ShaderCode = rsrcLdr.getFileOperationobj().readFile(SPIRVFileNames);
 
@@ -164,22 +165,22 @@ std::vector<VkPipelineShaderStageCreateInfo> vkRenderer::ShaderStageInfoGenerati
 
 		//find the correct shader staga
 		// TODO: Check checkIfCharacterExists() call
-		if (rsrcLdr.getFileOperationobj().checkIfCharacterExists(SPIRVFileNames, 'vert'))
+		if (rsrcLdr.getFileOperationobj().CheckIfStringExists(SPIRVFileNames, "vert"))
 		{
 			shaderCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
 			shaderCreateInfo.pName = "main";
 		}
-		else if (rsrcLdr.getFileOperationobj().checkIfCharacterExists(SPIRVFileNames, 'frag'))
+		else if (rsrcLdr.getFileOperationobj().CheckIfStringExists(SPIRVFileNames, "frag"))
 		{
 			shaderCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
 			shaderCreateInfo.pName = "main";
 		}
-		else if (rsrcLdr.getFileOperationobj().checkIfCharacterExists(SPIRVFileNames, 'geom'))
+		else if (rsrcLdr.getFileOperationobj().CheckIfStringExists(SPIRVFileNames, "geom"))
 		{
 			shaderCreateInfo.stage = VK_SHADER_STAGE_GEOMETRY_BIT;
 			shaderCreateInfo.pName = "main";
 		}
-		else if (rsrcLdr.getFileOperationobj().checkIfCharacterExists(SPIRVFileNames, 'comp'))
+		else if (rsrcLdr.getFileOperationobj().CheckIfStringExists(SPIRVFileNames, "comp"))
 		{
 			shaderCreateInfo.stage = VK_SHADER_STAGE_COMPUTE_BIT;
 			shaderCreateInfo.pName = "CSmain";
@@ -439,7 +440,7 @@ void vkRenderer::CreateCommandPool(VkCommandPool* a_commandPool)
 }
 
 
-void vkRenderer::CreateCommandBuffers(std::vector<VkCommandBuffer> a_cmdBuffer, VkCommandPool a_cmdPool)
+void vkRenderer::CreateCommandBuffers(std::vector<VkCommandBuffer> &a_cmdBuffer, VkCommandPool a_cmdPool)
 {
 	VkCommandBufferAllocateInfo createInfo = {};
 
@@ -548,7 +549,7 @@ void vkRenderer::CreateDescriptorPool(VkDescriptorPoolSize a_poolSize, uint32_t 
 
 void vkRenderer::CreateDesciptorSets(uint32_t descriptorSetCount, VkDescriptorSetLayout a_descriptorSetLayout,
 	std::vector <BufferDesc> a_descBuffer, VkDeviceSize    a_rangeSize, std::vector<VkWriteDescriptorSet> descriptorWriteInfo,
-	VkDescriptorPool a_descriptorPool, std::vector<VkDescriptorSet> a_descriptorSet)
+	VkDescriptorPool a_descriptorPool, std::vector<VkDescriptorSet> &a_descriptorSet)
 {
 	std::vector<VkDescriptorSetLayout> layouts(descriptorSetCount, a_descriptorSetLayout);
 
@@ -566,19 +567,22 @@ void vkRenderer::CreateDesciptorSets(uint32_t descriptorSetCount, VkDescriptorSe
 		throw std::runtime_error("Unable to create Desciptor Sets");
 	}
 
-	for (size_t i = 0; i < descriptorSetCount; ++i)
+	for (size_t i = 0; i < descriptorWriteInfo.size(); ++i)
 	{
-		VkDescriptorBufferInfo bufferInfo = {};
+		for (size_t j = 0; j < descriptorSetCount; ++j)
+		{
+			VkDescriptorBufferInfo bufferInfo = {};
 
-		bufferInfo.buffer = a_descBuffer[i].Buffer;
-		bufferInfo.offset = 0;
-		bufferInfo.range = a_rangeSize;
+			bufferInfo.buffer = a_descBuffer[i].Buffer;
+			bufferInfo.offset = 0;
+			bufferInfo.range = a_rangeSize;
 
 
-		descriptorWriteInfo[i].dstSet = a_descriptorSet[i];
-		descriptorWriteInfo[i].pBufferInfo = &bufferInfo;
+			descriptorWriteInfo[i].dstSet = a_descriptorSet[j];
+			descriptorWriteInfo[i].pBufferInfo = &bufferInfo;
 
-		vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWriteInfo.size()), descriptorWriteInfo.data(), 0, nullptr);
+			vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWriteInfo.size()), descriptorWriteInfo.data(), 0, nullptr);
+		}		
 
 	}
 }
@@ -587,7 +591,7 @@ void vkRenderer::CreateDesciptorSets(uint32_t descriptorSetCount, VkDescriptorSe
 //===================================================================
 //Creating Frame Buffers
 //===================================================================
-void vkRenderer::CreateFrameBuffer(FrameBufferDesc a_fboDesc, VkRenderPass a_renderPass)
+void vkRenderer::CreateFrameBuffer(FrameBufferDesc a_fboDesc, VkRenderPass a_renderPass, VkFramebuffer* a_frameBuffer)
 {
 	VkFramebufferCreateInfo fbcreateInfo = {};
 
@@ -599,8 +603,108 @@ void vkRenderer::CreateFrameBuffer(FrameBufferDesc a_fboDesc, VkRenderPass a_ren
 	fbcreateInfo.height = static_cast<uint32_t>(a_fboDesc.FBOHeight);
 	fbcreateInfo.layers = 1;
 
-	VulkanHelper::CreateFrameBuffer(m_device, &fbcreateInfo, &a_fboDesc.FrameBuffer);
+	VulkanHelper::CreateFrameBuffer(m_device, &fbcreateInfo, a_frameBuffer);
 	
+}
+
+//===================================================================
+//Creating Semaphores and Fences
+//===================================================================
+void vkRenderer::CreateSemaphoresandFences()
+{
+	m_imageAvailableSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
+	m_renderFinishedSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
+	m_inflightFences.resize(MAX_FRAMES_IN_FLIGHT);
+
+
+	VkSemaphoreCreateInfo createSemaphoreInfo = {};
+
+	createSemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+	VkFenceCreateInfo createFenceInfo = {};
+
+	createFenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	createFenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
+	{
+		VulkanHelper::CreateSemaphoresandFences(m_device, createSemaphoreInfo, createFenceInfo,
+			&m_imageAvailableSemaphore[i], &m_renderFinishedSemaphore[i], &m_inflightFences[i]);
+	}
+
+	return;
+}
+
+//===================================================================
+//Submitting and Presenting a Frame
+//===================================================================
+
+VkResult vkRenderer::AcquireNextImage(uint32_t *a_imageIndex, size_t a_currentFrameNumber)
+{
+	return vkAcquireNextImageKHR(m_device, m_swapChainDescription.m_swapChain,
+		std::numeric_limits<uint64_t>::max(), m_imageAvailableSemaphore[a_currentFrameNumber], VK_NULL_HANDLE, a_imageIndex);
+
+}
+
+
+void vkRenderer::SubmissionAndPresentation(FrameSubmissionDesc a_frameSubmissionDesc)
+{
+	VkSubmitInfo submitInfo = {};
+
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+	VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphore[a_frameSubmissionDesc.currentFrameNumber] };
+	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = waitSemaphores;
+	submitInfo.pWaitDstStageMask = waitStages;
+	submitInfo.commandBufferCount = a_frameSubmissionDesc.commandBufferCount;
+	submitInfo.pCommandBuffers = a_frameSubmissionDesc.commandBuffer;
+
+	VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphore[a_frameSubmissionDesc.currentFrameNumber] };
+
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = signalSemaphores;
+
+	VulkanHelper::ResetFence(m_device, 1, &m_inflightFences[a_frameSubmissionDesc.currentFrameNumber]);
+
+	vkResetFences(m_device, 1, &m_inflightFences[a_frameSubmissionDesc.currentFrameNumber]);
+
+	if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inflightFences[a_frameSubmissionDesc.currentFrameNumber]) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to submit Draw Command Buffers");
+	}
+
+
+	VkPresentInfoKHR presentInfo = {};
+
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = signalSemaphores;
+
+	VkSwapchainKHR swapChains[] = { m_swapChainDescription.m_swapChain };
+
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = swapChains;
+	presentInfo.pImageIndices = a_frameSubmissionDesc.imageIndex;
+	presentInfo.pResults = nullptr;
+
+	a_frameSubmissionDesc.result = VulkanHelper::QueuePresent(m_PresentQueue, &presentInfo);
+
+	if (a_frameSubmissionDesc.result == VK_ERROR_OUT_OF_DATE_KHR || a_frameSubmissionDesc.result == VK_SUBOPTIMAL_KHR
+		|| m_frameBufferResized)
+	{
+		m_frameBufferResized = false;
+		//TODO: need to fix it
+		//ReCreateSwapChain();
+	}
+	else if (a_frameSubmissionDesc.result != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to present Swap Chain image!");
+	}
+
+	return;
 }
 
 //===================================================================

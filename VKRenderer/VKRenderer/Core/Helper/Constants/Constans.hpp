@@ -18,7 +18,7 @@ typedef struct BufferDesc
 
 }Buffer;
 
-typedef struct 
+struct TextureBufferDesc
 {
 	VkImage					BufferImage = VK_NULL_HANDLE;
 	VkDeviceMemory			BufferMemory = VK_NULL_HANDLE;
@@ -28,7 +28,7 @@ typedef struct
 	VkMemoryPropertyFlags	propertyFlags;
 	int						ImageWidth = 0;
 	int						ImageHeight = 0;
-}TextureBufferDesc;
+};
 
 struct QueueFamilyIndices
 {
@@ -155,6 +155,7 @@ struct GraphicsPipelineInfo
 	VkDescriptorSetLayout							a_descriptorSetLayout;
 	VkRenderPass                                    renderPass;
 	uint32_t                                        subpass;
+	
 	//Final Pipeline Info
 	VkPipelineLayout								a_pipelineLayout;
 	VkPipeline										a_Pipeline;
@@ -174,4 +175,13 @@ struct FrameBufferDesc
 	float				FBOWidth;
 	float				FBOHeight;
 	VkFramebuffer		FrameBuffer;
+};
+
+struct FrameSubmissionDesc
+{
+	uint32_t						*imageIndex;
+	size_t							currentFrameNumber;
+	uint32_t						commandBufferCount;
+	VkCommandBuffer					*commandBuffer;
+	VkResult						result;
 };

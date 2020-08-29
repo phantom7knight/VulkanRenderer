@@ -22,6 +22,7 @@ public:
 	bool									SeekFIle(FILE* fp, long offset, int origin);
 	unsigned								GetFileSize(std::string a_FileName);
 	bool									checkIfCharacterExists(const std::string a_string, char a_toSearch);
+	bool									CheckIfStringExists(const std::string a_string, std::string a_toSearch);
 	std::vector<char,std::allocator<char>>	readFile(const std::string& filename);
 	std::string								ReplaceCharacter(const std::string a_str, char a_toReplaceWith, char a_toSearchFor);
 	std::string								get_current_dir();
@@ -96,14 +97,14 @@ struct VertexInfo
 	}
 };
 
-typedef struct
+struct ModelInfo
 {
 	uint32_t vertexBufferSize = 0;
 	std::vector<VertexInfo> vertexbufferData;
 	
 	uint32_t indexBufferSize = 0;
 	std::vector<uint32_t> indexbufferData;
-}ModelInfo;
+};
 
 //Maybe Load Materials if available for the model
 class MeshLoader

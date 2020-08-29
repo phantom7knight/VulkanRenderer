@@ -34,6 +34,19 @@ bool FileOperations::checkIfCharacterExists(const std::string a_string, char a_t
 	return false;
 }
 
+bool FileOperations::CheckIfStringExists(const std::string a_string, std::string a_toSearch)
+{
+	//if (a_string.find(a_toSearch))
+	//	return true;
+
+	if (a_string.find(a_toSearch) != std::string::npos) 
+	{
+		return true;
+	}
+
+	return false;
+}
+
 std::string FileOperations::ReplaceCharacter(const std::string a_str, char a_toReplaceWith, char a_toSearchFor)
 {
 	std::string res = a_str;

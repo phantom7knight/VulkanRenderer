@@ -46,7 +46,6 @@ void Destroy(Application* rendererExample)
 
 int main() 
 {
-
 	
 	//Init a base class
 	Application* rendererExample = new Triangle();

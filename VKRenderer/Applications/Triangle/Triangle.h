@@ -41,8 +41,6 @@ private:
 	//variables
 	vkRenderer*							m_renderer;
 
-	VkRenderPass						m_TriangleRenderPass;
-
 	GraphicsPipelineInfo				TrianglePipeline;
 
 	VkRenderPass						m_renderPass;
@@ -64,6 +62,8 @@ private:
 	BufferDesc							m_TriangleVertexBuffer;
 
 	BufferDesc							m_RectangleIndexBuffer;
+
+	size_t								m_currentFrame = 0;
 
 
 

@@ -153,6 +153,8 @@ void Triangle::CreateRenderPass()
 	attachmentDescriptions[0].format = m_renderer->m_swapChainDescription.m_swapChainFormat;
 	attachmentDescriptions[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;	
 	attachmentDescriptions[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	attachmentDescriptions[0].samples = VK_SAMPLE_COUNT_1_BIT;
+	attachmentDescriptions[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 
 	std::vector<VkAttachmentReference> attachmentReferences;
 
@@ -184,7 +186,7 @@ void Triangle::CreateRenderPass()
 	renderPassdesc.subpassInfo				= subpassInfo;
 	renderPassdesc.subpassDependecy			= subpassDependecy;
 
-	m_renderer->CreateRenderPass(renderPassdesc, &m_TriangleRenderPass);
+	m_renderer->CreateRenderPass(renderPassdesc, &m_renderPass);
 
 	
 }
@@ -206,10 +208,10 @@ void Triangle::CreateFrameBuffers()
 		m_FBO.attachmentCount = 1;
 		m_FBO.FBOHeight = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
 		m_FBO.FBOWidth	= m_renderer->m_swapChainDescription.m_swapChainExtent.width;
-		m_FBO.FrameBuffer = m_renderer->m_swapChainFrameBuffer[i].FrameBuffer;
+		//m_FBO.FrameBuffer = m_renderer->m_swapChainFrameBuffer[i].FrameBuffer;
 		m_FBO.Attachments = attachments;
 
-		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass);
+		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFrameBuffer[i].FrameBuffer);
 	}
 
 }
@@ -243,29 +245,29 @@ void Triangle::CreateCommandPool()
 //===================================================================
 //Command Buffers
 //===================================================================
-
+// TODO: Fix all of this
 void Triangle::CreateCommandBuffers()
 {
-	/*m_commandBuffers.resize(m_renderer->m_swapChainFrameBuffer.size());
+	m_commandBuffers.resize(m_renderer->m_swapChainFrameBuffer.size());
 	
 	//Allocate Command Buffer
 	m_renderer->CreateCommandBuffers(m_commandBuffers, m_commandPool);
 
-	/*VkCommandBufferAllocateInfo createInfo = {};
+	VkCommandBufferAllocateInfo createInfo = {};
 
 	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	createInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	createInfo.commandPool = m_CommandPool;
+	createInfo.commandPool = m_commandPool;
 	createInfo.commandBufferCount = (uint32_t)m_commandBuffers.size();
 
 
-	if (vkAllocateCommandBuffers(m_device, &createInfo, m_commandBuffers.data()) != VK_SUCCESS)
+	if (vkAllocateCommandBuffers(m_renderer->m_device, &createInfo, m_commandBuffers.data()) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Unable to create Command Buffers");
-	}*/
+	}
 
 	//Record Command Buffer data
-	/*for (size_t i = 0; i < m_commandBuffers.size(); ++i)
+	for (size_t i = 0; i < m_commandBuffers.size(); ++i)
 	{
 		VkCommandBufferBeginInfo beginInfo = {};
 
@@ -283,9 +285,9 @@ void Triangle::CreateCommandBuffers()
 
 			renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 			renderpassBeginInfo.renderPass = m_renderPass;
-			renderpassBeginInfo.framebuffer = m_swapChainFrameBuffer[i];
+			renderpassBeginInfo.framebuffer = m_renderer->m_swapChainFrameBuffer[i].FrameBuffer;// m_swapChainFrameBuffer[i];
 			renderpassBeginInfo.renderArea.offset = { 0,0 };
-			renderpassBeginInfo.renderArea.extent = m_swapChainExtent;
+			renderpassBeginInfo.renderArea.extent = m_renderer->m_swapChainDescription.m_swapChainExtent;
 
 
 			//Clear Color//
@@ -296,7 +298,7 @@ void Triangle::CreateCommandBuffers()
 
 			vkCmdBeginRenderPass(m_commandBuffers[i], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-				vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
+				vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, TrianglePipeline.a_Pipeline);
 
 				VkBuffer vertexBuffers[] = { m_TriangleVertexBuffer.Buffer };
 				VkDeviceSize offset = { 0 };
@@ -306,7 +308,7 @@ void Triangle::CreateCommandBuffers()
 
 				//vkCmdDraw(m_commandBuffers[i], static_cast<uint32_t>(Triangle_vertices.size()), 1, 0, 0);
 
-				vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
+				vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, TrianglePipeline.a_pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
 
 				vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(Rectangle_Indices.size()), 1, 0, 0, 0);
 
@@ -318,7 +320,7 @@ void Triangle::CreateCommandBuffers()
 			throw std::runtime_error("Failed to record Command Buffer");
 		}
 
-	}*/
+	}
 }
 
 
@@ -328,33 +330,7 @@ void Triangle::CreateCommandBuffers()
 
 void Triangle::CreateSemaphoresandFences()
 {
-/*
-	m_imageAvailableSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
-	m_renderFinishedSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
-	m_inflightFences.resize(MAX_FRAMES_IN_FLIGHT);
-
-
-	VkSemaphoreCreateInfo createSemaphoreInfo = {};
-
-	createSemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-	VkFenceCreateInfo createFenceInfo = {};
-
-	createFenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-	createFenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
-	{
-		if (vkCreateSemaphore(m_device, &createSemaphoreInfo, nullptr, &m_imageAvailableSemaphore[i]) != VK_SUCCESS ||
-			vkCreateSemaphore(m_device, &createSemaphoreInfo, nullptr, &m_renderFinishedSemaphore[i]) != VK_SUCCESS ||
-			vkCreateFence(m_device, &createFenceInfo, nullptr, &m_inflightFences[i]) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Failed to create Semaphore");
-		}
-	}
-	*/
-
-
+	m_renderer->CreateSemaphoresandFences();
 }
 
 
@@ -366,11 +342,14 @@ void Triangle::CreateSemaphoresandFences()
 void Triangle::CreateUniformBuffer()
 {
 	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+
+	m_TriangleUniformBuffer.resize(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
 	
 	for (int i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImages.size(); ++i)
 
 	{		
-		m_renderer->CreateBufferWithoutStaging(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+		m_renderer->CreateBufferWithoutStaging(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
 			m_TriangleUniformBuffer[i].Buffer, m_TriangleUniformBuffer[i].BufferMemory);
 	}
 
@@ -380,7 +359,7 @@ void Triangle::CreateUniformBuffer()
 void Triangle::UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime)
 {
 	//TODO: Fix this
-	/*a_deltaTime = 0.5f;
+	a_deltaTime = 0.5f;
 
 
 	UniformBufferObject mvp_UBO = {};
@@ -394,7 +373,7 @@ void Triangle::UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime)
 
 
 	//Projection Matrix
-	mvp_UBO.ProjectionMatrix = glm::perspective(glm::radians(45.0f), m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 10.0f);
+	mvp_UBO.ProjectionMatrix = glm::perspective(glm::radians(45.0f), m_renderer->m_swapChainDescription.m_swapChainExtent.width / (float)m_renderer->m_swapChainDescription.m_swapChainExtent.height, 0.1f, 10.0f);
 	mvp_UBO.ProjectionMatrix[1][1] *= -1;
 
 
@@ -402,9 +381,9 @@ void Triangle::UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime)
 
 	void* data;
 
-	vkMapMemory(m_device, m_TriangleUniformBuffer[a_imageIndex].BufferMemory, 0, sizeof(mvp_UBO), 0, &data);
+	vkMapMemory(m_renderer->m_device, m_TriangleUniformBuffer[a_imageIndex].BufferMemory, 0, sizeof(mvp_UBO), 0, &data);
 	memcpy(data, &mvp_UBO, sizeof(mvp_UBO));
-	vkUnmapMemory(m_device, m_TriangleUniformBuffer[a_imageIndex].BufferMemory);*/
+	vkUnmapMemory(m_renderer->m_device, m_TriangleUniformBuffer[a_imageIndex].BufferMemory);
 
 
 }
@@ -510,7 +489,7 @@ void Triangle::CreateDescriptorSetLayout()
 
 	std::vector<VkDescriptorSetLayoutBinding> layoutBindingVector;
 
-	layoutBindingVector.resize(1);
+	layoutBindingVector.reserve(1);
 
 	layoutBindingVector.push_back(layoutBinding);
 
@@ -676,27 +655,27 @@ void Triangle::PrepareApp()
 	
 	CreateRenderPass();
 	
-	//CreateDescriptorSetLayout();
-	//
-	//CreateGraphicsPipeline();
-	//
-	//CreateFrameBuffers();
-	//
-	//CreateCommandPool();
-	//
-	//CreateVertexBuffer();
-	//
-	//CreateIndexBuffer();
-	//
-	//CreateUniformBuffer();
-	////TODO
-	//CreateDescriptorPool();
-	//
-	//CreateDesciptorSets();
-	//
-	//CreateCommandBuffers();
-	//
-	//CreateSemaphoresandFences();
+	CreateDescriptorSetLayout();
+	
+	CreateGraphicsPipeline();
+	
+	CreateFrameBuffers();
+	
+	CreateCommandPool();
+	
+	CreateVertexBuffer();
+	
+	CreateIndexBuffer();
+	
+	CreateUniformBuffer();
+	
+	CreateDescriptorPool();
+	
+	CreateDesciptorSets();
+	
+	CreateCommandBuffers();
+	
+	CreateSemaphoresandFences();
 
 }
 
@@ -711,88 +690,103 @@ void Triangle::Update(float deltaTime)
 
 void Triangle::Draw(float deltaTime)
 {
-	//vkWaitForFences(m_device, 1, &m_inflightFences[m_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
-	//vkResetFences(m_device, 1, &m_inflightFences[m_currentFrame]);
+	vkWaitForFences(m_renderer->m_device, 1, &m_renderer->m_inflightFences[m_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
+	vkResetFences(m_renderer->m_device, 1, &m_renderer->m_inflightFences[m_currentFrame]);
 
 
-	////===================================================================
-	////1.Acquire Image form SwapChain
-	////2.Execute command buffer on that image
-	////3.Return Image to swap chain for presentation
-	////===================================================================
+	//===================================================================
+	//1.Acquire Image form SwapChain
+	//2.Execute command buffer on that image
+	//3.Return Image to swap chain for presentation
+	//===================================================================
 
-	//uint32_t imageIndex;
+	uint32_t imageIndex;
 
-	//VkResult result = vkAcquireNextImageKHR(m_device, m_swapChain, std::numeric_limits<uint64_t>::max(), m_imageAvailableSemaphore[m_currentFrame], VK_NULL_HANDLE, &imageIndex);
-
-	//if (result == VK_ERROR_OUT_OF_DATE_KHR)
-	//{
-	//	//TODO: need to fix it
-	//	ReCreateSwapChain();
-	//	return;
-	//}
-	//else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-	//{
-	//	throw std::runtime_error("Failed to acquire swap chain image");
-	//}
-
-	////Update Uniform Buffers which needs to be sent to Shader every frames
-	//UpdateUniformBuffer(imageIndex, deltaTime);
-
-	////Subit info of which semaphores are being used for Queue
-	//VkSubmitInfo submitInfo = {};
-
-	//submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-	//VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphore[m_currentFrame] };
-	//VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-
-	//submitInfo.waitSemaphoreCount = 1;
-	//submitInfo.pWaitSemaphores = waitSemaphores;
-	//submitInfo.pWaitDstStageMask = waitStages;
-	//submitInfo.commandBufferCount = 1;
-	//submitInfo.pCommandBuffers = &m_commandBuffers[imageIndex];
-
-	//VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphore[m_currentFrame] };
-
-	//submitInfo.signalSemaphoreCount = 1;
-	//submitInfo.pSignalSemaphores = signalSemaphores;
-
-	//vkResetFences(m_device, 1, &m_inflightFences[m_currentFrame]);
-
-	//if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inflightFences[m_currentFrame]) != VK_SUCCESS)
-	//{
-	//	throw std::runtime_error("Failed to submit Draw Command Buffers");
-	//}
+	//VkResult result = vkAcquireNextImageKHR(m_renderer->m_device, m_renderer->m_swapChainDescription.m_swapChain, 
+	//	std::numeric_limits<uint64_t>::max(), m_renderer->m_imageAvailableSemaphore[m_currentFrame], VK_NULL_HANDLE, &imageIndex);
+	
+	VkResult result = m_renderer->AcquireNextImage(&imageIndex, m_currentFrame);
 
 
-	//VkPresentInfoKHR presentInfo = {};
+	if (result == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+		//TODO: need to fix it
+		ReCreateSwapChain();
+		return;
+	}
+	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+	{
+		throw std::runtime_error("Failed to acquire swap chain image");
+	}
 
-	//presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-	//presentInfo.waitSemaphoreCount = 1;
-	//presentInfo.pWaitSemaphores = signalSemaphores;
+	//Update Uniform Buffers which needs to be sent to Shader every frames
+	UpdateUniformBuffer(imageIndex, deltaTime);
 
-	//VkSwapchainKHR swapChains[] = { m_swapChain };
+	FrameSubmissionDesc submissionDesc = {};
 
-	//presentInfo.swapchainCount = 1;
-	//presentInfo.pSwapchains = swapChains;
-	//presentInfo.pImageIndices = &imageIndex;
-	//presentInfo.pResults = nullptr;
+	submissionDesc.imageIndex = &imageIndex;
+	submissionDesc.commandBufferCount = 1;
+	submissionDesc.commandBuffer = &m_commandBuffers[imageIndex];
+	submissionDesc.currentFrameNumber = m_currentFrame;
+	submissionDesc.result = result;
 
-	//result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+	m_renderer->SubmissionAndPresentation(submissionDesc);
 
-	//if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_frameBufferResized)
-	//{
-	//	m_frameBufferResized = false;
-	//	//TODO: need to fix it
-	//	ReCreateSwapChain();
-	//}
-	//else if (result != VK_SUCCESS)
-	//{
-	//	throw std::runtime_error("Failed to present Swap Chain image!");
-	//}
+	//Subit info of which semaphores are being used for Queue
 
-	//m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+	/*VkSubmitInfo submitInfo = {};
+	
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	
+	VkSemaphore waitSemaphores[] = { m_renderer->m_imageAvailableSemaphore[m_currentFrame] };
+	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = waitSemaphores;
+	submitInfo.pWaitDstStageMask = waitStages;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &m_commandBuffers[imageIndex];
+
+	VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphore[m_currentFrame] };
+
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = signalSemaphores;
+
+	vkResetFences(m_device, 1, &m_inflightFences[m_currentFrame]);
+
+	if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inflightFences[m_currentFrame]) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to submit Draw Command Buffers");
+	}
+
+
+	VkPresentInfoKHR presentInfo = {};
+
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = signalSemaphores;
+
+	VkSwapchainKHR swapChains[] = { m_swapChain };
+
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = swapChains;
+	presentInfo.pImageIndices = &imageIndex;
+	presentInfo.pResults = nullptr;
+
+	result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
+
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_frameBufferResized)
+	{
+		m_frameBufferResized = false;
+		//TODO: need to fix it
+		ReCreateSwapChain();
+	}
+	else if (result != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to present Swap Chain image!");
+	}*/
+
+	m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 

@@ -83,14 +83,18 @@ public:
 	void CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo);
 	void CreateComputePipeline(ComputePipelineInfo a_computePipelineInfo);
 	std::vector<VkPipelineShaderStageCreateInfo>  ShaderStageInfoGeneration(std::vector<std::string>ShaderNames);
-	void CreateFrameBuffer(FrameBufferDesc a_fboDesc, VkRenderPass a_renderPass);
-	void CreateCommandBuffers(std::vector<VkCommandBuffer> a_cmdBuffer, VkCommandPool a_cmdPool);
+	void CreateFrameBuffer(FrameBufferDesc a_fboDesc, VkRenderPass a_renderPass, VkFramebuffer* a_frameBuffer);
+	void CreateCommandBuffers(std::vector<VkCommandBuffer> &a_cmdBuffer, VkCommandPool a_cmdPool);
 	void CreateCommandPool(VkCommandPool* a_commandPool);
 	void CreateDescriptorPool(VkDescriptorPoolSize a_poolSize, uint32_t a_maxSets, uint32_t a_poolSizeCount,
 		VkDescriptorPool* a_descriptorPool);
 	void CreateDesciptorSets(uint32_t descriptorSetCount, VkDescriptorSetLayout a_descriptorSetLayout,
 		std::vector<BufferDesc> a_descBuffer, VkDeviceSize    a_rangeSize, std::vector<VkWriteDescriptorSet> descriptorWriteInfo,
-		VkDescriptorPool a_descriptorPool, std::vector<VkDescriptorSet> a_descriptorSet);
+		VkDescriptorPool a_descriptorPool, std::vector<VkDescriptorSet> &a_descriptorSet);
+	void CreateSemaphoresandFences();
+	VkResult AcquireNextImage(uint32_t *a_imageIndex, size_t a_currentFrameNumber);
+	void SubmissionAndPresentation(FrameSubmissionDesc a_frameSubmissionDesc);
+
 #pragma endregion
 
 	
@@ -164,9 +168,7 @@ public:
 	std::vector<VkSemaphore>			m_renderFinishedSemaphore;
 
 	std::vector<VkFence>				m_inflightFences;
-
-	size_t								m_currentFrame = 0;
-		
+			
 	std::vector<BufferDesc>				m_ModelUniformBuffer;
 
 	std::vector<BufferDesc>				m_LightInfoUniformBuffer;
