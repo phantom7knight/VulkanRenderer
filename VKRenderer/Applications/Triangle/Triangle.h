@@ -39,6 +39,7 @@ private:
 
 
 	//variables
+
 	vkRenderer*							m_renderer;
 
 	GraphicsPipelineInfo				TrianglePipeline;

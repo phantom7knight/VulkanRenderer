@@ -27,7 +27,6 @@ void MainLoop(Application* rendererExample)
 		
 		//Add other updates here
 
-
 	}
 
 
@@ -45,8 +44,7 @@ void Destroy(Application* rendererExample)
 
 
 int main() 
-{
-	
+{	
 	//Init a base class
 	Application* rendererExample = new Triangle();
 

@@ -1,11 +1,15 @@
 #include "ModelViewer.h"
-#include "../../VKRenderer/Camera.h"
 #include "../../Dependencies/Imgui/IMGUI/Imgui_Impl.h"
+#include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
 
+// TODO: add Camera class include if need be
 
 
 ModelViewer::ModelViewer() : m_showGUILight(true), m_showPhongGUILight(false), m_showBRDFGUILight(true)
 {
+	//Initialize Renderer
+	m_renderer = new vkRenderer();
+
 }
 
 
@@ -16,149 +20,149 @@ ModelViewer::~ModelViewer()
 void ModelViewer::SetUpCameraProperties(Camera* a_cam)
 {
 	//SetUp Camera Properties
-	a_cam->set_position(glm::vec3(0.0, 0.0, -1.5));
-	a_cam->camProperties.rotation_speed	   = 0.2f;
-	a_cam->camProperties.translation_speed = 0.002f;
-
-	//set proj matrix
-	a_cam->set_perspective(glm::radians(45.0f), (float)m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 1000.0f);
+	//a_cam->set_position(glm::vec3(0.0, 0.0, -1.5));
+	//a_cam->camProperties.rotation_speed	   = 0.2f;
+	//a_cam->camProperties.translation_speed = 0.002f;
+	//
+	////set proj matrix
+	//a_cam->set_perspective(glm::radians(45.0f), (float)m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 1000.0f);
 
 }
 
 void ModelViewer::CreateRenderPass()
 {
-	VkAttachmentDescription colorAttachment = {};
-
-	colorAttachment.format = m_swapChainFormat;
-	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;//TODO : Programmable
-
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-
-	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-
-	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass shud start with
-	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;		//How render pass final image shud translate at end of render pass
-
-	VkAttachmentDescription depthAttachment = {};
-
-	depthAttachment.format = FindDepthFormat();
-	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-
-	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-
-	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-
-	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass shud start with
-	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;		//How render pass final image shud translate at end of render pass
-
-
-	//Each renderpass can have multiple sub-passes
-	//which will help or can be used for the Post-Processing,...etc
-
-	VkAttachmentReference colorAttachmentRef = {};
-
-	colorAttachmentRef.attachment = 0;
-	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-	VkAttachmentReference depthAttachmentRef = {};
-
-	depthAttachmentRef.attachment = 1;
-	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-	VkSubpassDescription subpassInfo = {};
-
-	subpassInfo.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpassInfo.colorAttachmentCount = 1;	//layout(location = 0) out vec4 outColor this is where it will be referenced
-	subpassInfo.pColorAttachments = &colorAttachmentRef;
-	subpassInfo.pDepthStencilAttachment = &depthAttachmentRef;
-
-	VkSubpassDependency dependency = {};
-
-	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	dependency.dstSubpass = 0;
-	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependency.srcAccessMask = 0;
-	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-
-	//array of attachments for this render pass
-	std::array< VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
-
-	//Render Pass Info
-	VkRenderPassCreateInfo renderpassInfo = {};
-
-	renderpassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderpassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-	renderpassInfo.pAttachments = attachments.data();
-	renderpassInfo.subpassCount = 1;
-	renderpassInfo.pSubpasses = &subpassInfo;
-	renderpassInfo.dependencyCount = 1;
-	renderpassInfo.pDependencies = &dependency;
-
-	if (vkCreateRenderPass(m_device, &renderpassInfo, nullptr, &m_renderPass) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to create Render Pass");
-	}
+//	VkAttachmentDescription colorAttachment = {};
+//
+//	colorAttachment.format = m_swapChainFormat;
+//	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;//TODO : Programmable
+//
+//	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+//	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+//
+//	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+//	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+//
+//	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass shud start with
+//	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;		//How render pass final image shud translate at end of render pass
+//
+//	VkAttachmentDescription depthAttachment = {};
+//
+//	depthAttachment.format = FindDepthFormat();
+//	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+//
+//	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+//	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+//
+//	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+//	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+//
+//	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass shud start with
+//	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;		//How render pass final image shud translate at end of render pass
+//
+//
+//	//Each renderpass can have multiple sub-passes
+//	//which will help or can be used for the Post-Processing,...etc
+//
+//	VkAttachmentReference colorAttachmentRef = {};
+//
+//	colorAttachmentRef.attachment = 0;
+//	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+//
+//	VkAttachmentReference depthAttachmentRef = {};
+//
+//	depthAttachmentRef.attachment = 1;
+//	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+//
+//	VkSubpassDescription subpassInfo = {};
+//
+//	subpassInfo.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+//	subpassInfo.colorAttachmentCount = 1;	//layout(location = 0) out vec4 outColor this is where it will be referenced
+//	subpassInfo.pColorAttachments = &colorAttachmentRef;
+//	subpassInfo.pDepthStencilAttachment = &depthAttachmentRef;
+//
+//	VkSubpassDependency dependency = {};
+//
+//	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+//	dependency.dstSubpass = 0;
+//	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+//	dependency.srcAccessMask = 0;
+//	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+//	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+//
+//
+//	//array of attachments for this render pass
+//	std::array< VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
+//
+//	//Render Pass Info
+//	VkRenderPassCreateInfo renderpassInfo = {};
+//
+//	renderpassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+//	renderpassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+//	renderpassInfo.pAttachments = attachments.data();
+//	renderpassInfo.subpassCount = 1;
+//	renderpassInfo.pSubpasses = &subpassInfo;
+//	renderpassInfo.dependencyCount = 1;
+//	renderpassInfo.pDependencies = &dependency;
+//
+//	if (vkCreateRenderPass(m_device, &renderpassInfo, nullptr, &m_renderPass) != VK_SUCCESS)
+//	{
+//		throw std::runtime_error("Unable to create Render Pass");
+//	}
 }
 
 void ModelViewer::CreateDescriptorSetLayout()
 {
-	//create binding for UBO
-	//used in vertex shader
-	VkDescriptorSetLayoutBinding layoutBinding = {};
+	////create binding for UBO
+	////used in vertex shader
+	//VkDescriptorSetLayoutBinding layoutBinding = {};
 
-	layoutBinding.binding = 0;
-	layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	layoutBinding.descriptorCount = 1;
-	layoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	layoutBinding.pImmutableSamplers = nullptr;
+	//layoutBinding.binding = 0;
+	//layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	//layoutBinding.descriptorCount = 1;
+	//layoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	//layoutBinding.pImmutableSamplers = nullptr;
 
-	//create binding for sampler
-	//used in pixel shader
-	VkDescriptorSetLayoutBinding samplerBinding = {};
+	////create binding for sampler
+	////used in pixel shader
+	//VkDescriptorSetLayoutBinding samplerBinding = {};
 
-	samplerBinding.binding = 1;
-	samplerBinding.descriptorCount = 1;
-	samplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	samplerBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	samplerBinding.pImmutableSamplers = nullptr;
+	//samplerBinding.binding = 1;
+	//samplerBinding.descriptorCount = 1;
+	//samplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	//samplerBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	//samplerBinding.pImmutableSamplers = nullptr;
 
-	//TODO: check the binding for the layout
-	VkDescriptorSetLayoutBinding LightlayoutBinding = {};
+	////TODO: check the binding for the layout
+	//VkDescriptorSetLayoutBinding LightlayoutBinding = {};
 
-	LightlayoutBinding.binding = 2;
-	LightlayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	LightlayoutBinding.descriptorCount = 1;
-	LightlayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	LightlayoutBinding.pImmutableSamplers = nullptr;
-
-
-
-	//create an array of descriptors
-	std::array< VkDescriptorSetLayoutBinding, 3> descriptorsArray = { layoutBinding ,samplerBinding, LightlayoutBinding };
+	//LightlayoutBinding.binding = 2;
+	//LightlayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	//LightlayoutBinding.descriptorCount = 1;
+	//LightlayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	//LightlayoutBinding.pImmutableSamplers = nullptr;
 
 
-	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = static_cast<uint32_t>(descriptorsArray.size());
-	layoutInfo.pBindings = descriptorsArray.data();
+	////create an array of descriptors
+	//std::array< VkDescriptorSetLayoutBinding, 3> descriptorsArray = { layoutBinding ,samplerBinding, LightlayoutBinding };
 
-	if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_descriptorSetLayout) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create Descriptor Set Layout");
-	}
+
+	//VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+
+	//layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	//layoutInfo.bindingCount = static_cast<uint32_t>(descriptorsArray.size());
+	//layoutInfo.pBindings = descriptorsArray.data();
+
+	//if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_descriptorSetLayout) != VK_SUCCESS)
+	//{
+	//	throw std::runtime_error("Failed to create Descriptor Set Layout");
+	//}
 }
 
 void ModelViewer::CreateGraphicsPipeline()
 {
 	//generate SPIRV binary code
-	std::vector<std::string> ShaderFileNames;
+	/*std::vector<std::string> ShaderFileNames;
 
 	ShaderFileNames.resize(2);
 
@@ -361,12 +365,12 @@ void ModelViewer::CreateGraphicsPipeline()
 	//Destroy all shader modules
 
 	vkDestroyShaderModule(m_device, vertexShaderModule, nullptr);
-	vkDestroyShaderModule(m_device, pixelShaderModule, nullptr);
+	vkDestroyShaderModule(m_device, pixelShaderModule, nullptr);*/
 }
 
 void ModelViewer::CreateFrameBuffers()
 {
-	m_swapChainFrameBuffer.resize(m_SwapChainImageViews.size());
+	/*m_swapChainFrameBuffer.resize(m_SwapChainImageViews.size());
 
 	for (uint32_t i = 0; i < m_SwapChainImageViews.size(); ++i)
 	{
@@ -386,12 +390,12 @@ void ModelViewer::CreateFrameBuffers()
 		{
 			throw std::runtime_error("Unable to create Frame Buffer");
 		}
-	}
+	}*/
 }
 
 void ModelViewer::CreateCommandPool()
 {
-	QueueFamilyIndices queuefamilyindeces = findQueueFamilies(m_physicalDevice);
+	/*QueueFamilyIndices queuefamilyindeces = findQueueFamilies(m_physicalDevice);
 
 	VkCommandPoolCreateInfo createInfo = {};
 
@@ -402,12 +406,12 @@ void ModelViewer::CreateCommandPool()
 	if (vkCreateCommandPool(m_device, &createInfo, nullptr, &m_CommandPool) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Unable to create Command Pool");
-	}
+	}*/
 }
 
 void ModelViewer::CreateUniformBuffer()
 {
-	VkDeviceSize bufferSize = sizeof(ModelUBO);
+	/*VkDeviceSize bufferSize = sizeof(ModelUBO);
 	VkDeviceSize lightBufferSize = sizeof(LightInfoUBO);
 
 	m_ModelUniformBuffer.resize(m_SwapChainImages.size());
@@ -422,13 +426,13 @@ void ModelViewer::CreateUniformBuffer()
 		//light info uniform buffer creation
 		CreateBuffer(lightBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 			, m_LightInfoUniformBuffer[i].Buffer, m_LightInfoUniformBuffer[i].BufferMemory);
-	}
+	}*/
 }
 
 void ModelViewer::CreateDescriptorPool()
 {
 	
-	std::array<VkDescriptorPoolSize, 3> poolSizes = {};
+	/*std::array<VkDescriptorPoolSize, 3> poolSizes = {};
 
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_SwapChainImages.size());
@@ -450,12 +454,12 @@ void ModelViewer::CreateDescriptorPool()
 	if (vkCreateDescriptorPool(m_device, &createInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Unable to create Desciptor Pool");
-	}
+	}*/
 }
 
 void ModelViewer::CreateDescriptorSets()
 {
-	std::vector<VkDescriptorSetLayout> layouts(m_SwapChainImages.size(), m_descriptorSetLayout);
+	/*std::vector<VkDescriptorSetLayout> layouts(m_SwapChainImages.size(), m_descriptorSetLayout);
 
 	VkDescriptorSetAllocateInfo allocateInfo = {};
 
@@ -524,14 +528,14 @@ void ModelViewer::CreateDescriptorSets()
 		descriptorWriteInfo[2].pTexelBufferView = nullptr;
 		
 		vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWriteInfo.size()), descriptorWriteInfo.data(), 0, nullptr);
-
-	}
+		
+	}*/
 
 }
 
 void ModelViewer::CreateCommandBuffers()
 {
-	m_commandBuffers.resize(m_swapChainFrameBuffer.size());
+	/*m_commandBuffers.resize(m_swapChainFrameBuffer.size());
 
 	VkCommandBufferAllocateInfo createInfo = {};
 
@@ -544,14 +548,14 @@ void ModelViewer::CreateCommandBuffers()
 	if (vkAllocateCommandBuffers(m_device, &createInfo, m_commandBuffers.data()) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Unable to create Command Buffers");
-	}
+	}*/
 
 }
 
 void ModelViewer::CreateSemaphoresandFences()
 {
 
-	m_imageAvailableSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
+	/*m_imageAvailableSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
 	m_renderFinishedSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
 	m_inflightFences.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -575,13 +579,13 @@ void ModelViewer::CreateSemaphoresandFences()
 		}
 	}
 
-
+	*/
 
 }
 
 void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices properties_Cam)
 {
-
+/*
 #pragma region MVP_Update
 	ModelUBO mvp_UBO = {};
 
@@ -636,7 +640,7 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices pro
 	vkUnmapMemory(m_device, m_LightInfoUniformBuffer[a_imageIndex].BufferMemory);
 
 #pragma endregion
-
+	*/
 }
 
 void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
@@ -708,7 +712,7 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 
 void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 {
-	uint32_t i = a_imageIndex;
+	/*uint32_t i = a_imageIndex;
 	VkCommandBufferBeginInfo beginInfo = {};
 
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -768,12 +772,12 @@ void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 	{
 		throw std::runtime_error("Failed to record Command Buffer");
 	}
-
+	*/
 }
 
 void ModelViewer::ReCreateSwapChain()
 {
-
+/*
 	int width = 0, height = 0;
 	while (width == 0 || height == 0)
 	{
@@ -810,12 +814,12 @@ void ModelViewer::ReCreateSwapChain()
 
 	CreateCommandPool();
 
-
+	*/
 }
 
 void ModelViewer::SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_VertexBUffer)
 {
-	VkDeviceSize bufferSize = a_modelDesc.vertexBufferSize;
+	/*VkDeviceSize bufferSize = a_modelDesc.vertexBufferSize;
 
 	//Create Staging Buffer before transfering
 
@@ -842,12 +846,12 @@ void ModelViewer::SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_V
 	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
 	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
 
-	return;
+	return;*/
 }
 
 void ModelViewer::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_IndexBUffer)
 {
-	VkDeviceSize bufferSize = a_modelDesc.indexBufferSize;
+	/*VkDeviceSize bufferSize = a_modelDesc.indexBufferSize;
 
 	//Create Staging Buffer before transfering
 
@@ -873,20 +877,20 @@ void ModelViewer::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_In
 	//Get rid of the staging buffers
 	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
 	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
-
+	*/
 	return;
 }
 
 void ModelViewer::LoadAModel(std::string fileName)
 {
-	ModelInfo modelinfor = 	rsrcLdr.LoadModelResource(fileName);
+	/*ModelInfo modelinfor = 	rsrcLdr.LoadModelResource(fileName);
 
 	//Load Index and Vertex Buffer
 	SetUpVertexBuffer(modelinfor, &VertexBUffer);
 	SetUpIndexBuffer(modelinfor	, &IndexBUffer);
 
 	m_indexBufferCount = static_cast<uint32_t>(modelinfor.indexbufferData.size());
-
+	*/
 }
 
 ////Don't include this in a header file////
@@ -895,7 +899,7 @@ void ModelViewer::LoadAModel(std::string fileName)
 
 void ModelViewer::LoadTexture(std::string textureName)
 {
-	int texWidth, texHeight, texChannels;
+	/*int texWidth, texHeight, texChannels;
 
 	stbi_uc* pixels = stbi_load(textureName.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
@@ -940,13 +944,13 @@ void ModelViewer::LoadTexture(std::string textureName)
 
 	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
 	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
-
+	*/
 }
 
 //TODO: Generalize this
 void ModelViewer::CreateImage(TextureBufferDesc *a_texBuffDesc)
 {
-	VkImageCreateInfo ImageCreateInfo = {};
+	/*VkImageCreateInfo ImageCreateInfo = {};
 
 	ImageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	ImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -982,17 +986,17 @@ void ModelViewer::CreateImage(TextureBufferDesc *a_texBuffDesc)
 		std::cout << "Failed to allocate memory to the image \n";
 	}
 
-	vkBindImageMemory(m_device, a_texBuffDesc->BufferImage, a_texBuffDesc->BufferMemory, 0);
+	vkBindImageMemory(m_device, a_texBuffDesc->BufferImage, a_texBuffDesc->BufferMemory, 0);*/
 }
 
 void ModelViewer::CreateImageTextureView()
 {
-	createImageView(image1.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &textureImageView);
+	//createImageView(image1.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &textureImageView);
 }
 
 void ModelViewer::CreateTextureSampler()
 {
-	VkSamplerCreateInfo createInfo = {};
+	/*VkSamplerCreateInfo createInfo = {};
 
 	createInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 	createInfo.pNext = nullptr;
@@ -1009,8 +1013,8 @@ void ModelViewer::CreateTextureSampler()
 
 	createInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 
-	//******* VERY IMP************//
-	createInfo.unnormalizedCoordinates = VK_FALSE;
+	//******* VERY IMP************/
+	/*createInfo.unnormalizedCoordinates = VK_FALSE;
 
 	createInfo.compareEnable = VK_FALSE;
 	createInfo.compareOp = VK_COMPARE_OP_ALWAYS;
@@ -1027,13 +1031,13 @@ void ModelViewer::CreateTextureSampler()
 	}
 
 
-
+	*/
 }
 
 
 void ModelViewer::CreateDepthResources()
 {
-	VkFormat depthFormat = FindDepthFormat();
+	/*VkFormat depthFormat = FindDepthFormat();
 
 	depthImageInfo.ImageHeight = m_swapChainExtent.height;
 	depthImageInfo.ImageWidth = m_swapChainExtent.width;
@@ -1046,6 +1050,7 @@ void ModelViewer::CreateDepthResources()
 	createImageView(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &depthImageView);
 
 	//TransitionImageLayouts(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+	*/
 }
 
 void ModelViewer::setGuiVariables()
@@ -1060,7 +1065,7 @@ void ModelViewer::setGuiVariables()
 void ModelViewer::InitGui()
 {
 
-	setGuiVariables();
+	/*setGuiVariables();
 
 	ImGui_ImplVulkan_InitInfo imguiInfo = {};
 
@@ -1078,7 +1083,7 @@ void ModelViewer::InitGui()
 
 	//Init the GUI for IMGUI
 	Imgui_Impl::getInstance()->Init(m_window, imguiInfo, m_renderPass, m_CommandPool);
-
+	*/
 
 }
 
@@ -1086,7 +1091,7 @@ void ModelViewer::InitGui()
 
 void ModelViewer::PrepareApp()
 {
-	vkRenderer::PrepareApp();
+	m_renderer->PrepareApp();
 
 	CreateRenderPass();
 
@@ -1101,8 +1106,8 @@ void ModelViewer::PrepareApp()
 	CreateGraphicsPipeline();
 
 #pragma region Model_Load
-		//LoadAModel("../../Assets/Models/cornell_box/cornell_box.obj");
 		LoadAModel("../../Assets/Models/monkey/monkey.obj");
+		//LoadAModel("../../Assets/Models/cornell_box/cornell_box.obj");
 		//LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
 		//LoadAModel("../../Assets/Models/venus/venus.fbx");
 #pragma endregion
@@ -1128,29 +1133,30 @@ void ModelViewer::PrepareApp()
 	CreateSemaphoresandFences();
 
 	// set up the camera position
-	SetUpCameraProperties(m_MainCamera);
+	SetUpCameraProperties(m_renderer->m_MainCamera);
 
 	//Initialize Dear ImGui
 	InitGui();
 
 }
 
+
 void ModelViewer::Update(float deltaTime)
 {
-	ProcessInput(m_window);
-
-	cam_matrices.perspective = m_MainCamera->matrices.perspective;
-
+	m_renderer->ProcessInput(m_renderer->m_window);
+	
+	/*cam_matrices.perspective = m_renderer->m_MainCamera->matrices.perspective;
+	
 	//set view matrix
-	cam_matrices.view = m_MainCamera->matrices.view;
+	cam_matrices.view = m_MainCamera->matrices.view;*/
 
-
+	return;
 }
 
 void ModelViewer::Draw(float deltaTime)
 {
-	vkWaitForFences(m_device, 1, &m_inflightFences[m_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
-	vkResetFences(m_device, 1, &m_inflightFences[m_currentFrame]);
+	/*vkWaitForFences(m_renderer->m_device, 1, &m_inflightFences[m_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
+	vkResetFences(m_renderer->m_device, 1, &m_inflightFences[m_currentFrame]);
 
 
 	//===================================================================
@@ -1161,7 +1167,7 @@ void ModelViewer::Draw(float deltaTime)
 
 	uint32_t imageIndex;
 
-	VkResult result = vkAcquireNextImageKHR(m_device, m_swapChain, std::numeric_limits<uint64_t>::max(), m_imageAvailableSemaphore[m_currentFrame], VK_NULL_HANDLE, &imageIndex);
+	VkResult result = vkAcquireNextImageKHR(m_renderer->m_device, m_swapChain, std::numeric_limits<uint64_t>::max(), m_imageAvailableSemaphore[m_currentFrame], VK_NULL_HANDLE, &imageIndex);
 
 	if (result == VK_ERROR_OUT_OF_DATE_KHR)
 	{
@@ -1235,14 +1241,14 @@ void ModelViewer::Draw(float deltaTime)
 
 	m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
-	m_MainCamera->update(deltaTime);
+	m_MainCamera->update(deltaTime);*/
 
 }
 
 void ModelViewer::Destroy()
 {
 	//depth Image
-	vkDestroyImageView(m_device, depthImageView, nullptr);
+	/*vkDestroyImageView(m_device, depthImageView, nullptr);
 	vkDestroyImage(m_device, depthImageInfo.BufferImage, nullptr);
 	vkFreeMemory(m_device, depthImageInfo.BufferMemory, nullptr);
 
@@ -1255,6 +1261,6 @@ void ModelViewer::Destroy()
 	vkFreeMemory(m_device, image1.BufferMemory, nullptr);
 
 
-	Imgui_Impl::getInstance()->DestroyGui(m_device);
+	Imgui_Impl::getInstance()->DestroyGui(m_device);*/
 
 }

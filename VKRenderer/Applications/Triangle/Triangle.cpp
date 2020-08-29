@@ -1,6 +1,4 @@
 #include "Triangle.h"
-#include "../../VKRenderer/Core/PCH/stdafx.h"
-
 
 //===================================================================
 //Vertex Buffer Use
@@ -94,9 +92,6 @@ Triangle::Triangle()
 
 }
 
-
-
-
 //===================================================================
 //Create Graphics Pipeline and Shader Related Functions
 //===================================================================
@@ -137,7 +132,6 @@ void Triangle::CreateGraphicsPipeline()
 	m_renderer->CreateGraphicsPipeline(&TrianglePipeline);
 
 }
-
 
 //===================================================================
 //Creating Render Pass
@@ -191,8 +185,6 @@ void Triangle::CreateRenderPass()
 	
 }
 
-
-
 //===================================================================
 //Creating Frame Buffers
 //===================================================================
@@ -216,36 +208,19 @@ void Triangle::CreateFrameBuffers()
 
 }
 
-
-
 //===================================================================
 //Command Pool
 //===================================================================
 
 void Triangle::CreateCommandPool()
 {
-	/*QueueFamilyIndices queuefamilyindeces = findQueueFamilies(m_physicalDevice);
-
-	VkCommandPoolCreateInfo createInfo = {};
-
-	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	createInfo.queueFamilyIndex = queuefamilyindeces.graphicsFamily.value();
-	createInfo.flags = 0;
-
-	if (vkCreateCommandPool(m_device, &createInfo, nullptr, &m_CommandPool) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to create Command Pool");
-	}*/
-
 	m_renderer->CreateCommandPool(&m_commandPool);
-
 }
-
 
 //===================================================================
 //Command Buffers
 //===================================================================
-// TODO: Fix all of this
+
 void Triangle::CreateCommandBuffers()
 {
 	m_commandBuffers.resize(m_renderer->m_swapChainFrameBuffer.size());
@@ -427,12 +402,9 @@ void Triangle::CreateIndexBuffer()
 
 }
 
-
-
 //===================================================================
 //Creaate Vertex Buffer
 //===================================================================
-
 
 void Triangle::CreateVertexBuffer()//Make this Generic
 {
@@ -468,7 +440,6 @@ void Triangle::CreateVertexBuffer()//Make this Generic
 	
 }
 
-
 //===================================================================
 // Create and Set Descriptor Layouts[maybe generalize?]
 
@@ -495,9 +466,6 @@ void Triangle::CreateDescriptorSetLayout()
 
 	m_renderer->CreateDescriptorSetLayout(layoutBindingVector, &m_descriptorSetLayout);
 }
-
-
-
 
 //=====================================================================================================================
 // Descriptor Pool & Set Creation
@@ -533,46 +501,6 @@ void Triangle::CreateDescriptorPool()
 
 void Triangle::CreateDesciptorSets()
 {
-	/*std::vector<VkDescriptorSetLayout> layouts(m_SwapChainImages.size(), m_descriptorSetLayout);
-
-	VkDescriptorSetAllocateInfo allocateInfo = {};
-
-	allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocateInfo.descriptorPool = m_DescriptorPool;
-	allocateInfo.descriptorSetCount = static_cast<uint32_t>(m_SwapChainImages.size());
-	allocateInfo.pSetLayouts = layouts.data();
-
-	m_DescriptorSets.resize(m_SwapChainImages.size());
-
-	if (vkAllocateDescriptorSets(m_device, &allocateInfo, m_DescriptorSets.data()) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to create Desciptor Sets");
-	}
-
-	for (size_t i = 0; i < m_SwapChainImages.size(); ++i)
-	{
-		VkDescriptorBufferInfo bufferInfo = {};
-
-		bufferInfo.buffer = m_TriangleUniformBuffer[i].Buffer;
-		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(UniformBufferObject);
-
-		VkWriteDescriptorSet descriptorWriteInfo = {};
-
-		descriptorWriteInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWriteInfo.dstSet = m_DescriptorSets[i];
-		descriptorWriteInfo.dstBinding = 0;
-		descriptorWriteInfo.dstArrayElement = 0;
-		descriptorWriteInfo.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWriteInfo.descriptorCount = 1;
-		descriptorWriteInfo.pBufferInfo = &bufferInfo;
-		descriptorWriteInfo.pImageInfo = nullptr;
-		descriptorWriteInfo.pTexelBufferView = nullptr;
-
-		vkUpdateDescriptorSets(m_device, 1, &descriptorWriteInfo, 0, nullptr);
-
-	}*/
-
 	std::vector<VkWriteDescriptorSet> descriptorWriteInfo;
 
 	descriptorWriteInfo.resize(1);
@@ -593,11 +521,9 @@ void Triangle::CreateDesciptorSets()
 
 }
 
-
 //===================================================================
 //Recreating Swap Chains
 //===================================================================
-
 
 void Triangle::ReCreateSwapChain()
 {
@@ -679,14 +605,12 @@ void Triangle::PrepareApp()
 
 }
 
-
 void Triangle::Update(float deltaTime)
 {
 
 
 	return;
 }
-
 
 void Triangle::Draw(float deltaTime)
 {

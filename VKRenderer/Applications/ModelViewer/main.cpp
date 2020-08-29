@@ -1,9 +1,9 @@
-#include "../../VKRenderer/stdafx.h"
-#include "../../VKRenderer/vkRenderer.h"
-#include "../../VKRenderer/vkTimer.h"
 #include "ModelViewer.h"
-#include "../../VKRenderer/Camera.h"
+#include "../../VKRenderer/Core/PCH/stdafx.h"
+#include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
+#include "../../VKRenderer/Core/Application/Application.h"
 #include "../../Dependencies/Imgui/IMGUI/Imgui_Impl.h"
+#include "../../VKRenderer/Core/Camera/Camera.h"
 
 
 int i = 0;
@@ -14,32 +14,25 @@ void MainLoop(vkRenderer* rendererExample)
 	
 	while (!glfwWindowShouldClose(rendererExample->getWindow()))
 	{
-		auto timeStart = std::chrono::high_resolution_clock::now();
+		//Frame Rate Manager Init
+		float deltaTime = 0.0f;// vkTimer::getInstance()->FrameStart(true) / 1000.0f;
+
+		if (deltaTime > 0.15f)
+		{
+			deltaTime = 0.5f;
+		}
 
 		glfwPollEvents();
 
 		//Renderer Update
-		rendererExample->Update(0.0f);
+		rendererExample->Update(deltaTime);
 		
-		rendererExample->Draw(0.0f);
-
-		auto timeEnd = std::chrono::high_resolution_clock::now();
-
-		float deltaTimeDiff = (float)(std::chrono::duration<double, std::milli>(timeEnd - lastTimeStamp).count());
-
-		//Frame Rate Manager Init
-		float deltaTime = (float)deltaTimeDiff / 1000.0f;
-
+		rendererExample->Draw(deltaTime);
 		
 		//Add other updates here
+
 		//camera update
 		rendererExample->m_MainCamera->update(deltaTime);
-
-		if (deltaTimeDiff > 1000.0f)
-		{
-			lastTimeStamp = timeEnd;
-		}
-
 	}
 
 
@@ -57,9 +50,7 @@ void Destroy(vkRenderer * rendererExample)
 
 
 int main() 
-{
-
-	
+{	
 	//Init a base class
 	vkRenderer* rendererExample = new ModelViewer();
 

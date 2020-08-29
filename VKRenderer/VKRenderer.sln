@@ -12,6 +12,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Triangle", "Applications\Tr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelViewer", "Applications\ModelViewer\ModelViewer.vcxproj", "{F0B859DD-760E-403F-8786-785864CA0494}"
 	ProjectSection(ProjectDependencies) = postProject
+		{6BF32566-D366-4175-B5B2-781F5CD74B6A} = {6BF32566-D366-4175-B5B2-781F5CD74B6A}
 		{96E093C3-40EE-4A75-AFE5-DA0403352DF9} = {96E093C3-40EE-4A75-AFE5-DA0403352DF9}
 	EndProjectSection
 EndProject

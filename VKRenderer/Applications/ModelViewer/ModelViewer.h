@@ -1,5 +1,7 @@
 #pragma once
-#include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
+
+#include "../../VKRenderer/Core/Application/Application.h"
+//#include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
 
 
 struct ModelUBO
@@ -28,23 +30,9 @@ struct LightInfoUBO
 };
 
 class Camera;
-class ModelViewer : public vkRenderer
+class ModelViewer : public Application
 {
-public:
-	ModelViewer();
-	~ModelViewer();
-
-	// Inherited via vkRenderer
-	virtual void PrepareApp();
-
-	// Inherited via vkRenderer
-	virtual void Update(float deltaTime) override;
-
-	// Inherited via vkRenderer
-	virtual void Draw(float deltaTime)  override;
-
-	virtual void Destroy() override;
-
+private:
 
 	//Helper functions for this application
 
@@ -123,6 +111,33 @@ private:
 	bool m_showPhongGUILight;
 	bool m_showBRDFGUILight;
 	float m_roughnessGUILight;
+
+	// Variables
+	vkRenderer*						m_renderer;
+
+
+public:
+	ModelViewer();
+	~ModelViewer();
+
+	virtual vkRenderer* getRenderer()
+	{
+		return m_renderer;
+	}
+
+	//Init Initialization of the properties here
+	virtual void Init();
+
+	// Inherited via vkRenderer
+	virtual void PrepareApp();
+
+	// Inherited via vkRenderer
+	virtual void Update(float deltaTime);
+
+	// Inherited via vkRenderer
+	virtual void Draw(float deltaTime);
+
+	virtual void Destroy() override;
 
 };
 
