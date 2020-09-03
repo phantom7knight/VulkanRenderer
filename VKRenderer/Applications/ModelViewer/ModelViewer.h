@@ -114,8 +114,15 @@ private:
 
 	// Variables
 	vkRenderer*						m_renderer;
-
-
+	VkRenderPass					m_renderPass;
+	VkCommandPool					m_commandPool;
+	VkDescriptorSetLayout			m_descriptorSetLayout;
+	VkDescriptorPool				m_DescriptorPool;
+	FrameBufferDesc					m_FBO;
+	GraphicsPipelineInfo			ModelGraphicsPipeline;
+	BufferDesc						m_ModelVertexBuffer;
+	BufferDesc						m_ModelIndexBuffer;
+	std::vector<VkCommandBuffer>	m_commandBuffers;
 public:
 	ModelViewer();
 	~ModelViewer();

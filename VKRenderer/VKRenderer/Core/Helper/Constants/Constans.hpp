@@ -170,11 +170,11 @@ struct ComputePipelineInfo
 
 struct FrameBufferDesc
 {
-	uint32_t			attachmentCount;
-	const VkImageView*	Attachments;
-	float				FBOWidth;
-	float				FBOHeight;
-	VkFramebuffer		FrameBuffer;
+	uint32_t							attachmentCount;
+	std::vector< VkImageView >			Attachments;
+	float								FBOWidth;
+	float								FBOHeight;
+	VkFramebuffer						FrameBuffer;
 };
 
 struct FrameSubmissionDesc
@@ -184,4 +184,13 @@ struct FrameSubmissionDesc
 	uint32_t						commandBufferCount;
 	VkCommandBuffer					*commandBuffer;
 	VkResult						result;
+};
+
+struct SamplerCreationDesc
+{
+	VkFilter			minFilter;
+	VkFilter			magFilter;
+	VkBool32			anisotropyEnable;
+	VkSamplerMipmapMode MipMode;
+
 };

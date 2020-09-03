@@ -245,7 +245,7 @@ VkVertexInputBindingDescription MeshLoader::getBindingDescription()
 	return VertexInfo::getBindingDescription();
 }
 
-std::array<VkVertexInputAttributeDescription, 5> MeshLoader::getAttributeDescriptionsofVertex()
+std::vector<VkVertexInputAttributeDescription> MeshLoader::getAttributeDescriptionsofVertex()
 {
 	return VertexInfo::getAttributeDescriptionsofVertex();
 }

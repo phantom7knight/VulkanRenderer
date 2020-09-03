@@ -49,13 +49,16 @@ public:
 	void CreateSwapChain();
 	void CleanUpSwapChain();
 
-
+	// Swap Chain Image View Creation
 	void CreateSwapChainImageView();
-	void createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView *a_imageView);
+
+	// Image Creation
+	void CreateImage(TextureBufferDesc* a_texBuffDesc);
+	void CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView *a_imageView);
 	
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 
-	//Buffer Creation Related
+	//Buffer Creation
 	uint32_t findMemoryType(uint32_t typeFiler, VkMemoryPropertyFlags properties);
 	void CreateBufferWithoutStaging(VkDeviceSize a_size, VkBufferUsageFlags a_usage, VkMemoryPropertyFlags a_properties,
 		VkBuffer& a_buffer, VkDeviceMemory& a_bufferMemory);
@@ -65,7 +68,7 @@ public:
 	void CreateBuffer(void const* databuffer, VkDeviceSize a_bufferSize, BufferDesc* a_BufferToCreate, VkBufferUsageFlags a_usage,
 		VkCommandPool a_commandPool);
 
-	//Command Buffer Related
+	//Command Buffer
 	VkCommandBuffer BeginSingleTimeCommands(VkCommandPool a_commandPool);
 	void EndSingleTimeCommands(VkCommandBuffer* a_commandBuffer, VkCommandPool a_commandPool);
 	void TransitionImageLayouts(VkCommandPool a_commandPool, VkCommandBuffer* a_commandBuffer,
@@ -94,7 +97,8 @@ public:
 	void CreateSemaphoresandFences();
 	VkResult AcquireNextImage(uint32_t *a_imageIndex, size_t a_currentFrameNumber);
 	void SubmissionAndPresentation(FrameSubmissionDesc a_frameSubmissionDesc);
-
+	void LoadImageTexture(std::string textureName, TextureBufferDesc *a_imageData, VkCommandPool a_commandPool, VkCommandBuffer* a_commandBuffer);
+	void CreateTextureSampler(SamplerCreationDesc a_createInfo, VkSampler* a_sampler);
 #pragma endregion
 
 	
@@ -153,9 +157,9 @@ public:
 
 	//std::vector<VkImageView>			m_SwapChainImageViews;
 
-	VkRenderPass						m_renderPass;//TODO : This can be modified later
-	VkPipelineLayout					m_pipelineLayout;//TODO : This has to be per Shader/Obj [Look into it]
-	VkPipeline							m_graphicsPipeline;
+	//VkRenderPass						m_renderPass;//TODO : This can be modified later
+	//VkPipelineLayout					m_pipelineLayout;//TODO : This has to be per Shader/Obj [Look into it]
+	//VkPipeline							m_graphicsPipeline;
 
 	// Swap Chain Frame Buffer
 	std::vector<FrameBufferDesc>		m_swapChainFrameBuffer;

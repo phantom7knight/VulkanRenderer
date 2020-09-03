@@ -100,14 +100,152 @@ bool vkRenderer::InitGLFW()
 
 
 //===================================================================
-// Creating Image Views[Used to view Images]
+// Creating Image & Image Views[Used to view Images]
 //===================================================================
-void vkRenderer::createImageView(VkImage a_image, VkFormat a_format, VkImageAspectFlags a_aspectFlags, VkImageView *a_imageView)
+void vkRenderer::CreateImage(TextureBufferDesc* a_texBuffDesc)
+{
+	VkImageCreateInfo ImageCreateInfo = {};
+
+	ImageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+	ImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+	ImageCreateInfo.extent.width = a_texBuffDesc->ImageWidth;
+	ImageCreateInfo.extent.height = a_texBuffDesc->ImageHeight;
+	ImageCreateInfo.extent.depth = 1;
+	ImageCreateInfo.mipLevels = 1;
+	ImageCreateInfo.arrayLayers = 1;
+	ImageCreateInfo.format = a_texBuffDesc->imageFormat;
+	ImageCreateInfo.tiling = a_texBuffDesc->tiling;
+	ImageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	ImageCreateInfo.usage = a_texBuffDesc->usageFlags;
+	ImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+	ImageCreateInfo.flags = 0;
+
+
+	if (vkCreateImage(m_device, &ImageCreateInfo, nullptr, &(a_texBuffDesc->BufferImage)) != VK_SUCCESS)
+	{
+		std::cout << " Failed to create Image \n";
+	}
+
+	VkMemoryRequirements memRequirements;
+	vkGetImageMemoryRequirements(m_device, a_texBuffDesc->BufferImage, &memRequirements);
+
+	VkMemoryAllocateInfo allocateInfo = {};
+	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocateInfo.allocationSize = memRequirements.size;
+	allocateInfo.memoryTypeIndex = VulkanHelper::FindMemoryType(m_physicalDevice,memRequirements.memoryTypeBits, a_texBuffDesc->propertyFlags);
+
+	if (vkAllocateMemory(m_device, &allocateInfo, nullptr, &a_texBuffDesc->BufferMemory) != VK_SUCCESS)
+	{
+		std::cout << "Failed to allocate memory to the image \n";
+	}
+
+	vkBindImageMemory(m_device, a_texBuffDesc->BufferImage, a_texBuffDesc->BufferMemory, 0);
+}
+
+void vkRenderer::CreateImageView(VkImage a_image, VkFormat a_format, VkImageAspectFlags a_aspectFlags, VkImageView *a_imageView)
 {
 	VulkanHelper::CreateImageView(m_device, a_image, a_format, a_aspectFlags, a_imageView);
 	return;
 }
 
+void vkRenderer::CreateTextureSampler(SamplerCreationDesc a_createInfo, VkSampler *a_sampler)
+{
+	VkSamplerCreateInfo createInfo = {};
+
+	createInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	createInfo.pNext = nullptr;
+
+	createInfo.magFilter = a_createInfo.magFilter;
+	createInfo.minFilter = a_createInfo.minFilter;
+
+	createInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	createInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	createInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+	createInfo.anisotropyEnable = a_createInfo.anisotropyEnable;
+	createInfo.maxAnisotropy = 16; // lower value bad quality more performance
+
+	createInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+
+	//******* VERY IMP************/
+	createInfo.unnormalizedCoordinates = VK_FALSE;
+
+	createInfo.compareEnable = VK_FALSE;
+	createInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+
+	createInfo.mipmapMode = a_createInfo.MipMode;
+	createInfo.mipLodBias = 0.0f;
+	createInfo.minLod = 0.0f;
+	createInfo.maxLod = 0.0f;
+
+	VulkanHelper::CreateSampler(m_device, createInfo, a_sampler);
+	
+	return;
+}
+
+////Don't include this in a header file////
+#define STB_IMAGE_IMPLEMENTATION
+#include "../../Dependencies/STB/stb_image.h"
+
+void vkRenderer::LoadImageTexture(std::string textureName, TextureBufferDesc *a_imageData, VkCommandPool a_commandPool,
+	VkCommandBuffer* a_commandBuffer)
+{
+	int texWidth, texHeight, texChannels;
+
+	stbi_uc* pixels = stbi_load(textureName.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+
+	VkDeviceSize imageSize = texWidth * texHeight * 4;
+
+	if (!pixels)
+		std::cout << "Failed to load Texture : " << textureName << "\n";
+
+
+	BufferDesc stagingBuffer;
+		
+	VulkanHelper::CreateBuffer(m_device, m_physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		stagingBuffer.Buffer, stagingBuffer.BufferMemory);
+
+	void* data;
+	vkMapMemory(m_device, stagingBuffer.BufferMemory, 0, imageSize, 0, &data);
+	memcpy(data, pixels, static_cast<size_t>(imageSize));
+	vkUnmapMemory(m_device, stagingBuffer.BufferMemory);
+
+
+	//free the loaded image
+	stbi_image_free(pixels);
+
+	//Set the image Property
+
+	a_imageData->ImageWidth = texWidth;
+	a_imageData->ImageHeight = texHeight;
+	a_imageData->imageFormat = VK_FORMAT_R8G8B8A8_SRGB;
+	a_imageData->tiling = VK_IMAGE_TILING_OPTIMAL;
+	a_imageData->usageFlags = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	a_imageData->propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+	CreateImage(a_imageData);
+
+	VulkanHelper::TransitionImageLayouts(m_device, a_commandPool, m_graphicsQueue, a_imageData->BufferImage, VK_FORMAT_R8G8B8A8_SRGB,
+		VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+	VulkanHelper::CopyBufferToImage(m_device, a_commandPool, m_graphicsQueue, stagingBuffer.Buffer, *a_imageData);
+
+	VulkanHelper::TransitionImageLayouts(m_device, a_commandPool, m_graphicsQueue, a_imageData->BufferImage, VK_FORMAT_R8G8B8A8_SRGB,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+	/*TransitionImageLayouts(a_imageData->BufferImage, VK_FORMAT_R8G8B8A8_SRGB,
+		VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);*/
+
+	//CopyBufferToImage(stagingBuffer.Buffer, &a_imageData);
+
+	//we do this to have access to the shader to a sampler
+	/*TransitionImageLayouts(a_imageData.BufferImage, VK_FORMAT_R8G8B8A8_SRGB,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);*/
+
+	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
+	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
+}
 
 //===================================================================
 //RenderPass Creation
@@ -191,7 +329,6 @@ std::vector<VkPipelineShaderStageCreateInfo> vkRenderer::ShaderStageInfoGenerati
 
 	return shaderStages;
 }
-
 
 //===================================================================
 //Pipeline Creation
@@ -415,7 +552,7 @@ void vkRenderer::EndSingleTimeCommands(VkCommandBuffer* a_commandBuffer, VkComma
 void vkRenderer::TransitionImageLayouts(VkCommandPool a_commandPool, VkCommandBuffer* a_commandBuffer,
 	VkImage a_image, VkFormat a_format, VkImageLayout a_oldLayout, VkImageLayout a_newLayout)
 {
-	VulkanHelper::TransitionImageLayouts(m_device, a_commandPool, a_commandBuffer, m_graphicsQueue, a_image,
+	VulkanHelper::TransitionImageLayouts(m_device, a_commandPool, m_graphicsQueue, a_image,
 		a_format, a_oldLayout, a_newLayout);
 }
 
@@ -598,7 +735,7 @@ void vkRenderer::CreateFrameBuffer(FrameBufferDesc a_fboDesc, VkRenderPass a_ren
 	fbcreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 	fbcreateInfo.renderPass = a_renderPass;
 	fbcreateInfo.attachmentCount = a_fboDesc.attachmentCount;
-	fbcreateInfo.pAttachments = a_fboDesc.Attachments;
+	fbcreateInfo.pAttachments = a_fboDesc.Attachments.data();
 	fbcreateInfo.width  = static_cast<uint32_t>(a_fboDesc.FBOWidth);
 	fbcreateInfo.height = static_cast<uint32_t>(a_fboDesc.FBOHeight);
 	fbcreateInfo.layers = 1;
@@ -776,7 +913,6 @@ void vkRenderer::DestroyDebugUtilsMessengerEXT(
 		}
 	}
 
-
 void vkRenderer::CleanUpSwapChain()
 {
 
@@ -815,7 +951,6 @@ void vkRenderer::CleanUpSwapChain()
 	//vkDestroyDescriptorPool(m_device, m_DescriptorPool, nullptr);
 
 }
-
 
 void vkRenderer::Destroy()
 {

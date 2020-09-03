@@ -1,18 +1,16 @@
-#include "ModelViewer.h"
 #include "../../VKRenderer/Core/PCH/stdafx.h"
-#include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
 #include "../../VKRenderer/Core/Application/Application.h"
-#include "../../Dependencies/Imgui/IMGUI/Imgui_Impl.h"
 #include "../../VKRenderer/Core/Camera/Camera.h"
+#include "ModelViewer.h"
 
 
 int i = 0;
 std::chrono::time_point<std::chrono::high_resolution_clock>lastTimeStamp;
 
-void MainLoop(vkRenderer* rendererExample)
+void MainLoop(Application* rendererExample)
 {
 	
-	while (!glfwWindowShouldClose(rendererExample->getWindow()))
+	while (!glfwWindowShouldClose(rendererExample->getRenderer()->getWindow()))
 	{
 		//Frame Rate Manager Init
 		float deltaTime = 0.0f;// vkTimer::getInstance()->FrameStart(true) / 1000.0f;
@@ -32,16 +30,16 @@ void MainLoop(vkRenderer* rendererExample)
 		//Add other updates here
 
 		//camera update
-		rendererExample->m_MainCamera->update(deltaTime);
+		rendererExample->getRenderer()->m_MainCamera->update(deltaTime);
 	}
 
 
-	vkDeviceWaitIdle(rendererExample->getDevice());
+	vkDeviceWaitIdle(rendererExample->getRenderer()->getDevice());
 
 }
 
 
-void Destroy(vkRenderer * rendererExample)
+void Destroy(Application* rendererExample)
 {
 	//Renderer destroy
 	rendererExample->Destroy();
@@ -52,16 +50,16 @@ void Destroy(vkRenderer * rendererExample)
 int main() 
 {	
 	//Init a base class
-	vkRenderer* rendererExample = new ModelViewer();
+	Application* rendererExample = new ModelViewer();
 
 	//Initalize Vulkan and GLFW for window.
 	rendererExample->Init(); 
 
 	rendererExample->PrepareApp();
 
-	MainLoop(rendererExample);
+	//MainLoop(rendererExample);
 	
-	Destroy(rendererExample);
+	//Destroy(rendererExample);
 
 	//clean up the pointer
 	delete rendererExample;

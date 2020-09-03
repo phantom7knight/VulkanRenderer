@@ -560,8 +560,8 @@ namespace VulkanHelper
 	}
 
 
-	void TransitionImageLayouts(VkDevice a_device, VkCommandPool a_commandPool, VkCommandBuffer* a_commandBuffer,
-		VkQueue a_graphicsQueue, VkImage image, VkFormat format, VkImageLayout a_oldLayout, VkImageLayout a_newLayout)
+	void TransitionImageLayouts(VkDevice a_device, VkCommandPool a_commandPool, VkQueue a_graphicsQueue, VkImage image, 
+		VkFormat format, VkImageLayout a_oldLayout, VkImageLayout a_newLayout)
 	{
 		VkCommandBuffer cmdBuffer = BeginSingleTimeCommands(a_device, a_commandPool);
 
@@ -630,11 +630,7 @@ namespace VulkanHelper
 		);
 
 
-
-
-
-
-		EndSingleTimeCommands(&cmdBuffer,a_commandPool,a_device, a_graphicsQueue);
+		EndSingleTimeCommands(&cmdBuffer, a_commandPool, a_device, a_graphicsQueue);
 	}
 
 
@@ -880,6 +876,19 @@ namespace VulkanHelper
 	VkResult QueuePresent(VkQueue a_PresentQueue, VkPresentInfoKHR *a_presentInfo)
 	{
 		return vkQueuePresentKHR(a_PresentQueue, a_presentInfo);
+	}
+
+	//===================================================================
+	// Image Sampler
+	//===================================================================
+
+	void CreateSampler(VkDevice a_device, VkSamplerCreateInfo a_createInfo, VkSampler *a_TextureSampler)
+	{
+		if (vkCreateSampler(a_device, &a_createInfo, nullptr, a_TextureSampler) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Failed to create sampler for the texture provided");
+			return;
+		}
 	}
 
 }

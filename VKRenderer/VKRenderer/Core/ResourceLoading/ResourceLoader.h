@@ -58,9 +58,11 @@ struct VertexInfo
 	}
 
 
-	static std::array<VkVertexInputAttributeDescription, 5> getAttributeDescriptionsofVertex()
+	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptionsofVertex()
 	{
-		std::array<VkVertexInputAttributeDescription, 5> attributeDesc = {};
+		std::vector< VkVertexInputAttributeDescription > attributeDesc;
+
+		attributeDesc.resize(5);
 
 		//Position
 		attributeDesc[0].binding = 0;
@@ -114,7 +116,7 @@ public:
 	~MeshLoader() {}
 
 	static VkVertexInputBindingDescription getBindingDescription();
-	static std::array<VkVertexInputAttributeDescription, 5> getAttributeDescriptionsofVertex();
+	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptionsofVertex();
 
 	ModelInfo LoadModel(std::string fileName);
 

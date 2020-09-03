@@ -855,7 +855,7 @@ void ShadowMapping::LoadAModel(std::string fileName)
 
 void ShadowMapping::LoadTexture(std::string textureName)
 {
-	int texWidth, texHeight, texChannels;
+	/*int texWidth, texHeight, texChannels;
 
 	stbi_uc* pixels = stbi_load(textureName.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
@@ -899,7 +899,7 @@ void ShadowMapping::LoadTexture(std::string textureName)
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
-	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
+	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);*/
 
 }
 

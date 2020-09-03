@@ -31,136 +31,160 @@ void ModelViewer::SetUpCameraProperties(Camera* a_cam)
 
 void ModelViewer::CreateRenderPass()
 {
-//	VkAttachmentDescription colorAttachment = {};
-//
-//	colorAttachment.format = m_swapChainFormat;
-//	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;//TODO : Programmable
-//
-//	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-//	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-//
-//	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-//	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-//
-//	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass shud start with
-//	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;		//How render pass final image shud translate at end of render pass
-//
-//	VkAttachmentDescription depthAttachment = {};
-//
-//	depthAttachment.format = FindDepthFormat();
-//	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-//
-//	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-//	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-//
-//	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-//	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-//
-//	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass shud start with
-//	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;		//How render pass final image shud translate at end of render pass
-//
-//
-//	//Each renderpass can have multiple sub-passes
-//	//which will help or can be used for the Post-Processing,...etc
-//
-//	VkAttachmentReference colorAttachmentRef = {};
-//
-//	colorAttachmentRef.attachment = 0;
-//	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-//
-//	VkAttachmentReference depthAttachmentRef = {};
-//
-//	depthAttachmentRef.attachment = 1;
-//	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-//
-//	VkSubpassDescription subpassInfo = {};
-//
-//	subpassInfo.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-//	subpassInfo.colorAttachmentCount = 1;	//layout(location = 0) out vec4 outColor this is where it will be referenced
-//	subpassInfo.pColorAttachments = &colorAttachmentRef;
-//	subpassInfo.pDepthStencilAttachment = &depthAttachmentRef;
-//
-//	VkSubpassDependency dependency = {};
-//
-//	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-//	dependency.dstSubpass = 0;
-//	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-//	dependency.srcAccessMask = 0;
-//	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-//	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-//
-//
-//	//array of attachments for this render pass
-//	std::array< VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
-//
-//	//Render Pass Info
-//	VkRenderPassCreateInfo renderpassInfo = {};
-//
-//	renderpassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-//	renderpassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-//	renderpassInfo.pAttachments = attachments.data();
-//	renderpassInfo.subpassCount = 1;
-//	renderpassInfo.pSubpasses = &subpassInfo;
-//	renderpassInfo.dependencyCount = 1;
-//	renderpassInfo.pDependencies = &dependency;
-//
-//	if (vkCreateRenderPass(m_device, &renderpassInfo, nullptr, &m_renderPass) != VK_SUCCESS)
-//	{
-//		throw std::runtime_error("Unable to create Render Pass");
-//	}
+	VkAttachmentDescription colorAttachment = {};
+
+	colorAttachment.format = m_renderer->m_swapChainDescription.m_swapChainFormat;
+	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;//TODO : Programmable
+
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass shud start with
+	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;		//How render pass final image shud translate at end of render pass
+
+	VkAttachmentDescription depthAttachment = {};
+
+	depthAttachment.format = m_renderer->FindDepthFormat();
+	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+
+	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass shud start with
+	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;		//How render pass final image shud translate at end of render pass
+
+
+	//Each renderpass can have multiple sub-passes
+	//which will help or can be used for the Post-Processing,...etc
+
+	VkAttachmentReference colorAttachmentRef = {};
+
+	colorAttachmentRef.attachment = 0;
+	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkAttachmentReference depthAttachmentRef = {};
+
+	depthAttachmentRef.attachment = 1;
+	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription subpassInfo = {};
+
+	subpassInfo.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpassInfo.colorAttachmentCount = 1;	//layout(location = 0) out vec4 outColor this is where it will be referenced
+	subpassInfo.pColorAttachments = &colorAttachmentRef;
+	subpassInfo.pDepthStencilAttachment = &depthAttachmentRef;
+
+	VkSubpassDependency dependency = {};
+
+	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	dependency.dstSubpass = 0;
+	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.srcAccessMask = 0;
+	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+	//array of attachments for this render pass
+	std::vector< VkAttachmentDescription> attachments = { colorAttachment, depthAttachment };
+
+	std::vector<VkAttachmentReference> attachmentReferences;
+
+	attachmentReferences.resize(attachments.size());
+
+	attachmentReferences[0] = colorAttachmentRef;
+	attachmentReferences[1] = depthAttachmentRef;
+
+	std::vector<VkSubpassDependency> subPassDependency = { dependency };
+
+
+
+	RenderPassInfo renderPassdesc = {};
+
+	renderPassdesc.attachmentDescriptions = attachments;
+	renderPassdesc.attachmentReferences = attachmentReferences;
+	renderPassdesc.subpassDependecy = subPassDependency;
+	renderPassdesc.subpassInfo = subpassInfo;
+
+	m_renderer->CreateRenderPass(renderPassdesc, &m_renderPass);	
 }
 
 void ModelViewer::CreateDescriptorSetLayout()
 {
-	////create binding for UBO
-	////used in vertex shader
-	//VkDescriptorSetLayoutBinding layoutBinding = {};
+	//create binding for UBO
+	//used in vertex shader
+	VkDescriptorSetLayoutBinding layoutBinding = {};
 
-	//layoutBinding.binding = 0;
-	//layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	//layoutBinding.descriptorCount = 1;
-	//layoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	//layoutBinding.pImmutableSamplers = nullptr;
+	layoutBinding.binding = 0;
+	layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	layoutBinding.descriptorCount = 1;
+	layoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	layoutBinding.pImmutableSamplers = nullptr;
 
-	////create binding for sampler
-	////used in pixel shader
-	//VkDescriptorSetLayoutBinding samplerBinding = {};
+	//create binding for sampler
+	//used in pixel shader
+	VkDescriptorSetLayoutBinding samplerBinding = {};
 
-	//samplerBinding.binding = 1;
-	//samplerBinding.descriptorCount = 1;
-	//samplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	//samplerBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	//samplerBinding.pImmutableSamplers = nullptr;
+	samplerBinding.binding = 1;
+	samplerBinding.descriptorCount = 1;
+	samplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerBinding.pImmutableSamplers = nullptr;
 
-	////TODO: check the binding for the layout
-	//VkDescriptorSetLayoutBinding LightlayoutBinding = {};
+	//TODO: check the binding for the layout
+	VkDescriptorSetLayoutBinding LightlayoutBinding = {};
 
-	//LightlayoutBinding.binding = 2;
-	//LightlayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	//LightlayoutBinding.descriptorCount = 1;
-	//LightlayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	//LightlayoutBinding.pImmutableSamplers = nullptr;
-
-
-
-	////create an array of descriptors
-	//std::array< VkDescriptorSetLayoutBinding, 3> descriptorsArray = { layoutBinding ,samplerBinding, LightlayoutBinding };
+	LightlayoutBinding.binding = 2;
+	LightlayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	LightlayoutBinding.descriptorCount = 1;
+	LightlayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	LightlayoutBinding.pImmutableSamplers = nullptr;
 
 
-	//VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 
-	//layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	//layoutInfo.bindingCount = static_cast<uint32_t>(descriptorsArray.size());
-	//layoutInfo.pBindings = descriptorsArray.data();
+	//create an vector of descriptors
+	std::vector< VkDescriptorSetLayoutBinding> descriptorsVector = { layoutBinding ,samplerBinding, LightlayoutBinding };
 
-	//if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &m_descriptorSetLayout) != VK_SUCCESS)
-	//{
-	//	throw std::runtime_error("Failed to create Descriptor Set Layout");
-	//}
+	m_renderer->CreateDescriptorSetLayout(descriptorsVector, &m_descriptorSetLayout);
 }
 
 void ModelViewer::CreateGraphicsPipeline()
 {
+	std::vector<std::string> ShaderFileNames;
+
+	ShaderFileNames.resize(2);
+
+	ShaderFileNames[0] = "Model.vert";
+	ShaderFileNames[1] = "Model.frag";
+
+	ModelGraphicsPipeline.ShaderFileNames = ShaderFileNames;
+
+	// Vertex Input
+	ModelGraphicsPipeline.vertexBindingDesc = m_renderer->rsrcLdr.getModelLoaderobj().getBindingDescription();;
+	ModelGraphicsPipeline.AttributeDescriptionsofVertex = m_renderer->rsrcLdr.getModelLoaderobj().getAttributeDescriptionsofVertex();
+
+	//Input Assembly
+	ModelGraphicsPipeline.pipelineTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+	// Rasterizer
+	ModelGraphicsPipeline.polygonMode = VK_POLYGON_MODE_FILL;
+	ModelGraphicsPipeline.cullMode = VK_CULL_MODE_BACK_BIT;
+	ModelGraphicsPipeline.frontFaceCullingMode = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	ModelGraphicsPipeline.depthBiasEnableMode = VK_FALSE;
+
+	//Create Pipeline Layout b4 creating Graphics Pipeline
+	ModelGraphicsPipeline.a_descriptorSetLayout = m_descriptorSetLayout;
+
+	ModelGraphicsPipeline.renderPass = m_renderPass;
+	ModelGraphicsPipeline.subpass = 0;
+
+	m_renderer->CreateGraphicsPipeline(&ModelGraphicsPipeline);
+
+	//==================================================================================================
 	//generate SPIRV binary code
 	/*std::vector<std::string> ShaderFileNames;
 
@@ -366,47 +390,45 @@ void ModelViewer::CreateGraphicsPipeline()
 
 	vkDestroyShaderModule(m_device, vertexShaderModule, nullptr);
 	vkDestroyShaderModule(m_device, pixelShaderModule, nullptr);*/
+
 }
 
 void ModelViewer::CreateFrameBuffers()
 {
-	/*m_swapChainFrameBuffer.resize(m_SwapChainImageViews.size());
+	m_renderer->m_swapChainFrameBuffer.resize(m_renderer->m_swapChainDescription.m_SwapChainImageViews.size());
 
-	for (uint32_t i = 0; i < m_SwapChainImageViews.size(); ++i)
+	for (uint32_t i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImageViews.size(); ++i)
 	{
-		std::array< VkImageView,2> attachments[] = { m_SwapChainImageViews[i], depthImageView };
+		std::vector< VkImageView> attachments = { m_renderer->m_swapChainDescription.m_SwapChainImageViews[i],
+													depthImageView };
 
-		VkFramebufferCreateInfo fbcreateInfo = {};
+		m_FBO.attachmentCount = static_cast<uint32_t>(attachments.size());
+		m_FBO.FBOWidth = m_renderer->m_swapChainDescription.m_swapChainExtent.width;
+		m_FBO.Attachments = attachments;
+		m_FBO.FBOHeight = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
+
+		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFrameBuffer[i].FrameBuffer);
+
+		/*VkFramebufferCreateInfo fbcreateInfo = {};
 
 		fbcreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		fbcreateInfo.renderPass = m_renderPass;
 		fbcreateInfo.attachmentCount = static_cast<uint32_t>(attachments->size());
 		fbcreateInfo.pAttachments = attachments->data();
-		fbcreateInfo.width = m_swapChainExtent.width;
-		fbcreateInfo.height = m_swapChainExtent.height;
+		fbcreateInfo.width	= m_renderer->m_swapChainDescription.m_swapChainExtent.width;
+		fbcreateInfo.height = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
 		fbcreateInfo.layers = 1;
 
 		if (vkCreateFramebuffer(m_device, &fbcreateInfo, nullptr, &m_swapChainFrameBuffer[i]) != VK_SUCCESS)
 		{
 			throw std::runtime_error("Unable to create Frame Buffer");
-		}
-	}*/
+		}*/
+	}
 }
 
 void ModelViewer::CreateCommandPool()
 {
-	/*QueueFamilyIndices queuefamilyindeces = findQueueFamilies(m_physicalDevice);
-
-	VkCommandPoolCreateInfo createInfo = {};
-
-	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	createInfo.queueFamilyIndex = queuefamilyindeces.graphicsFamily.value();
-	createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-
-	if (vkCreateCommandPool(m_device, &createInfo, nullptr, &m_CommandPool) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to create Command Pool");
-	}*/
+	m_renderer->CreateCommandPool(&m_commandPool);
 }
 
 void ModelViewer::CreateUniformBuffer()
@@ -427,6 +449,20 @@ void ModelViewer::CreateUniformBuffer()
 		CreateBuffer(lightBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 			, m_LightInfoUniformBuffer[i].Buffer, m_LightInfoUniformBuffer[i].BufferMemory);
 	}*/
+
+	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+
+	m_TriangleUniformBuffer.resize(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+
+	for (int i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImages.size(); ++i)
+
+	{
+		m_renderer->CreateBufferWithoutStaging(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			m_TriangleUniformBuffer[i].Buffer, m_TriangleUniformBuffer[i].BufferMemory);
+	}
+
+	return;
 }
 
 void ModelViewer::CreateDescriptorPool()
@@ -847,6 +883,11 @@ void ModelViewer::SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_V
 	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
 
 	return;*/
+
+	VkDeviceSize bufferSize = a_modelDesc.vertexBufferSize;
+
+	m_renderer->CreateBuffer(a_modelDesc.vertexbufferData.data(), bufferSize, &m_ModelVertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+		m_commandPool);
 }
 
 void ModelViewer::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_IndexBUffer)
@@ -878,27 +919,34 @@ void ModelViewer::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_In
 	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
 	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
 	*/
+
+	VkDeviceSize bufferSize = a_modelDesc.indexBufferSize;
+
+	m_renderer->CreateBuffer(a_modelDesc.indexbufferData.data(), bufferSize, &m_ModelIndexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+		m_commandPool);
+
 	return;
 }
 
 void ModelViewer::LoadAModel(std::string fileName)
 {
-	/*ModelInfo modelinfor = 	rsrcLdr.LoadModelResource(fileName);
+	ModelInfo modelinfor = 	m_renderer->rsrcLdr.LoadModelResource(fileName);
 
 	//Load Index and Vertex Buffer
 	SetUpVertexBuffer(modelinfor, &VertexBUffer);
 	SetUpIndexBuffer(modelinfor	, &IndexBUffer);
 
 	m_indexBufferCount = static_cast<uint32_t>(modelinfor.indexbufferData.size());
-	*/
+	
 }
 
 ////Don't include this in a header file////
-#define STB_IMAGE_IMPLEMENTATION
-#include "../../Dependencies/STB/stb_image.h"
+//#define STB_IMAGE_IMPLEMENTATION
+//#include "../../Dependencies/STB/stb_image.h"
 
-void ModelViewer::LoadTexture(std::string textureName)
+void ModelViewer::LoadTexture(std::string a_textureName)
 {
+	
 	/*int texWidth, texHeight, texChannels;
 
 	stbi_uc* pixels = stbi_load(textureName.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
@@ -943,14 +991,16 @@ void ModelViewer::LoadTexture(std::string textureName)
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
-	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
-	*/
+	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);*/
+
+	m_renderer->LoadImageTexture(a_textureName, &image1, m_commandPool, m_commandBuffers.data());
+	
 }
 
 //TODO: Generalize this
-void ModelViewer::CreateImage(TextureBufferDesc *a_texBuffDesc)
+/*void ModelViewer::CreateImage(TextureBufferDesc *a_texBuffDesc)
 {
-	/*VkImageCreateInfo ImageCreateInfo = {};
+	VkImageCreateInfo ImageCreateInfo = {};
 
 	ImageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	ImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -986,12 +1036,12 @@ void ModelViewer::CreateImage(TextureBufferDesc *a_texBuffDesc)
 		std::cout << "Failed to allocate memory to the image \n";
 	}
 
-	vkBindImageMemory(m_device, a_texBuffDesc->BufferImage, a_texBuffDesc->BufferMemory, 0);*/
-}
+	vkBindImageMemory(m_device, a_texBuffDesc->BufferImage, a_texBuffDesc->BufferMemory, 0);
+}*/
 
 void ModelViewer::CreateImageTextureView()
 {
-	//createImageView(image1.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &textureImageView);
+	m_renderer->CreateImageView(image1.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &textureImageView);
 }
 
 void ModelViewer::CreateTextureSampler()
@@ -1026,31 +1076,39 @@ void ModelViewer::CreateTextureSampler()
 
 	if (vkCreateSampler(m_device, &createInfo, nullptr, &textureSampler) != VK_SUCCESS)
 	{
-		throw std::runtime_error("Failed to create sampler for the texture provided");
+		throw std::runtime_error("Failed to create sampler for the texture provided"); 
 		return;
 	}
-
-
 	*/
-}
+	
 
+	SamplerCreationDesc samplerDesc = {};
+
+	samplerDesc.anisotropyEnable = VK_TRUE;
+	samplerDesc.magFilter = VK_FILTER_LINEAR;
+	samplerDesc.minFilter = VK_FILTER_LINEAR;
+	samplerDesc.MipMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+
+	m_renderer->CreateTextureSampler(samplerDesc, &textureSampler);
+
+}
 
 void ModelViewer::CreateDepthResources()
 {
-	/*VkFormat depthFormat = FindDepthFormat();
+	VkFormat depthFormat = m_renderer->FindDepthFormat();
 
-	depthImageInfo.ImageHeight = m_swapChainExtent.height;
-	depthImageInfo.ImageWidth = m_swapChainExtent.width;
+	depthImageInfo.ImageHeight = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
+	depthImageInfo.ImageWidth = m_renderer->m_swapChainDescription.m_swapChainExtent.width;
 	depthImageInfo.imageFormat = depthFormat;
 	depthImageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	depthImageInfo.usageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	depthImageInfo.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-	CreateImage(&depthImageInfo);
+	m_renderer->CreateImage(&depthImageInfo);
 
-	createImageView(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &depthImageView);
+	m_renderer->CreateImageView(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &depthImageView);
 
 	//TransitionImageLayouts(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-	*/
+	
 }
 
 void ModelViewer::setGuiVariables()
@@ -1089,6 +1147,13 @@ void ModelViewer::InitGui()
 
 //==========================================================================================================
 
+void ModelViewer::Init()
+{
+	m_renderer->Init();
+
+	return;
+}
+
 void ModelViewer::PrepareApp()
 {
 	m_renderer->PrepareApp();
@@ -1096,13 +1161,13 @@ void ModelViewer::PrepareApp()
 	CreateRenderPass();
 
 	CreateDescriptorSetLayout();
-
+	
 	CreateCommandPool();
-
+	
 	CreateDepthResources();
-
+	
 	CreateFrameBuffers();
-
+	
 	CreateGraphicsPipeline();
 
 #pragma region Model_Load
@@ -1114,29 +1179,29 @@ void ModelViewer::PrepareApp()
 
 
 #pragma region Models_Tex
-		//LoadTexture("../../Assets/Textures/Statue.jpg");
-		LoadTexture("../../Assets/Textures/green.jpg");
+		LoadTexture("../../Assets/Textures/Statue.jpg");
+		//LoadTexture("../../Assets/Textures/green.jpg");
 #pragma endregion
 
 	CreateImageTextureView();
-
+	
 	CreateTextureSampler();
-
+	
 	CreateUniformBuffer();
-
-	CreateDescriptorPool();
-
-	CreateDescriptorSets();
-
-	CreateCommandBuffers();
-
-	CreateSemaphoresandFences();
-
-	// set up the camera position
-	SetUpCameraProperties(m_renderer->m_MainCamera);
-
-	//Initialize Dear ImGui
-	InitGui();
+	
+	//CreateDescriptorPool();
+	//
+	//CreateDescriptorSets();
+	//
+	//CreateCommandBuffers();
+	//
+	//CreateSemaphoresandFences();
+	//
+	//// set up the camera position
+	//SetUpCameraProperties(m_renderer->m_MainCamera);
+	//
+	////Initialize Dear ImGui
+	//InitGui();
 
 }
 

@@ -88,8 +88,6 @@ Triangle::Triangle()
 {
 	//Initialize Renderer
 	m_renderer = new vkRenderer();
-
-
 }
 
 //===================================================================
@@ -112,11 +110,11 @@ void Triangle::CreateGraphicsPipeline()
 	TrianglePipeline.vertexBindingDesc = TriangleVertex::getBindingDescription();
 	TrianglePipeline.AttributeDescriptionsofVertex = TriangleVertex::getAttributeDescriptionsofVertex();
 	
-	//Input Assembly
+	// Input Assembly
 	TrianglePipeline.pipelineTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		
-	//Rasterizer
 
+	// Rasterizer
 	TrianglePipeline.polygonMode = VK_POLYGON_MODE_FILL;
 	TrianglePipeline.cullMode = VK_CULL_MODE_BACK_BIT;
 	TrianglePipeline.frontFaceCullingMode = VK_FRONT_FACE_COUNTER_CLOCKWISE;
@@ -194,14 +192,13 @@ void Triangle::CreateFrameBuffers()
 
 	for (uint32_t i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImageViews.size(); ++i)
 	{
-		VkImageView attachments[] = { m_renderer->m_swapChainDescription.m_SwapChainImageViews[i] };
-
+		std::vector<VkImageView> attachmentsVector = { m_renderer->m_swapChainDescription.m_SwapChainImageViews[i] };
 
 		m_FBO.attachmentCount = 1;
 		m_FBO.FBOHeight = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
 		m_FBO.FBOWidth	= m_renderer->m_swapChainDescription.m_swapChainExtent.width;
 		//m_FBO.FrameBuffer = m_renderer->m_swapChainFrameBuffer[i].FrameBuffer;
-		m_FBO.Attachments = attachments;
+		m_FBO.Attachments = attachmentsVector;
 
 		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFrameBuffer[i].FrameBuffer);
 	}
