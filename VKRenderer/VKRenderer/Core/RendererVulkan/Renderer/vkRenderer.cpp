@@ -577,7 +577,7 @@ void vkRenderer::CreateCommandPool(VkCommandPool* a_commandPool)
 }
 
 
-void vkRenderer::CreateCommandBuffers(std::vector<VkCommandBuffer> &a_cmdBuffer, VkCommandPool a_cmdPool)
+void vkRenderer::AllocateCommandBuffers(std::vector<VkCommandBuffer> &a_cmdBuffer, VkCommandPool a_cmdPool)
 {
 	VkCommandBufferAllocateInfo createInfo = {};
 
@@ -586,11 +586,8 @@ void vkRenderer::CreateCommandBuffers(std::vector<VkCommandBuffer> &a_cmdBuffer,
 	createInfo.commandPool = a_cmdPool;
 	createInfo.commandBufferCount = (uint32_t)a_cmdBuffer.size();
 
-
-	if (vkAllocateCommandBuffers(m_device, &createInfo, a_cmdBuffer.data()) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to create Command Buffers");
-	}
+	VulkanHelper::AllocateCommandBuffers(m_device, createInfo, a_cmdBuffer);
+	
 }
 
 
@@ -667,14 +664,14 @@ void vkRenderer::CreateDescriptorSetLayout(std::vector<VkDescriptorSetLayoutBind
 //=====================================================================================================================
 
 
-void vkRenderer::CreateDescriptorPool(VkDescriptorPoolSize a_poolSize, uint32_t a_maxSets, uint32_t a_poolSizeCount,
+void vkRenderer::CreateDescriptorPool(std::vector< VkDescriptorPoolSize > a_poolSize, uint32_t a_maxSets, uint32_t a_poolSizeCount,
 	VkDescriptorPool* a_descriptorPool)
 {
 	VkDescriptorPoolCreateInfo createInfo = {};
 
 	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	createInfo.poolSizeCount = a_poolSizeCount;
-	createInfo.pPoolSizes = &a_poolSize;
+	createInfo.pPoolSizes = a_poolSize.data();
 	createInfo.maxSets = a_maxSets;
 
 
@@ -724,6 +721,29 @@ void vkRenderer::CreateDesciptorSets(uint32_t descriptorSetCount, VkDescriptorSe
 	}
 }
 
+
+void vkRenderer::AllocateDescriptorSets(VkDescriptorPool a_descriptorPool, std::vector<VkDescriptorSetLayout> layouts, std::vector<VkDescriptorSet> &a_DescriptorSets)
+{
+	VkDescriptorSetAllocateInfo allocateInfo = {};
+
+	allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocateInfo.descriptorPool = a_descriptorPool;
+	allocateInfo.descriptorSetCount = static_cast<uint32_t>(m_swapChainDescription.m_SwapChainImages.size());
+	allocateInfo.pSetLayouts = layouts.data();
+
+	a_DescriptorSets.resize(m_swapChainDescription.m_SwapChainImages.size());
+
+	VulkanHelper::AllocateDescriptorSets(m_device, allocateInfo, a_DescriptorSets);
+
+	return;
+}
+
+void vkRenderer::UpdateDescriptorSets(std::vector< VkWriteDescriptorSet>& a_descriptorWriteInfo)
+{
+	VulkanHelper::UpdateDescriptorSets(m_device, a_descriptorWriteInfo);
+
+	return;
+}
 
 //===================================================================
 //Creating Frame Buffers

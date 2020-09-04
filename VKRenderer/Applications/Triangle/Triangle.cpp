@@ -223,9 +223,9 @@ void Triangle::CreateCommandBuffers()
 	m_commandBuffers.resize(m_renderer->m_swapChainFrameBuffer.size());
 	
 	//Allocate Command Buffer
-	m_renderer->CreateCommandBuffers(m_commandBuffers, m_commandPool);
+	m_renderer->AllocateCommandBuffers(m_commandBuffers, m_commandPool);
 
-	VkCommandBufferAllocateInfo createInfo = {};
+	/*VkCommandBufferAllocateInfo createInfo = {};
 
 	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	createInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -236,7 +236,7 @@ void Triangle::CreateCommandBuffers()
 	if (vkAllocateCommandBuffers(m_renderer->m_device, &createInfo, m_commandBuffers.data()) != VK_SUCCESS)
 	{
 		throw std::runtime_error("Unable to create Command Buffers");
-	}
+	}*/
 
 	//Record Command Buffer data
 	for (size_t i = 0; i < m_commandBuffers.size(); ++i)
@@ -471,10 +471,12 @@ void Triangle::CreateDescriptorSetLayout()
 void Triangle::CreateDescriptorPool()
 {
 
-	VkDescriptorPoolSize poolSize = {};
+	std::vector< VkDescriptorPoolSize > poolSize = {};
 
-	poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSize.descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+	poolSize.resize(1);
+
+	poolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSize[0].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
 
 	m_renderer->CreateDescriptorPool(poolSize, static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size()),
 		1, &m_DescriptorPool);
@@ -494,7 +496,6 @@ void Triangle::CreateDescriptorPool()
 	}*/
 
 }
-
 
 void Triangle::CreateDesciptorSets()
 {

@@ -20,12 +20,12 @@ ModelViewer::~ModelViewer()
 void ModelViewer::SetUpCameraProperties(Camera* a_cam)
 {
 	//SetUp Camera Properties
-	//a_cam->set_position(glm::vec3(0.0, 0.0, -1.5));
-	//a_cam->camProperties.rotation_speed	   = 0.2f;
-	//a_cam->camProperties.translation_speed = 0.002f;
-	//
-	////set proj matrix
-	//a_cam->set_perspective(glm::radians(45.0f), (float)m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 1000.0f);
+	a_cam->set_position(glm::vec3(0.0, 0.0, -1.5));
+	a_cam->camProperties.rotation_speed	   = 0.2f;
+	a_cam->camProperties.translation_speed = 0.002f;
+	
+	//set proj matrix
+	a_cam->set_perspective(glm::radians(45.0f), (float)m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 1000.0f);
 
 }
 
@@ -450,16 +450,22 @@ void ModelViewer::CreateUniformBuffer()
 			, m_LightInfoUniformBuffer[i].Buffer, m_LightInfoUniformBuffer[i].BufferMemory);
 	}*/
 
-	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+	VkDeviceSize bufferSize = sizeof(ModelUBO);
+	VkDeviceSize lightBufferSize = sizeof(LightInfoUBO);
 
-	m_TriangleUniformBuffer.resize(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+	m_ModelUniformBuffer.resize(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+	m_LightInfoUniformBuffer.resize(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
 
 	for (int i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImages.size(); ++i)
 
 	{
 		m_renderer->CreateBufferWithoutStaging(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			m_TriangleUniformBuffer[i].Buffer, m_TriangleUniformBuffer[i].BufferMemory);
+			m_ModelUniformBuffer[i].Buffer, m_ModelUniformBuffer[i].BufferMemory);
+
+		m_renderer->CreateBufferWithoutStaging(lightBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			m_LightInfoUniformBuffer[i].Buffer, m_LightInfoUniformBuffer[i].BufferMemory);
 	}
 
 	return;
@@ -491,6 +497,24 @@ void ModelViewer::CreateDescriptorPool()
 	{
 		throw std::runtime_error("Unable to create Desciptor Pool");
 	}*/
+
+	std::vector<VkDescriptorPoolSize> poolSizes = {};
+
+	poolSizes.resize(3);
+
+	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+
+	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[1].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+
+	poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSizes[2].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+
+
+	m_renderer->CreateDescriptorPool(poolSizes, static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size()),
+		static_cast<uint32_t>(poolSizes.size()), &m_DescriptorPool);
+
 }
 
 void ModelViewer::CreateDescriptorSets()
@@ -567,24 +591,88 @@ void ModelViewer::CreateDescriptorSets()
 		
 	}*/
 
+	std::vector<VkDescriptorSetLayout> layouts(m_renderer->m_swapChainDescription.m_SwapChainImages.size(), m_descriptorSetLayout);
+
+	/*VkDescriptorSetAllocateInfo allocateInfo = {};
+
+	allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocateInfo.descriptorPool = m_DescriptorPool;
+	allocateInfo.descriptorSetCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+	allocateInfo.pSetLayouts = layouts.data();
+
+	m_DescriptorSets.resize(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+
+	if (vkAllocateDescriptorSets(m_renderer->, &allocateInfo, m_DescriptorSets.data()) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to create Desciptor Sets");
+	}*/
+
+	m_renderer->AllocateDescriptorSets(m_DescriptorPool, layouts, m_DescriptorSets);
+
+	for (size_t i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImages.size(); ++i)
+	{
+		VkDescriptorBufferInfo bufferInfo = {};
+
+		bufferInfo.buffer = m_ModelUniformBuffer[i].Buffer;
+		bufferInfo.offset = 0;
+		bufferInfo.range = sizeof(ModelUBO);
+
+		VkDescriptorBufferInfo lightBufferInfo = {};
+
+		lightBufferInfo.buffer = m_LightInfoUniformBuffer[i].Buffer;
+		lightBufferInfo.offset = 0;
+		lightBufferInfo.range = sizeof(LightInfoUBO);
+
+		VkDescriptorImageInfo imageInfo = {};
+
+		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageInfo.sampler = textureSampler;
+		imageInfo.imageView = textureImageView;
+
+		std::vector< VkWriteDescriptorSet> descriptorWriteInfo = {};
+
+		descriptorWriteInfo.resize(3);
+
+		descriptorWriteInfo[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWriteInfo[0].dstSet = m_DescriptorSets[i];
+		descriptorWriteInfo[0].dstBinding = 0;
+		descriptorWriteInfo[0].dstArrayElement = 0;
+		descriptorWriteInfo[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWriteInfo[0].descriptorCount = 1;
+		descriptorWriteInfo[0].pBufferInfo = &bufferInfo;
+		descriptorWriteInfo[0].pImageInfo = nullptr;
+		descriptorWriteInfo[0].pTexelBufferView = nullptr;
+
+		descriptorWriteInfo[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWriteInfo[1].dstSet = m_DescriptorSets[i];
+		descriptorWriteInfo[1].dstBinding = 1;
+		descriptorWriteInfo[1].dstArrayElement = 0;
+		descriptorWriteInfo[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWriteInfo[1].descriptorCount = 1;
+		descriptorWriteInfo[1].pImageInfo = &imageInfo;
+		descriptorWriteInfo[1].pBufferInfo = nullptr; //TODO: Check this
+		descriptorWriteInfo[1].pTexelBufferView = nullptr;
+
+		descriptorWriteInfo[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWriteInfo[2].dstSet = m_DescriptorSets[i];
+		descriptorWriteInfo[2].dstBinding = 2;
+		descriptorWriteInfo[2].dstArrayElement = 0;
+		descriptorWriteInfo[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWriteInfo[2].descriptorCount = 1;
+		descriptorWriteInfo[2].pBufferInfo = &lightBufferInfo;
+		descriptorWriteInfo[2].pImageInfo = nullptr;
+		descriptorWriteInfo[2].pTexelBufferView = nullptr;
+
+		m_renderer->UpdateDescriptorSets(descriptorWriteInfo);
+		
+	}
 }
 
 void ModelViewer::CreateCommandBuffers()
 {
-	/*m_commandBuffers.resize(m_swapChainFrameBuffer.size());
+	m_commandBuffers.resize(m_renderer->m_swapChainFrameBuffer.size());
 
-	VkCommandBufferAllocateInfo createInfo = {};
-
-	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	createInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	createInfo.commandPool = m_CommandPool;
-	createInfo.commandBufferCount = (uint32_t)m_commandBuffers.size();
-
-
-	if (vkAllocateCommandBuffers(m_device, &createInfo, m_commandBuffers.data()) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to create Command Buffers");
-	}*/
+	m_renderer->AllocateCommandBuffers(m_commandBuffers, m_commandPool);
 
 }
 
@@ -616,6 +704,7 @@ void ModelViewer::CreateSemaphoresandFences()
 	}
 
 	*/
+	m_renderer->CreateSemaphoresandFences();
 
 }
 
@@ -1189,17 +1278,17 @@ void ModelViewer::PrepareApp()
 	
 	CreateUniformBuffer();
 	
-	//CreateDescriptorPool();
-	//
-	//CreateDescriptorSets();
-	//
-	//CreateCommandBuffers();
-	//
-	//CreateSemaphoresandFences();
-	//
+	CreateDescriptorPool();
+	
+	CreateDescriptorSets();
+	
+	CreateCommandBuffers();
+	
+	CreateSemaphoresandFences();
+	
 	//// set up the camera position
-	//SetUpCameraProperties(m_renderer->m_MainCamera);
-	//
+	SetUpCameraProperties(m_renderer->m_MainCamera);
+	
 	////Initialize Dear ImGui
 	//InitGui();
 

@@ -85,7 +85,7 @@ private:
 
 	void LoadAModel(std::string fileName);
 	void LoadTexture(std::string fileName);
-	void CreateImage(TextureBufferDesc *a_texBufferDesc);
+	//void CreateImage(TextureBufferDesc *a_texBufferDesc);
 
 	BufferDesc IndexBUffer;
 	BufferDesc VertexBUffer;
@@ -123,6 +123,11 @@ private:
 	BufferDesc						m_ModelVertexBuffer;
 	BufferDesc						m_ModelIndexBuffer;
 	std::vector<VkCommandBuffer>	m_commandBuffers;
+	std::vector<BufferDesc>			m_ModelUniformBuffer;
+	std::vector<BufferDesc>			m_LightInfoUniformBuffer;
+	std::vector<VkDescriptorSet>	m_DescriptorSets;
+
+
 public:
 	ModelViewer();
 	~ModelViewer();

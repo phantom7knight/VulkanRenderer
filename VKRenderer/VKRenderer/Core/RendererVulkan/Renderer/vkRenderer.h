@@ -87,13 +87,15 @@ public:
 	void CreateComputePipeline(ComputePipelineInfo a_computePipelineInfo);
 	std::vector<VkPipelineShaderStageCreateInfo>  ShaderStageInfoGeneration(std::vector<std::string>ShaderNames);
 	void CreateFrameBuffer(FrameBufferDesc a_fboDesc, VkRenderPass a_renderPass, VkFramebuffer* a_frameBuffer);
-	void CreateCommandBuffers(std::vector<VkCommandBuffer> &a_cmdBuffer, VkCommandPool a_cmdPool);
+	void AllocateCommandBuffers(std::vector<VkCommandBuffer> &a_cmdBuffer, VkCommandPool a_cmdPool);
 	void CreateCommandPool(VkCommandPool* a_commandPool);
-	void CreateDescriptorPool(VkDescriptorPoolSize a_poolSize, uint32_t a_maxSets, uint32_t a_poolSizeCount,
+	void CreateDescriptorPool(std::vector< VkDescriptorPoolSize > a_poolSize, uint32_t a_maxSets, uint32_t a_poolSizeCount,
 		VkDescriptorPool* a_descriptorPool);
 	void CreateDesciptorSets(uint32_t descriptorSetCount, VkDescriptorSetLayout a_descriptorSetLayout,
 		std::vector<BufferDesc> a_descBuffer, VkDeviceSize    a_rangeSize, std::vector<VkWriteDescriptorSet> descriptorWriteInfo,
 		VkDescriptorPool a_descriptorPool, std::vector<VkDescriptorSet> &a_descriptorSet);
+	void AllocateDescriptorSets(VkDescriptorPool a_descriptorPool, std::vector<VkDescriptorSetLayout> layouts, std::vector<VkDescriptorSet> &a_DescriptorSets);
+	void UpdateDescriptorSets(std::vector< VkWriteDescriptorSet>& a_descriptorWriteInfo);
 	void CreateSemaphoresandFences();
 	VkResult AcquireNextImage(uint32_t *a_imageIndex, size_t a_currentFrameNumber);
 	void SubmissionAndPresentation(FrameSubmissionDesc a_frameSubmissionDesc);
@@ -173,9 +175,9 @@ public:
 
 	std::vector<VkFence>				m_inflightFences;
 			
-	std::vector<BufferDesc>				m_ModelUniformBuffer;
+	/*std::vector<BufferDesc>				m_ModelUniformBuffer;
 
-	std::vector<BufferDesc>				m_LightInfoUniformBuffer;
+	std::vector<BufferDesc>				m_LightInfoUniformBuffer;*/
 
 	/*VkDescriptorSetLayout				m_descriptorSetLayout;
 

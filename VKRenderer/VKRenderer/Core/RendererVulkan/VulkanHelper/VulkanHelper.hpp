@@ -513,10 +513,37 @@ namespace VulkanHelper
 		return;
 	}
 
+	void AllocateDescriptorSets(VkDevice a_device, VkDescriptorSetAllocateInfo a_allocateInfo, std::vector<VkDescriptorSet>& a_DescriptorSets)
+	{
+		if (vkAllocateDescriptorSets(a_device, &a_allocateInfo, a_DescriptorSets.data()) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Unable to create Desciptor Sets");
+		}
+
+		return;
+	}
+
+	void UpdateDescriptorSets(VkDevice a_device, std::vector< VkWriteDescriptorSet> &a_descriptorWriteInfo)
+	{
+		vkUpdateDescriptorSets(a_device, static_cast<uint32_t>(a_descriptorWriteInfo.size()), a_descriptorWriteInfo.data(), 0, nullptr);
+
+		return;
+	}
+
 
 	//===================================================================
 	//Command Buffer Recording Related
 	//===================================================================
+
+	void AllocateCommandBuffers(VkDevice a_device, VkCommandBufferAllocateInfo a_createInfo, std::vector<VkCommandBuffer> &a_cmdBuffer)
+	{
+		if (vkAllocateCommandBuffers(a_device, &a_createInfo, a_cmdBuffer.data()) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Unable to create Command Buffers");
+		}
+
+		return;
+	}
 
 	VkCommandBuffer BeginSingleTimeCommands(VkDevice a_device, VkCommandPool a_commandPool)
 	{
