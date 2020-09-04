@@ -1,6 +1,7 @@
 #include "ModelViewer.h"
 #include "../../Dependencies/Imgui/IMGUI/Imgui_Impl.h"
 #include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
+#include "../../VKRenderer/Core/Camera/Camera.h"
 
 // TODO: add Camera class include if need be
 
@@ -25,7 +26,7 @@ void ModelViewer::SetUpCameraProperties(Camera* a_cam)
 	a_cam->camProperties.translation_speed = 0.002f;
 	
 	//set proj matrix
-	a_cam->set_perspective(glm::radians(45.0f), (float)m_swapChainExtent.width / (float)m_swapChainExtent.height, 0.1f, 1000.0f);
+	a_cam->set_perspective(glm::radians(45.0f), (float)m_renderer->m_swapChainDescription.m_swapChainExtent.width / (float)m_renderer->m_swapChainDescription.m_swapChainExtent.height, 0.1f, 1000.0f);
 
 }
 
@@ -1212,26 +1213,26 @@ void ModelViewer::setGuiVariables()
 void ModelViewer::InitGui()
 {
 
-	/*setGuiVariables();
+	setGuiVariables();
 
 	ImGui_ImplVulkan_InitInfo imguiInfo = {};
 
-	imguiInfo.Instance = m_VulkanInstance;
+	imguiInfo.Instance = m_renderer->m_VulkanInstance;
 	imguiInfo.Allocator = nullptr;
-	imguiInfo.Device = m_device;
-	imguiInfo.PhysicalDevice = m_physicalDevice;
+	imguiInfo.Device = m_renderer->m_device;
+	imguiInfo.PhysicalDevice = m_renderer->m_physicalDevice;
 	imguiInfo.DescriptorPool = nullptr;//this will be gui created descriptor pool
 	imguiInfo.ImageCount = IMAGE_COUNT;
 	imguiInfo.MinImageCount = 2;
-	imguiInfo.Queue = m_graphicsQueue;
-	imguiInfo.QueueFamily = findQueueFamilies(m_physicalDevice).graphicsFamily.value();
+	imguiInfo.Queue = m_renderer->m_graphicsQueue;
+	imguiInfo.QueueFamily = m_renderer->FindQueueFamalies().graphicsFamily.value();
 	imguiInfo.PipelineCache = nullptr;
 
 
 	//Init the GUI for IMGUI
-	Imgui_Impl::getInstance()->Init(m_window, imguiInfo, m_renderPass, m_CommandPool);
-	*/
-
+	Imgui_Impl::getInstance()->Init(m_renderer->m_window, imguiInfo, m_renderPass, m_commandPool);
+	
+	
 }
 
 //==========================================================================================================
@@ -1289,20 +1290,19 @@ void ModelViewer::PrepareApp()
 	//// set up the camera position
 	SetUpCameraProperties(m_renderer->m_MainCamera);
 	
-	////Initialize Dear ImGui
-	//InitGui();
+	//Initialize Dear ImGui
+	InitGui();
 
 }
-
 
 void ModelViewer::Update(float deltaTime)
 {
 	m_renderer->ProcessInput(m_renderer->m_window);
 	
-	/*cam_matrices.perspective = m_renderer->m_MainCamera->matrices.perspective;
+	cam_matrices.perspective = m_renderer->m_MainCamera->matrices.perspective;
 	
 	//set view matrix
-	cam_matrices.view = m_MainCamera->matrices.view;*/
+	cam_matrices.view = m_renderer->m_MainCamera->matrices.view;
 
 	return;
 }

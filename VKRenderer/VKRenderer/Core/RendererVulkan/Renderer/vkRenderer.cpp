@@ -26,6 +26,15 @@ vkRenderer::~vkRenderer()
 }
 
 //===================================================================
+// Helper Functions
+//===================================================================
+
+QueueFamilyIndices vkRenderer::FindQueueFamalies()
+{
+	return VulkanHelper::FindQueueFamilies(m_physicalDevice, m_surface);
+}
+
+//===================================================================
 //GLFW Input recording
 //===================================================================
 void vkRenderer::ProcessInput(GLFWwindow* window)

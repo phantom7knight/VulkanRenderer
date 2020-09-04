@@ -25,7 +25,7 @@ void MainLoop(Application* rendererExample)
 		//Renderer Update
 		rendererExample->Update(deltaTime);
 		
-		rendererExample->Draw(deltaTime);
+		//rendererExample->Draw(deltaTime);
 		
 		//Add other updates here
 
@@ -57,7 +57,7 @@ int main()
 
 	rendererExample->PrepareApp();
 
-	//MainLoop(rendererExample);
+	MainLoop(rendererExample);
 	
 	//Destroy(rendererExample);
 

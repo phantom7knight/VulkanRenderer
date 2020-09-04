@@ -101,6 +101,7 @@ public:
 	void SubmissionAndPresentation(FrameSubmissionDesc a_frameSubmissionDesc);
 	void LoadImageTexture(std::string textureName, TextureBufferDesc *a_imageData, VkCommandPool a_commandPool, VkCommandBuffer* a_commandBuffer);
 	void CreateTextureSampler(SamplerCreationDesc a_createInfo, VkSampler* a_sampler);
+	QueueFamilyIndices FindQueueFamalies();
 #pragma endregion
 
 	
