@@ -188,214 +188,6 @@ void ModelViewer::CreateGraphicsPipeline()
 	ModelGraphicsPipeline.subpass = 0;
 
 	m_renderer->CreateGraphicsPipeline(&ModelGraphicsPipeline);
-
-	//==================================================================================================
-	//generate SPIRV binary code
-	/*std::vector<std::string> ShaderFileNames;
-
-	ShaderFileNames.resize(2);
-
-	ShaderFileNames[0] = "Model.vert";
-	ShaderFileNames[1] = "Model.frag";
-
-	rsrcLdr.GenerateSPIRVShaders(ShaderFileNames);
-
-	//=============================================
-
-	//Read Shader Binary Code
-	auto VertexShaderCode = rsrcLdr.getFileOperationobj().readFile("Shaders/BinaryCode/Model.vert.spv");
-	auto PixelShaderCode = rsrcLdr.getFileOperationobj().readFile("Shaders/BinaryCode/Model.frag.spv");
-
-	//Generate respective Shader Modules
-	ShaderDesc shader_info = {};
-
-	shader_info.a_device = m_device;
-
-	//Vertex shader module
-	shader_info.shaderCode = &VertexShaderCode;
-	VkShaderModule vertexShaderModule = rsrcLdr.createShaderModule(shader_info);
-
-	//pixel shader module
-	shader_info.shaderCode = &PixelShaderCode;
-	VkShaderModule pixelShaderModule = rsrcLdr.createShaderModule(shader_info);
-
-	//Vertex Shader Pipeline
-	VkPipelineShaderStageCreateInfo vertexShaderCreateInfo = {};
-
-	vertexShaderCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	vertexShaderCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-	vertexShaderCreateInfo.module = vertexShaderModule;
-	vertexShaderCreateInfo.pName = "main";
-
-	//Pixel Shader Pipeline
-	VkPipelineShaderStageCreateInfo pixelShaderCreateInfo = {};
-
-	pixelShaderCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	pixelShaderCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	pixelShaderCreateInfo.module = pixelShaderModule;
-	pixelShaderCreateInfo.pName = "main";
-
-	VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderCreateInfo ,pixelShaderCreateInfo };
-
-
-	// Vertex Input
-	VkPipelineVertexInputStateCreateInfo VertexInputInfo = {};
-
-	VertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-
-	auto bindingDesc = rsrcLdr.getModelLoaderobj().getBindingDescription();
-	auto attributeDesc = rsrcLdr.getModelLoaderobj().getAttributeDescriptionsofVertex();
-
-	VertexInputInfo.vertexBindingDescriptionCount = 1;
-	VertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDesc.size());
-	VertexInputInfo.pVertexBindingDescriptions = &bindingDesc;
-	VertexInputInfo.pVertexAttributeDescriptions = attributeDesc.data();
-
-
-	//Input Assembly
-	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
-
-	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;//TODO :This can be configurable by user
-	inputAssembly.primitiveRestartEnable = VK_FALSE;
-	inputAssembly.flags = 0;
-
-	//View Ports
-	VkViewport viewPort = {};//TODO :This can be configurable by user
-
-	viewPort.x = 0.0f;
-	viewPort.y = 0.0f;
-	viewPort.width = (float)m_swapChainExtent.width;
-	viewPort.height = (float)m_swapChainExtent.height;
-	viewPort.minDepth = 0.0f;
-	viewPort.maxDepth = 1.0f;
-
-	//Scissors
-	VkRect2D scissor = {};
-
-	scissor.offset = { 0,0 };
-	scissor.extent = m_swapChainExtent;
-
-	VkPipelineViewportStateCreateInfo viewPortState = {};
-
-	viewPortState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-	viewPortState.viewportCount = 1;
-	viewPortState.pViewports = &viewPort;
-	viewPortState.scissorCount = 1;
-	viewPortState.pScissors = &scissor;
-
-	//Rasterizer
-	VkPipelineRasterizationStateCreateInfo rasterizer = {};
-
-	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-	rasterizer.depthClampEnable = VK_FALSE;
-	rasterizer.rasterizerDiscardEnable = VK_FALSE;
-	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;	//TODO :This can be configurable by user
-	rasterizer.lineWidth = 1.0f;					//TODO :This can be configurable by user
-	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
-	rasterizer.depthBiasEnable = VK_FALSE;
-	rasterizer.depthBiasConstantFactor = 0.0f;	
-	rasterizer.depthBiasClamp = 0.0f;			
-	rasterizer.depthBiasSlopeFactor = 0.0f;		
-	rasterizer.flags = 0;
-
-
-	//Multisampling
-	VkPipelineMultisampleStateCreateInfo multiSampling = {};
-
-	multiSampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-	multiSampling.sampleShadingEnable = VK_FALSE;
-	multiSampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-	multiSampling.minSampleShading = 1.0f;
-	multiSampling.pSampleMask = nullptr;
-	multiSampling.alphaToCoverageEnable = VK_FALSE;
-	multiSampling.alphaToOneEnable = VK_FALSE;
-
-	//Depth Testing and Stencil Testing
-	VkPipelineDepthStencilStateCreateInfo depthStencilInfo = {};
-
-	depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	depthStencilInfo.depthTestEnable = VK_TRUE;
-	depthStencilInfo.depthWriteEnable = VK_TRUE;
-	depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
-	depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
-	depthStencilInfo.minDepthBounds = 0.0f;
-	depthStencilInfo.maxDepthBounds = 1.0f;
-	depthStencilInfo.stencilTestEnable = VK_FALSE;
-	depthStencilInfo.back.compareOp = VK_COMPARE_OP_ALWAYS;
-
-	//Color Blending
-	VkPipelineColorBlendAttachmentState colorBlendAttachment = {};//For individual attached frame buffer settings
-
-	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colorBlendAttachment.blendEnable = VK_FALSE;//TODO : This can be changed later look at the website
-	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
-	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
-	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-
-	VkPipelineColorBlendStateCreateInfo colorBlending = {};
-
-	colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-	colorBlending.logicOpEnable = VK_FALSE;
-	colorBlending.logicOp = VK_LOGIC_OP_COPY;
-	colorBlending.attachmentCount = 1;
-	colorBlending.pAttachments = &colorBlendAttachment;
-	colorBlending.blendConstants[0] = 0.0f;
-	colorBlending.blendConstants[1] = 0.0f;
-	colorBlending.blendConstants[2] = 0.0f;
-	colorBlending.blendConstants[3] = 0.0f;
-
-	//Create Pipeline Layout b4 creating Graphics Pipeline
-	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
-
-	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = 1;
-	pipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
-	//pipelineLayoutInfo.pushConstantRangeCount = 0; //TODO: USE Push Constants
-	//pipelineLayoutInfo.pPushConstantRanges = nullptr; //TODO: USE Push Constants
-
-	if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create Pipeline Layout");
-	}
-
-	//Finally create the Graphics Pipeline
-	VkGraphicsPipelineCreateInfo createGraphicsPipelineInfo = {};
-
-	createGraphicsPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	createGraphicsPipelineInfo.stageCount = 2;
-	createGraphicsPipelineInfo.pStages = shaderStages;
-	createGraphicsPipelineInfo.pVertexInputState = &VertexInputInfo;
-	createGraphicsPipelineInfo.pInputAssemblyState = &inputAssembly;
-	createGraphicsPipelineInfo.pViewportState = &viewPortState;
-	createGraphicsPipelineInfo.pDepthStencilState = &depthStencilInfo;
-	createGraphicsPipelineInfo.pRasterizationState = &rasterizer;
-	createGraphicsPipelineInfo.pMultisampleState = &multiSampling;
-	createGraphicsPipelineInfo.pColorBlendState = &colorBlending;
-	createGraphicsPipelineInfo.pDynamicState = nullptr;
-	createGraphicsPipelineInfo.layout = m_pipelineLayout;
-	createGraphicsPipelineInfo.renderPass = m_renderPass;
-	createGraphicsPipelineInfo.subpass = 0;
-
-	createGraphicsPipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-	createGraphicsPipelineInfo.basePipelineIndex = -1;
-
-	//TODO: Make this Generic for creating Pipeline's
-	if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &createGraphicsPipelineInfo, nullptr, &m_graphicsPipeline) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to Create Graphics Pipeline");
-	}
-
-
-	//Destroy all shader modules
-
-	vkDestroyShaderModule(m_device, vertexShaderModule, nullptr);
-	vkDestroyShaderModule(m_device, pixelShaderModule, nullptr);*/
-
 }
 
 void ModelViewer::CreateFrameBuffers()
@@ -413,21 +205,6 @@ void ModelViewer::CreateFrameBuffers()
 		m_FBO.FBOHeight = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
 
 		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFrameBuffer[i].FrameBuffer);
-
-		/*VkFramebufferCreateInfo fbcreateInfo = {};
-
-		fbcreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		fbcreateInfo.renderPass = m_renderPass;
-		fbcreateInfo.attachmentCount = static_cast<uint32_t>(attachments->size());
-		fbcreateInfo.pAttachments = attachments->data();
-		fbcreateInfo.width	= m_renderer->m_swapChainDescription.m_swapChainExtent.width;
-		fbcreateInfo.height = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
-		fbcreateInfo.layers = 1;
-
-		if (vkCreateFramebuffer(m_device, &fbcreateInfo, nullptr, &m_swapChainFrameBuffer[i]) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Unable to create Frame Buffer");
-		}*/
 	}
 }
 
@@ -438,23 +215,6 @@ void ModelViewer::CreateCommandPool()
 
 void ModelViewer::CreateUniformBuffer()
 {
-	/*VkDeviceSize bufferSize = sizeof(ModelUBO);
-	VkDeviceSize lightBufferSize = sizeof(LightInfoUBO);
-
-	m_ModelUniformBuffer.resize(m_SwapChainImages.size());
-	m_LightInfoUniformBuffer.resize(m_SwapChainImages.size());
-
-	for (int i = 0; i < m_SwapChainImages.size(); ++i)
-	{
-		//model uniform buffer creation
-		CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-			, m_ModelUniformBuffer[i].Buffer, m_ModelUniformBuffer[i].BufferMemory);
-		
-		//light info uniform buffer creation
-		CreateBuffer(lightBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-			, m_LightInfoUniformBuffer[i].Buffer, m_LightInfoUniformBuffer[i].BufferMemory);
-	}*/
-
 	VkDeviceSize bufferSize = sizeof(ModelUBO);
 	VkDeviceSize lightBufferSize = sizeof(LightInfoUBO);
 
@@ -478,31 +238,6 @@ void ModelViewer::CreateUniformBuffer()
 
 void ModelViewer::CreateDescriptorPool()
 {
-	
-	/*std::array<VkDescriptorPoolSize, 3> poolSizes = {};
-
-	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_SwapChainImages.size());
-
-	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[1].descriptorCount = static_cast<uint32_t>(m_SwapChainImages.size());
-
-	poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[2].descriptorCount = static_cast<uint32_t>(m_SwapChainImages.size());
-
-	VkDescriptorPoolCreateInfo createInfo = {};
-
-	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	createInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-	createInfo.pPoolSizes = poolSizes.data();
-	createInfo.maxSets = static_cast<uint32_t>(m_SwapChainImages.size());
-
-
-	if (vkCreateDescriptorPool(m_device, &createInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to create Desciptor Pool");
-	}*/
-
 	std::vector<VkDescriptorPoolSize> poolSizes = {};
 
 	poolSizes.resize(3);
@@ -524,93 +259,7 @@ void ModelViewer::CreateDescriptorPool()
 
 void ModelViewer::CreateDescriptorSets()
 {
-	/*std::vector<VkDescriptorSetLayout> layouts(m_SwapChainImages.size(), m_descriptorSetLayout);
-
-	VkDescriptorSetAllocateInfo allocateInfo = {};
-
-	allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocateInfo.descriptorPool = m_DescriptorPool;
-	allocateInfo.descriptorSetCount = static_cast<uint32_t>(m_SwapChainImages.size());
-	allocateInfo.pSetLayouts = layouts.data();
-
-	m_DescriptorSets.resize(m_SwapChainImages.size());
-
-	if (vkAllocateDescriptorSets(m_device, &allocateInfo, m_DescriptorSets.data()) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to create Desciptor Sets");
-	}
-
-	for (size_t i = 0; i < m_SwapChainImages.size(); ++i)
-	{
-		VkDescriptorBufferInfo bufferInfo = {};
-
-		bufferInfo.buffer = m_ModelUniformBuffer[i].Buffer;
-		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(ModelUBO);
-
-		VkDescriptorBufferInfo lightBufferInfo = {};
-
-		lightBufferInfo.buffer = m_LightInfoUniformBuffer[i].Buffer;
-		lightBufferInfo.offset = 0;
-		lightBufferInfo.range = sizeof(LightInfoUBO);
-
-		VkDescriptorImageInfo imageInfo = {};
-
-		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo.sampler = textureSampler;
-		imageInfo.imageView = textureImageView;
-
-		std::array< VkWriteDescriptorSet,3> descriptorWriteInfo = {};
-
-		descriptorWriteInfo[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWriteInfo[0].dstSet = m_DescriptorSets[i];
-		descriptorWriteInfo[0].dstBinding = 0;
-		descriptorWriteInfo[0].dstArrayElement = 0;
-		descriptorWriteInfo[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWriteInfo[0].descriptorCount = 1;
-		descriptorWriteInfo[0].pBufferInfo = &bufferInfo;
-		descriptorWriteInfo[0].pImageInfo = nullptr;
-		descriptorWriteInfo[0].pTexelBufferView = nullptr;
-
-		descriptorWriteInfo[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWriteInfo[1].dstSet = m_DescriptorSets[i];
-		descriptorWriteInfo[1].dstBinding = 1;
-		descriptorWriteInfo[1].dstArrayElement = 0;
-		descriptorWriteInfo[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descriptorWriteInfo[1].descriptorCount = 1;
-		descriptorWriteInfo[1].pImageInfo = &imageInfo;
-		descriptorWriteInfo[1].pBufferInfo = nullptr; //TODO: Check this
-		descriptorWriteInfo[1].pTexelBufferView = nullptr;
-
-		descriptorWriteInfo[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWriteInfo[2].dstSet = m_DescriptorSets[i];
-		descriptorWriteInfo[2].dstBinding = 2;
-		descriptorWriteInfo[2].dstArrayElement = 0;
-		descriptorWriteInfo[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWriteInfo[2].descriptorCount = 1;
-		descriptorWriteInfo[2].pBufferInfo = &lightBufferInfo;
-		descriptorWriteInfo[2].pImageInfo = nullptr;
-		descriptorWriteInfo[2].pTexelBufferView = nullptr;
-		
-		vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWriteInfo.size()), descriptorWriteInfo.data(), 0, nullptr);
-		
-	}*/
-
 	std::vector<VkDescriptorSetLayout> layouts(m_renderer->m_swapChainDescription.m_SwapChainImages.size(), m_descriptorSetLayout);
-
-	/*VkDescriptorSetAllocateInfo allocateInfo = {};
-
-	allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocateInfo.descriptorPool = m_DescriptorPool;
-	allocateInfo.descriptorSetCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
-	allocateInfo.pSetLayouts = layouts.data();
-
-	m_DescriptorSets.resize(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
-
-	if (vkAllocateDescriptorSets(m_renderer->, &allocateInfo, m_DescriptorSets.data()) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to create Desciptor Sets");
-	}*/
 
 	m_renderer->AllocateDescriptorSets(m_DescriptorPool, layouts, m_DescriptorSets);
 
@@ -683,34 +332,7 @@ void ModelViewer::CreateCommandBuffers()
 
 void ModelViewer::CreateSemaphoresandFences()
 {
-
-	/*m_imageAvailableSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
-	m_renderFinishedSemaphore.resize(MAX_FRAMES_IN_FLIGHT);
-	m_inflightFences.resize(MAX_FRAMES_IN_FLIGHT);
-
-
-	VkSemaphoreCreateInfo createSemaphoreInfo = {};
-
-	createSemaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-	VkFenceCreateInfo createFenceInfo = {};
-
-	createFenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-	createFenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
-	{
-		if (vkCreateSemaphore(m_device, &createSemaphoreInfo, nullptr, &m_imageAvailableSemaphore[i]) != VK_SUCCESS ||
-			vkCreateSemaphore(m_device, &createSemaphoreInfo, nullptr, &m_renderFinishedSemaphore[i]) != VK_SUCCESS ||
-			vkCreateFence(m_device, &createFenceInfo, nullptr, &m_inflightFences[i]) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Failed to create Semaphore");
-		}
-	}
-
-	*/
 	m_renderer->CreateSemaphoresandFences();
-
 }
 
 void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices properties_Cam)
@@ -729,11 +351,9 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices pro
 	//View Matrix
 	mvp_UBO.ViewMatrix = cam_matrices.view;
 
-
 	//Projection Matrix
 	mvp_UBO.ProjectionMatrix = cam_matrices.perspective;
 	mvp_UBO.ProjectionMatrix[1][1] *= -1;
-
 
 	//Copy the data
 
@@ -759,8 +379,7 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices pro
 	lightInfo_UBO.lightModel = m_lightModelGUILight;
 
 	lightInfo_UBO.ObjRoughness = m_roughnessGUILight;
-
-	
+		
 	//Copy the data
 
 	data = NULL;
@@ -778,8 +397,7 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 	Imgui_Impl::getInstance()->Gui_BeginFrame();
 
 	if (m_showGUILight)
-	{
-		
+	{		
 		ImGui::Begin("Light Properties", &m_showGUILight);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
 		
 		//Lighting Mode
@@ -799,30 +417,6 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 			{
 				m_lightModelGUILight = 1;
 			}
-
-
-
-
-			
-			/*if (ImGui::BeginCombo(" ","Choose a lighting model"))
-			{
-				for (int n = 0; n < 1; n++)
-				{
-					int currentMode = m_lightModelGUILight;
-					ImGui::PushID((void*)currentMode);
-					
-					if (ImGui::Selectable("Phong Model", m_lightModelShowGUILight))
-						m_lightModelGUILight = 0;
-					else if (ImGui::Selectable("BRDF Model", m_lightModelShowGUILight))
-						m_lightModelGUILight = 1;
-
-					
-
-					ImGui::PopID();
-				}
-				ImGui::EndCombo();
-			}*/
-
 		}
 		
 		ImGui::SliderFloat3("Light Position", &m_lightPosGUILight.x, -200.0f, 200.0f);
@@ -949,35 +543,6 @@ void ModelViewer::ReCreateSwapChain()
 
 void ModelViewer::SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_VertexBUffer)
 {
-	/*VkDeviceSize bufferSize = a_modelDesc.vertexBufferSize;
-
-	//Create Staging Buffer before transfering
-
-	BufferDesc stagingBuffer;
-
-	CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		stagingBuffer.Buffer, stagingBuffer.BufferMemory);
-
-
-	void* data;
-	vkMapMemory(m_device, stagingBuffer.BufferMemory, 0, bufferSize, 0, &data);
-
-	memcpy(data, a_modelDesc.vertexbufferData.data(), (size_t)bufferSize);
-
-	vkUnmapMemory(m_device, stagingBuffer.BufferMemory);
-
-
-	CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		a_VertexBUffer->Buffer, a_VertexBUffer->BufferMemory);
-
-	CopyBuffer(stagingBuffer.Buffer, a_VertexBUffer->Buffer, bufferSize);
-
-	//Get rid of the staging buffers
-	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
-	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
-
-	return;*/
-
 	VkDeviceSize bufferSize = a_modelDesc.vertexBufferSize;
 
 	m_renderer->CreateBuffer(a_modelDesc.vertexbufferData.data(), bufferSize, a_VertexBUffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
@@ -986,34 +551,6 @@ void ModelViewer::SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_V
 
 void ModelViewer::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_IndexBUffer)
 {
-	/*VkDeviceSize bufferSize = a_modelDesc.indexBufferSize;
-
-	//Create Staging Buffer before transfering
-
-	BufferDesc stagingBuffer;
-
-	CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		stagingBuffer.Buffer, stagingBuffer.BufferMemory);
-
-
-	void* data;
-	vkMapMemory(m_device, stagingBuffer.BufferMemory, 0, bufferSize, 0, &data);
-
-	memcpy(data, a_modelDesc.indexbufferData.data(), (size_t)bufferSize);
-
-	vkUnmapMemory(m_device, stagingBuffer.BufferMemory);
-
-
-	CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		a_IndexBUffer->Buffer, a_IndexBUffer->BufferMemory);
-
-	CopyBuffer(stagingBuffer.Buffer, a_IndexBUffer->Buffer, bufferSize);
-
-	//Get rid of the staging buffers
-	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
-	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
-	*/
-
 	VkDeviceSize bufferSize = a_modelDesc.indexBufferSize;
 
 	m_renderer->CreateBuffer(a_modelDesc.indexbufferData.data(), bufferSize, a_IndexBUffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
@@ -1034,104 +571,10 @@ void ModelViewer::LoadAModel(std::string fileName)
 	
 }
 
-////Don't include this in a header file////
-//#define STB_IMAGE_IMPLEMENTATION
-//#include "../../Dependencies/STB/stb_image.h"
-
 void ModelViewer::LoadTexture(std::string a_textureName)
 {
-	
-	/*int texWidth, texHeight, texChannels;
-
-	stbi_uc* pixels = stbi_load(textureName.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-
-	VkDeviceSize imageSize = texWidth * texHeight * 4;
-
-	if (!pixels)
-		std::cout << "Failed to load Texture : " << textureName << "\n";
-
-
-	BufferDesc stagingBuffer;
-
-	CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer.Buffer, stagingBuffer.BufferMemory);
-
-	void* data;
-	vkMapMemory(m_device, stagingBuffer.BufferMemory, 0, imageSize, 0, &data);
-		memcpy(data, pixels, static_cast<size_t>(imageSize));
-	vkUnmapMemory(m_device, stagingBuffer.BufferMemory);
-
-
-	//free the loaded image
-	stbi_image_free(pixels);
-
-	//Set the image Property
-
-	image1.ImageWidth		= texWidth;
-	image1.ImageHeight		= texHeight;
-	image1.imageFormat		= VK_FORMAT_R8G8B8A8_SRGB;
-	image1.tiling			= VK_IMAGE_TILING_OPTIMAL;
-	image1.usageFlags		= VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-	image1.propertyFlags	= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-
-	CreateImage(&image1);
-
-	TransitionImageLayouts(image1.BufferImage, VK_FORMAT_R8G8B8A8_SRGB,
-		VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-	CopyBufferToImage(stagingBuffer.Buffer, image1);
-
-	//we do this to have access to the shader to a sampler
-	TransitionImageLayouts(image1.BufferImage, VK_FORMAT_R8G8B8A8_SRGB,
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
-	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);*/
-
 	m_renderer->LoadImageTexture(a_textureName, &image1, m_commandPool, m_commandBuffers.data());
-	
 }
-
-//TODO: Generalize this
-/*void ModelViewer::CreateImage(TextureBufferDesc *a_texBuffDesc)
-{
-	VkImageCreateInfo ImageCreateInfo = {};
-
-	ImageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	ImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-	ImageCreateInfo.extent.width = a_texBuffDesc->ImageWidth;
-	ImageCreateInfo.extent.height = a_texBuffDesc->ImageHeight;
-	ImageCreateInfo.extent.depth = 1;
-	ImageCreateInfo.mipLevels = 1;
-	ImageCreateInfo.arrayLayers = 1;
-	ImageCreateInfo.format = a_texBuffDesc->imageFormat;
-	ImageCreateInfo.tiling = a_texBuffDesc->tiling;
-	ImageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	ImageCreateInfo.usage = a_texBuffDesc->usageFlags;
-	ImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-	ImageCreateInfo.flags = 0;
-
-
-	if (vkCreateImage(m_device, &ImageCreateInfo, nullptr, &(a_texBuffDesc->BufferImage)) != VK_SUCCESS)
-	{
-		std::cout << " Failed to create Image \n";
-	}
-
-	VkMemoryRequirements memRequirements;
-	vkGetImageMemoryRequirements(m_device, a_texBuffDesc->BufferImage, &memRequirements);
-
-	VkMemoryAllocateInfo allocateInfo = {};
-	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	allocateInfo.allocationSize = memRequirements.size;
-	allocateInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, a_texBuffDesc->propertyFlags);
-
-	if (vkAllocateMemory(m_device, &allocateInfo, nullptr, &a_texBuffDesc->BufferMemory) != VK_SUCCESS)
-	{
-		std::cout << "Failed to allocate memory to the image \n";
-	}
-
-	vkBindImageMemory(m_device, a_texBuffDesc->BufferImage, a_texBuffDesc->BufferMemory, 0);
-}*/
 
 void ModelViewer::CreateImageTextureView()
 {
@@ -1140,42 +583,6 @@ void ModelViewer::CreateImageTextureView()
 
 void ModelViewer::CreateTextureSampler()
 {
-	/*VkSamplerCreateInfo createInfo = {};
-
-	createInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	createInfo.pNext = nullptr;
-	
-	createInfo.magFilter = VK_FILTER_LINEAR;
-	createInfo.minFilter = VK_FILTER_LINEAR;
-
-	createInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	createInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	createInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-
-	createInfo.anisotropyEnable = VK_TRUE;
-	createInfo.maxAnisotropy = 16; // lower value bad quality more performance
-
-	createInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-
-	//******* VERY IMP************/
-	/*createInfo.unnormalizedCoordinates = VK_FALSE;
-
-	createInfo.compareEnable = VK_FALSE;
-	createInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-
-	createInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-	createInfo.mipLodBias = 0.0f;
-	createInfo.minLod = 0.0f;
-	createInfo.maxLod = 0.0f;
-
-	if (vkCreateSampler(m_device, &createInfo, nullptr, &textureSampler) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create sampler for the texture provided"); 
-		return;
-	}
-	*/
-	
-
 	SamplerCreationDesc samplerDesc = {};
 
 	samplerDesc.anisotropyEnable = VK_TRUE;
@@ -1313,95 +720,6 @@ void ModelViewer::Update(float deltaTime)
 
 void ModelViewer::Draw(float deltaTime)
 {
-	/*vkWaitForFences(m_renderer->m_device, 1, &m_inflightFences[m_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
-	vkResetFences(m_renderer->m_device, 1, &m_inflightFences[m_currentFrame]);
-
-
-	//===================================================================
-	//1.Acquire Image form SwapChain
-	//2.Execute command buffer on that image
-	//3.Return Image to swap chain for presentation
-	//===================================================================
-
-	uint32_t imageIndex;
-
-	VkResult result = vkAcquireNextImageKHR(m_renderer->m_device, m_swapChain, std::numeric_limits<uint64_t>::max(), m_imageAvailableSemaphore[m_currentFrame], VK_NULL_HANDLE, &imageIndex);
-
-	if (result == VK_ERROR_OUT_OF_DATE_KHR)
-	{
-		//TODO: need to fix it
-		ReCreateSwapChain();
-		return;
-	}
-	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-	{
-		throw std::runtime_error("Failed to acquire swap chain image");
-	}
-
-	//update our command buffers
-	UpdateCommandBuffers(imageIndex);
-
-	//Update Uniform Buffers which needs to be sent to Shader every frames
-	UpdateUniformBuffer(imageIndex , cam_matrices);
-
-	//Subit info of which semaphores are being used for Queue
-	VkSubmitInfo submitInfo = {};
-
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-	VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphore[m_currentFrame] };
-	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-
-	submitInfo.waitSemaphoreCount = 1;
-	submitInfo.pWaitSemaphores = waitSemaphores;
-	submitInfo.pWaitDstStageMask = waitStages;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &m_commandBuffers[imageIndex];
-
-	VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphore[m_currentFrame] };
-
-	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = signalSemaphores;
-
-	vkResetFences(m_device, 1, &m_inflightFences[m_currentFrame]);
-
-	if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inflightFences[m_currentFrame]) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to submit Draw Command Buffers");
-	}
-
-
-	VkPresentInfoKHR presentInfo = {};
-
-	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-	presentInfo.waitSemaphoreCount = 1;
-	presentInfo.pWaitSemaphores = signalSemaphores;
-
-	VkSwapchainKHR swapChains[] = { m_swapChain };
-
-	presentInfo.swapchainCount = 1;
-	presentInfo.pSwapchains = swapChains;
-	presentInfo.pImageIndices = &imageIndex;
-	presentInfo.pResults = nullptr;
-
-	result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
-
-	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_frameBufferResized)
-	{
-		m_frameBufferResized = false;
-		//TODO: need to fix it
-		ReCreateSwapChain();
-	}
-	else if (result != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to present Swap Chain image!");
-	}
-
-	m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-
-	m_MainCamera->update(deltaTime);*/
-
-
 	vkWaitForFences(m_renderer->m_device, 1, &m_renderer->m_inflightFences[m_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
 	vkResetFences(m_renderer->m_device, 1, &m_renderer->m_inflightFences[m_currentFrame]);
 

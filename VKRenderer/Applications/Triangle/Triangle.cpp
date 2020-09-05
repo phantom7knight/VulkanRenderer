@@ -197,7 +197,6 @@ void Triangle::CreateFrameBuffers()
 		m_FBO.attachmentCount = 1;
 		m_FBO.FBOHeight = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
 		m_FBO.FBOWidth	= m_renderer->m_swapChainDescription.m_swapChainExtent.width;
-		//m_FBO.FrameBuffer = m_renderer->m_swapChainFrameBuffer[i].FrameBuffer;
 		m_FBO.Attachments = attachmentsVector;
 
 		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFrameBuffer[i].FrameBuffer);
@@ -224,19 +223,6 @@ void Triangle::CreateCommandBuffers()
 	
 	//Allocate Command Buffer
 	m_renderer->AllocateCommandBuffers(m_commandBuffers, m_commandPool);
-
-	/*VkCommandBufferAllocateInfo createInfo = {};
-
-	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	createInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	createInfo.commandPool = m_commandPool;
-	createInfo.commandBufferCount = (uint32_t)m_commandBuffers.size();
-
-
-	if (vkAllocateCommandBuffers(m_renderer->m_device, &createInfo, m_commandBuffers.data()) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to create Command Buffers");
-	}*/
 
 	//Record Command Buffer data
 	for (size_t i = 0; i < m_commandBuffers.size(); ++i)
@@ -333,21 +319,17 @@ void Triangle::UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime)
 	//TODO: Fix this
 	a_deltaTime = 0.5f;
 
-
 	UniformBufferObject mvp_UBO = {};
 
 	//Model Matrix
 	mvp_UBO.ModelMatrix = glm::rotate(glm::mat4(1.0f), a_deltaTime * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
-
 	//View Matrix
 	mvp_UBO.ViewMatrix = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-
 
 	//Projection Matrix
 	mvp_UBO.ProjectionMatrix = glm::perspective(glm::radians(45.0f), m_renderer->m_swapChainDescription.m_swapChainExtent.width / (float)m_renderer->m_swapChainDescription.m_swapChainExtent.height, 0.1f, 10.0f);
 	mvp_UBO.ProjectionMatrix[1][1] *= -1;
-
 
 	//Copy the data
 
@@ -368,30 +350,6 @@ void Triangle::CreateIndexBuffer()
 {
 	VkDeviceSize bufferSize = sizeof(Rectangle_Indices[0]) * Rectangle_Indices.size();
 
-	//Create Staging Buffer before transfering
-	/*VkBuffer stagingBuffer;
-	VkDeviceMemory stagingBufferMemory;
-	CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		stagingBuffer, stagingBufferMemory);
-
-
-	void* data;
-	vkMapMemory(m_device, stagingBufferMemory, 0, bufferSize, 0, &data);
-
-	memcpy(data, Rectangle_Indices.data(), (size_t)bufferSize);
-
-	vkUnmapMemory(m_device, stagingBufferMemory);
-
-
-	CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		m_RectangleIndexBuffer.Buffer, m_RectangleIndexBuffer.BufferMemory);
-
-	CopyBuffer(stagingBuffer, m_RectangleIndexBuffer.Buffer, bufferSize);
-
-	//Get rid of the staging buffers
-	vkDestroyBuffer(m_device, stagingBuffer, nullptr);
-	vkFreeMemory(m_device, stagingBufferMemory, nullptr);7*/
-
 	m_renderer->CreateBuffer(Rectangle_Indices.data(), bufferSize, &m_RectangleIndexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
 		m_commandPool);
 
@@ -403,36 +361,10 @@ void Triangle::CreateIndexBuffer()
 
 void Triangle::CreateVertexBuffer()//Make this Generic
 {
-
 	VkDeviceSize bufferSize = sizeof(Rectangle_vertices[0]) * Rectangle_vertices.size();
 
-	//Create Staging Buffer before transfering
-	//VkBuffer stagingBuffer;
-	//VkDeviceMemory stagingBufferMemory;
-	//CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-	//	stagingBuffer, stagingBufferMemory);
-
-
-	//void* data;
-	//vkMapMemory(m_device, stagingBufferMemory, 0, bufferSize, 0, &data);
-	//	memcpy(data, Rectangle_vertices.data(), (size_t)bufferSize);
-	//vkUnmapMemory(m_device, stagingBufferMemory);
-
-
-	//CreateBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-	//			 m_TriangleVertexBuffer.Buffer, m_TriangleVertexBuffer.BufferMemory);
-
-	//CopyBuffer(stagingBuffer, m_TriangleVertexBuffer.Buffer, bufferSize);
-
-	////Get rid of the staging buffers
-	//vkDestroyBuffer(m_device, stagingBuffer, nullptr);
-	//vkFreeMemory(m_device, stagingBufferMemory, nullptr);
-
-
 	m_renderer->CreateBuffer(Rectangle_vertices.data(), bufferSize, &m_TriangleVertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-		m_commandPool);
-	
-	
+		m_commandPool);	
 }
 
 //===================================================================
@@ -468,7 +400,6 @@ void Triangle::CreateDescriptorSetLayout()
 
 void Triangle::CreateDescriptorPool()
 {
-
 	std::vector< VkDescriptorPoolSize > poolSize = {};
 
 	poolSize.resize(1);
@@ -478,21 +409,6 @@ void Triangle::CreateDescriptorPool()
 
 	m_renderer->CreateDescriptorPool(poolSize, static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size()),
 		1, &m_DescriptorPool);
-
-
-	/*VkDescriptorPoolCreateInfo createInfo = {};
-
-	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	createInfo.poolSizeCount = 1;
-	createInfo.pPoolSizes = &poolSize;
-	createInfo.maxSets = static_cast<uint32_t>(m_SwapChainImages.size());
-
-
-	if (vkCreateDescriptorPool(m_device, &createInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Unable to create Desciptor Pool");
-	}*/
-
 }
 
 void Triangle::CreateDesciptorSets()

@@ -243,15 +243,6 @@ void vkRenderer::LoadImageTexture(std::string textureName, TextureBufferDesc *a_
 	VulkanHelper::TransitionImageLayouts(m_device, a_commandPool, m_graphicsQueue, a_imageData->BufferImage, VK_FORMAT_R8G8B8A8_SRGB,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-	/*TransitionImageLayouts(a_imageData->BufferImage, VK_FORMAT_R8G8B8A8_SRGB,
-		VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);*/
-
-	//CopyBufferToImage(stagingBuffer.Buffer, &a_imageData);
-
-	//we do this to have access to the shader to a sampler
-	/*TransitionImageLayouts(a_imageData.BufferImage, VK_FORMAT_R8G8B8A8_SRGB,
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);*/
-
 	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
 	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
 }
@@ -904,9 +895,6 @@ void vkRenderer::Init()
 	}
 
 	InitializeVulkan();
-
-
-
 }
 
 //===================================================================
@@ -944,20 +932,10 @@ void vkRenderer::DestroyDebugUtilsMessengerEXT(
 
 void vkRenderer::CleanUpSwapChain()
 {
-
-	
 	for (size_t i = 0; i < m_swapChainFrameBuffer.size(); ++i)
 	{
 		vkDestroyFramebuffer(m_device, m_swapChainFrameBuffer[i].FrameBuffer, nullptr);
 	}
-
-	/*vkFreeCommandBuffers(m_device, m_CommandPool, static_cast<uint32_t>(m_commandBuffers.size()), m_commandBuffers.data());
-
-	vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
-
-	vkDestroyPipelineLayout(m_device, m_pipelineLayout, nullptr);
-
-	vkDestroyRenderPass(m_device, m_renderPass, nullptr);*/
 
 	for (size_t i = 0; i < m_swapChainDescription.m_SwapChainImageViews.size(); ++i)
 	{
@@ -965,19 +943,6 @@ void vkRenderer::CleanUpSwapChain()
 	}
 
 	vkDestroySwapchainKHR(m_device, m_swapChainDescription.m_swapChain, nullptr);
-
-	//for (size_t i = 0; i < m_swapChainDescription.m_SwapChainImages.size(); ++i)
-	//{
-	//	//Triangle's UBO
-	//	vkDestroyBuffer(m_device, m_TriangleUniformBuffer[i].Buffer, nullptr);
-	//	vkFreeMemory(m_device, m_TriangleUniformBuffer[i].BufferMemory, nullptr);
-	//	
-	//	//Model's UBO
-	//	vkDestroyBuffer(m_device, m_ModelUniformBuffer[i].Buffer, nullptr);
-	//	vkFreeMemory(m_device, m_ModelUniformBuffer[i].BufferMemory, nullptr);
-	//}
-
-	//vkDestroyDescriptorPool(m_device, m_DescriptorPool, nullptr);
 
 }
 
@@ -989,25 +954,12 @@ void vkRenderer::Destroy()
 
 	CleanUpSwapChain();
 
-
-	/*vkDestroyDescriptorSetLayout(m_device, m_descriptorSetLayout, nullptr);
-
-	//Destroy Rectangle Index Buffer
-	vkDestroyBuffer(m_device, m_RectangleIndexBuffer.Buffer, nullptr);
-	vkFreeMemory(m_device, m_RectangleIndexBuffer.BufferMemory, nullptr);
-
-	//Destroy Triangle Index Buffer
-	vkDestroyBuffer(m_device, m_TriangleVertexBuffer.Buffer, nullptr);
-	vkFreeMemory(m_device, m_TriangleVertexBuffer.BufferMemory, nullptr);*/
-
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 	{
 		vkDestroySemaphore(m_device, m_renderFinishedSemaphore[i], nullptr);
 		vkDestroySemaphore(m_device, m_imageAvailableSemaphore[i], nullptr);
 		vkDestroyFence(m_device, m_inflightFences[i], nullptr);
 	}
-
-	vkDestroyCommandPool(m_device, m_CommandPool, nullptr);
 
 	vkDestroyDevice(m_device,nullptr);
 

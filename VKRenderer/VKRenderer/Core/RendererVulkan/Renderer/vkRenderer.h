@@ -28,9 +28,6 @@ public:
 		return m_graphicsQueue;
 	}
 
-
-
-
 	//Vulkan Related Functions
 	bool CreateInstance();
 	void setupDebugMessenger();
@@ -146,7 +143,6 @@ public:
 
 	GLFWwindow* m_window;
 
-
 	//Vulkan Related Parameters
 	VkInstance							m_VulkanInstance;
 	VkDebugUtilsMessengerEXT			m_debugMessenger;
@@ -157,40 +153,13 @@ public:
 	VkSurfaceKHR						m_surface; // This is for relating Windows and Vulkan
 	VkQueue								m_PresentQueue;
 
-
-	//std::vector<VkImageView>			m_SwapChainImageViews;
-
-	//VkRenderPass						m_renderPass;//TODO : This can be modified later
-	//VkPipelineLayout					m_pipelineLayout;//TODO : This has to be per Shader/Obj [Look into it]
-	//VkPipeline							m_graphicsPipeline;
-
 	// Swap Chain Frame Buffer
 	std::vector<FrameBufferDesc>		m_swapChainFrameBuffer;
-
-	VkCommandPool						m_CommandPool;
-
-	//std::vector<VkCommandBuffer>		m_commandBuffers;
 
 	std::vector<VkSemaphore>			m_imageAvailableSemaphore;
 	std::vector<VkSemaphore>			m_renderFinishedSemaphore;
 
 	std::vector<VkFence>				m_inflightFences;
-			
-	/*std::vector<BufferDesc>				m_ModelUniformBuffer;
-
-	std::vector<BufferDesc>				m_LightInfoUniformBuffer;*/
-
-	/*VkDescriptorSetLayout				m_descriptorSetLayout;
-
-	VkDescriptorPool					m_DescriptorPool;
-
-	std::vector<VkDescriptorSet>		m_DescriptorSets;*/
-
-
-
 #pragma endregion
-
-
-
 };
 
