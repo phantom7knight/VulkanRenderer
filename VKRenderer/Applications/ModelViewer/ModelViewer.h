@@ -126,7 +126,7 @@ private:
 	std::vector<BufferDesc>			m_ModelUniformBuffer;
 	std::vector<BufferDesc>			m_LightInfoUniformBuffer;
 	std::vector<VkDescriptorSet>	m_DescriptorSets;
-
+	size_t							m_currentFrame = 0;
 
 public:
 	ModelViewer();

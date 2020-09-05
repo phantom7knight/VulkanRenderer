@@ -102,8 +102,6 @@ void ModelViewer::CreateRenderPass()
 
 	std::vector<VkSubpassDependency> subPassDependency = { dependency };
 
-
-
 	RenderPassInfo renderPassdesc = {};
 
 	renderPassdesc.attachmentDescriptions = attachments;
@@ -174,8 +172,14 @@ void ModelViewer::CreateGraphicsPipeline()
 	// Rasterizer
 	ModelGraphicsPipeline.polygonMode = VK_POLYGON_MODE_FILL;
 	ModelGraphicsPipeline.cullMode = VK_CULL_MODE_BACK_BIT;
-	ModelGraphicsPipeline.frontFaceCullingMode = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	ModelGraphicsPipeline.frontFaceCullingMode = VK_FRONT_FACE_CLOCKWISE;
 	ModelGraphicsPipeline.depthBiasEnableMode = VK_FALSE;
+
+	// Depth Testing
+	ModelGraphicsPipeline.depthTestEnable = VK_TRUE;
+	ModelGraphicsPipeline.depthWriteEnable = VK_TRUE;
+	ModelGraphicsPipeline.depthCompareOperation = VK_COMPARE_OP_LESS;
+	ModelGraphicsPipeline.stencilTestEnable = VK_FALSE;
 
 	//Create Pipeline Layout b4 creating Graphics Pipeline
 	ModelGraphicsPipeline.a_descriptorSetLayout = m_descriptorSetLayout;
@@ -404,8 +408,8 @@ void ModelViewer::CreateFrameBuffers()
 													depthImageView };
 
 		m_FBO.attachmentCount = static_cast<uint32_t>(attachments.size());
-		m_FBO.FBOWidth = m_renderer->m_swapChainDescription.m_swapChainExtent.width;
 		m_FBO.Attachments = attachments;
+		m_FBO.FBOWidth = m_renderer->m_swapChainDescription.m_swapChainExtent.width;
 		m_FBO.FBOHeight = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
 
 		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFrameBuffer[i].FrameBuffer);
@@ -711,7 +715,7 @@ void ModelViewer::CreateSemaphoresandFences()
 
 void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices properties_Cam)
 {
-/*
+
 #pragma region MVP_Update
 	ModelUBO mvp_UBO = {};
 
@@ -735,9 +739,9 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices pro
 
 	void* data;
 
-	vkMapMemory(m_device, m_ModelUniformBuffer[a_imageIndex].BufferMemory, 0, sizeof(mvp_UBO), 0, &data);
+	vkMapMemory(m_renderer->m_device, m_ModelUniformBuffer[a_imageIndex].BufferMemory, 0, sizeof(mvp_UBO), 0, &data);
 	memcpy(data, &mvp_UBO, sizeof(mvp_UBO));
-	vkUnmapMemory(m_device, m_ModelUniformBuffer[a_imageIndex].BufferMemory);
+	vkUnmapMemory(m_renderer->m_device, m_ModelUniformBuffer[a_imageIndex].BufferMemory);
 #pragma endregion
 
 #pragma region LightInfo_Update
@@ -761,12 +765,12 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices pro
 
 	data = NULL;
 
-	vkMapMemory(m_device, m_LightInfoUniformBuffer[a_imageIndex].BufferMemory, 0, sizeof(lightInfo_UBO), 0, &data);
+	vkMapMemory(m_renderer->m_device, m_LightInfoUniformBuffer[a_imageIndex].BufferMemory, 0, sizeof(lightInfo_UBO), 0, &data);
 	memcpy(data, &lightInfo_UBO, sizeof(lightInfo_UBO));
-	vkUnmapMemory(m_device, m_LightInfoUniformBuffer[a_imageIndex].BufferMemory);
+	vkUnmapMemory(m_renderer->m_device, m_LightInfoUniformBuffer[a_imageIndex].BufferMemory);
 
 #pragma endregion
-	*/
+	
 }
 
 void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
@@ -838,7 +842,7 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 
 void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 {
-	/*uint32_t i = a_imageIndex;
+	uint32_t i = a_imageIndex;
 	VkCommandBufferBeginInfo beginInfo = {};
 
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -855,9 +859,9 @@ void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 
 	renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderpassBeginInfo.renderPass = m_renderPass;
-	renderpassBeginInfo.framebuffer = m_swapChainFrameBuffer[i];
+	renderpassBeginInfo.framebuffer = m_renderer->m_swapChainFrameBuffer[i].FrameBuffer;
 	renderpassBeginInfo.renderArea.offset = { 0,0 };
-	renderpassBeginInfo.renderArea.extent = m_swapChainExtent;
+	renderpassBeginInfo.renderArea.extent = m_renderer->m_swapChainDescription.m_swapChainExtent;
 
 
 	//Clear Color//
@@ -870,26 +874,26 @@ void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 
 	vkCmdBeginRenderPass(m_commandBuffers[i], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
+		vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, ModelGraphicsPipeline.a_pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
 
-	vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphicsPipeline);
+		vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, ModelGraphicsPipeline.a_Pipeline);
 
-	VkDeviceSize offset = { 0 };
+		VkDeviceSize offset = { 0 };
 
-	//Bind Vertex Buffer
-	vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &VertexBUffer.Buffer, &offset);
+		//Bind Vertex Buffer
+		vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &VertexBUffer.Buffer, &offset);
 
-	//Bind Index Buffer
-	vkCmdBindIndexBuffer(m_commandBuffers[i], IndexBUffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
+		//Bind Index Buffer
+		vkCmdBindIndexBuffer(m_commandBuffers[i], IndexBUffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
 
-	//Call Draw Indexed for the model
-	vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_indexBufferCount), 1, 0, 0, 0);
-	
-	//==================================================
-	//Draw UI
-	DrawGui(m_commandBuffers[i]);
-	
-	//==================================================
+		//Call Draw Indexed for the model
+		vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_indexBufferCount), 1, 0, 0, 0);
+		
+		//==================================================
+		//Draw UI
+		DrawGui(m_commandBuffers[i]);
+		
+		//==================================================
 	
 	vkCmdEndRenderPass(m_commandBuffers[i]);
 
@@ -898,7 +902,7 @@ void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 	{
 		throw std::runtime_error("Failed to record Command Buffer");
 	}
-	*/
+	
 }
 
 void ModelViewer::ReCreateSwapChain()
@@ -976,7 +980,7 @@ void ModelViewer::SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_V
 
 	VkDeviceSize bufferSize = a_modelDesc.vertexBufferSize;
 
-	m_renderer->CreateBuffer(a_modelDesc.vertexbufferData.data(), bufferSize, &m_ModelVertexBuffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+	m_renderer->CreateBuffer(a_modelDesc.vertexbufferData.data(), bufferSize, a_VertexBUffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 		m_commandPool);
 }
 
@@ -1012,7 +1016,7 @@ void ModelViewer::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_In
 
 	VkDeviceSize bufferSize = a_modelDesc.indexBufferSize;
 
-	m_renderer->CreateBuffer(a_modelDesc.indexbufferData.data(), bufferSize, &m_ModelIndexBuffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+	m_renderer->CreateBuffer(a_modelDesc.indexbufferData.data(), bufferSize, a_IndexBUffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
 		m_commandPool);
 
 	return;
@@ -1397,24 +1401,109 @@ void ModelViewer::Draw(float deltaTime)
 
 	m_MainCamera->update(deltaTime);*/
 
+
+	vkWaitForFences(m_renderer->m_device, 1, &m_renderer->m_inflightFences[m_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
+	vkResetFences(m_renderer->m_device, 1, &m_renderer->m_inflightFences[m_currentFrame]);
+
+
+	//===================================================================
+	//1.Acquire Image form SwapChain
+	//2.Execute command buffer on that image
+	//3.Return Image to swap chain for presentation
+	//===================================================================
+
+	uint32_t imageIndex;
+
+	VkResult result = m_renderer->AcquireNextImage(&imageIndex, m_currentFrame);
+
+
+	if (result == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+		//TODO: need to fix it
+		ReCreateSwapChain();
+		return;
+	}
+	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+	{
+		throw std::runtime_error("Failed to acquire swap chain image");
+	}
+
+	//update our command buffers
+	UpdateCommandBuffers(imageIndex);
+
+	//Update Uniform Buffers which needs to be sent to Shader every frames
+	UpdateUniformBuffer(imageIndex, cam_matrices);
+
+	FrameSubmissionDesc submissionDesc = {};
+
+	submissionDesc.imageIndex = &imageIndex;
+	submissionDesc.commandBufferCount = 1;
+	submissionDesc.commandBuffer = &m_commandBuffers[imageIndex];
+	submissionDesc.currentFrameNumber = m_currentFrame;
+	submissionDesc.result = result;
+
+	m_renderer->SubmissionAndPresentation(submissionDesc);
+
+	m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+
+	//m_MainCamera->update(deltaTime);
 }
 
 void ModelViewer::Destroy()
 {
 	//depth Image
-	/*vkDestroyImageView(m_device, depthImageView, nullptr);
-	vkDestroyImage(m_device, depthImageInfo.BufferImage, nullptr);
-	vkFreeMemory(m_device, depthImageInfo.BufferMemory, nullptr);
+	vkDestroyImageView(m_renderer->m_device, depthImageView, nullptr);
+	vkDestroyImage(m_renderer->m_device, depthImageInfo.BufferImage, nullptr);
+	vkFreeMemory(m_renderer->m_device, depthImageInfo.BufferMemory, nullptr);
 
 
-	vkDestroySampler(m_device, textureSampler, nullptr);
-	vkDestroyImageView(m_device, textureImageView, nullptr);
+	vkDestroySampler(m_renderer->m_device, textureSampler, nullptr);
+	vkDestroyImageView(m_renderer->m_device, textureImageView, nullptr);
 
 	//destroy Image
-	vkDestroyImage(m_device, image1.BufferImage, nullptr);
-	vkFreeMemory(m_device, image1.BufferMemory, nullptr);
+	vkDestroyImage(m_renderer->m_device, image1.BufferImage, nullptr);
+	vkFreeMemory(m_renderer->m_device, image1.BufferMemory, nullptr);
 
+	Imgui_Impl::getInstance()->DestroyGui(m_renderer->m_device);
 
-	Imgui_Impl::getInstance()->DestroyGui(m_device);*/
+	vkFreeCommandBuffers(m_renderer->m_device, m_commandPool, static_cast<uint32_t>(m_commandBuffers.size()), m_commandBuffers.data());
+
+	vkDestroyPipeline(m_renderer->m_device, ModelGraphicsPipeline.a_Pipeline, nullptr);
+
+	vkDestroyPipelineLayout(m_renderer->m_device, ModelGraphicsPipeline.a_pipelineLayout, nullptr);
+
+	vkDestroyRenderPass(m_renderer->m_device, m_renderPass, nullptr);
+
+	for (size_t i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImages.size(); ++i)
+	{
+		//Model's UBO
+		vkDestroyBuffer(m_renderer->m_device, m_ModelUniformBuffer[i].Buffer, nullptr);
+		vkFreeMemory(m_renderer->m_device, m_ModelUniformBuffer[i].BufferMemory, nullptr);
+		
+		//Light's UBO
+		vkDestroyBuffer(m_renderer->m_device, m_LightInfoUniformBuffer[i].Buffer, nullptr);
+		vkFreeMemory(m_renderer->m_device, m_LightInfoUniformBuffer[i].BufferMemory, nullptr);
+	}
+
+	vkDestroyDescriptorPool(m_renderer->m_device, m_DescriptorPool, nullptr);
+
+	vkDestroyDescriptorSetLayout(m_renderer->m_device, m_descriptorSetLayout, nullptr);
+
+	//Destroy Model's Index Buffer
+	vkDestroyBuffer(m_renderer->m_device, m_ModelIndexBuffer.Buffer, nullptr);
+	vkFreeMemory(m_renderer->m_device, m_ModelIndexBuffer.BufferMemory, nullptr);
+
+	//Destroy Model's Vertex Buffer
+	vkDestroyBuffer(m_renderer->m_device, m_ModelVertexBuffer.Buffer, nullptr);
+	vkFreeMemory(m_renderer->m_device, m_ModelVertexBuffer.BufferMemory, nullptr);
+
+	vkDestroyCommandPool(m_renderer->m_device, m_commandPool, nullptr);
+
+	// Remove all the Vulkan related intialized values
+	m_renderer->Destroy();
+
+	//Destroy the renderer
+	if (m_renderer != NULL)
+		delete m_renderer;
 
 }

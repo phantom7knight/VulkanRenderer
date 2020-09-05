@@ -360,8 +360,6 @@ void Triangle::UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime)
 
 }
 
-
-
 //===================================================================
 //Create Index Buffer
 //===================================================================

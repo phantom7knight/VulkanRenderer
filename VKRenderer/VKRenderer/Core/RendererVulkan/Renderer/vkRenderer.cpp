@@ -578,7 +578,7 @@ void vkRenderer::CreateCommandPool(VkCommandPool* a_commandPool)
 
 	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	createInfo.queueFamilyIndex = queuefamilyindeces.graphicsFamily.value();
-	createInfo.flags = 0;
+	createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
 	VulkanHelper::CreateCommandPool(m_device, createInfo, a_commandPool);
 
