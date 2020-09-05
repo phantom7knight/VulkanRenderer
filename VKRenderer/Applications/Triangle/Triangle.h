@@ -1,8 +1,9 @@
 #pragma once
 
-#include "../../VKRenderer/vkRenderer.h"
+#include "../../VKRenderer/Core/Application/Application.h"
+#include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
 
-class Triangle : public vkRenderer
+class Triangle : public Application
 {
 
 private:
@@ -39,10 +40,47 @@ private:
 
 	//variables
 
+	vkRenderer*							m_renderer;
+
+	GraphicsPipelineInfo				TrianglePipeline;
+
+	VkRenderPass						m_renderPass;
+
+	FrameBufferDesc						m_FBO;
+
+	std::vector<BufferDesc>				m_TriangleUniformBuffer;
+
+	VkCommandPool						m_commandPool;
+	
+	std::vector<VkCommandBuffer>		m_commandBuffers;
+
+	VkDescriptorSetLayout				m_descriptorSetLayout;
+
+	VkDescriptorPool					m_DescriptorPool;
+
+	std::vector<VkDescriptorSet>		m_DescriptorSets;
+
+	BufferDesc							m_TriangleVertexBuffer;
+
+	BufferDesc							m_RectangleIndexBuffer;
+
+	size_t								m_currentFrame = 0;
+
+
 
 public:
 
+	Triangle();
 	
+	~Triangle() {}
+
+	virtual vkRenderer* getRenderer()
+	{
+		return m_renderer;
+	}
+
+	//Init Initialization of the properties here
+	virtual void Init();
 
 	// Inherited via vkRenderer
 	virtual void PrepareApp();

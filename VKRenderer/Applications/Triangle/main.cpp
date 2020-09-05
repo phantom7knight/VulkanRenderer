@@ -1,12 +1,13 @@
-#include "../../VKRenderer/stdafx.h"
-#include "../../VKRenderer/vkRenderer.h"
+#include "../../VKRenderer/Core/PCH/stdafx.h"
+#include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
+#include "../../VKRenderer/Core/Application/Application.h"
 #include "Triangle.h"
 
 
-void MainLoop(vkRenderer* rendererExample)
+void MainLoop(Application* rendererExample)
 {
 	
-	while (!glfwWindowShouldClose(rendererExample->getWindow()))
+	while (!glfwWindowShouldClose(rendererExample->getRenderer()->getWindow()))
 	{
 		//Frame Rate Manager Init
 		float deltaTime = 0.0f;// vkTimer::getInstance()->FrameStart(true) / 1000.0f;
@@ -26,16 +27,15 @@ void MainLoop(vkRenderer* rendererExample)
 		
 		//Add other updates here
 
-
 	}
 
 
-	vkDeviceWaitIdle(rendererExample->getDevice());
+	vkDeviceWaitIdle(rendererExample->getRenderer()->getDevice());
 
 }
 
 
-void Destroy(vkRenderer * rendererExample)
+void Destroy(Application* rendererExample)
 {
 	//Renderer destroy
 	rendererExample->Destroy();
@@ -44,14 +44,12 @@ void Destroy(vkRenderer * rendererExample)
 
 
 int main() 
-{
-
-	
+{	
 	//Init a base class
-	vkRenderer* rendererExample = new Triangle();
+	Application* rendererExample = new Triangle();
 
 	//Initalize Vulkan and GLFW for window.
-	rendererExample->Init(); 
+	rendererExample->Init();
 
 	rendererExample->PrepareApp();
 

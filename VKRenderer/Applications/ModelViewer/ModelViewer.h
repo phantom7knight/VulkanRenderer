@@ -1,5 +1,7 @@
 #pragma once
-#include "../../VKRenderer/vkRenderer.h"
+
+#include "../../VKRenderer/Core/Application/Application.h"
+//#include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
 
 
 struct ModelUBO
@@ -28,23 +30,9 @@ struct LightInfoUBO
 };
 
 class Camera;
-class ModelViewer : public vkRenderer
+class ModelViewer : public Application
 {
-public:
-	ModelViewer();
-	~ModelViewer();
-
-	// Inherited via vkRenderer
-	virtual void PrepareApp();
-
-	// Inherited via vkRenderer
-	virtual void Update(float deltaTime) override;
-
-	// Inherited via vkRenderer
-	virtual void Draw(float deltaTime)  override;
-
-	virtual void Destroy() override;
-
+private:
 
 	//Helper functions for this application
 
@@ -97,7 +85,7 @@ private:
 
 	void LoadAModel(std::string fileName);
 	void LoadTexture(std::string fileName);
-	void CreateImage(TextureBufferDesc *a_texBufferDesc);
+	//void CreateImage(TextureBufferDesc *a_texBufferDesc);
 
 	BufferDesc IndexBUffer;
 	BufferDesc VertexBUffer;
@@ -123,6 +111,45 @@ private:
 	bool m_showPhongGUILight;
 	bool m_showBRDFGUILight;
 	float m_roughnessGUILight;
+
+	// Variables
+	vkRenderer*						m_renderer;
+	VkRenderPass					m_renderPass;
+	VkCommandPool					m_commandPool;
+	VkDescriptorSetLayout			m_descriptorSetLayout;
+	VkDescriptorPool				m_DescriptorPool;
+	FrameBufferDesc					m_FBO;
+	GraphicsPipelineInfo			ModelGraphicsPipeline;
+	BufferDesc						m_ModelVertexBuffer;
+	BufferDesc						m_ModelIndexBuffer;
+	std::vector<VkCommandBuffer>	m_commandBuffers;
+	std::vector<BufferDesc>			m_ModelUniformBuffer;
+	std::vector<BufferDesc>			m_LightInfoUniformBuffer;
+	std::vector<VkDescriptorSet>	m_DescriptorSets;
+	size_t							m_currentFrame = 0;
+
+public:
+	ModelViewer();
+	~ModelViewer();
+
+	virtual vkRenderer* getRenderer()
+	{
+		return m_renderer;
+	}
+
+	//Init Initialization of the properties here
+	virtual void Init();
+
+	// Inherited via vkRenderer
+	virtual void PrepareApp();
+
+	// Inherited via vkRenderer
+	virtual void Update(float deltaTime);
+
+	// Inherited via vkRenderer
+	virtual void Draw(float deltaTime);
+
+	virtual void Destroy() override;
 
 };
 

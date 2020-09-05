@@ -95,9 +95,9 @@ void ShadowMapping::CreateRenderPass()
 	renderpassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	renderpassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 	renderpassInfo.pAttachments = attachments.data();
-	renderpassInfo.subpassCount = 1;
+	renderpassInfo.subpassCount = 1; //TODO: Check this
 	renderpassInfo.pSubpasses = &subpassInfo;
-	renderpassInfo.dependencyCount = 1;
+	renderpassInfo.dependencyCount = 1;//subpassDependecy.count
 	renderpassInfo.pDependencies = &dependency;
 
 	if (vkCreateRenderPass(m_device, &renderpassInfo, nullptr, &m_renderPass) != VK_SUCCESS)
@@ -364,6 +364,8 @@ void ShadowMapping::CreateGraphicsPipeline()
 	vkDestroyShaderModule(m_device, pixelShaderModule, nullptr);
 }
 
+
+// TODO: Come back to this
 void ShadowMapping::CreateFrameBuffers()
 {
 	m_swapChainFrameBuffer.resize(m_SwapChainImageViews.size());
@@ -853,7 +855,7 @@ void ShadowMapping::LoadAModel(std::string fileName)
 
 void ShadowMapping::LoadTexture(std::string textureName)
 {
-	int texWidth, texHeight, texChannels;
+	/*int texWidth, texHeight, texChannels;
 
 	stbi_uc* pixels = stbi_load(textureName.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
@@ -897,7 +899,7 @@ void ShadowMapping::LoadTexture(std::string textureName)
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
-	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
+	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);*/
 
 }
 

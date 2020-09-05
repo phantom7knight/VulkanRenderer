@@ -1,60 +1,99 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    <Filter Include="Vulkan">
+      <UniqueIdentifier>{7b86673c-989b-4029-a6e9-8dc95de0f831}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    <Filter Include="Vulkan\VulkanCore">
+      <UniqueIdentifier>{9980c8a0-e343-4f19-8b90-ffd82ebde663}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="Vulkan\Renderer">
+      <UniqueIdentifier>{5db897a5-fa97-43bf-982e-f8cb8f3eeb5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Vulkan\ValidationLayer">
+      <UniqueIdentifier>{3b90a014-b79b-4507-bb02-c4b70a5de02b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Application">
+      <UniqueIdentifier>{9ce58353-6665-4de2-afaa-460cbc3d7cd9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Camera">
+      <UniqueIdentifier>{b34cd567-845a-4934-8a7f-99d50712dc67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ResourceLoading">
+      <UniqueIdentifier>{4b1dc045-84d6-4028-866a-ada5fe7c1563}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ResourceLoading\ModelLoading">
+      <UniqueIdentifier>{b0643f02-edef-4436-a7bb-866f78bbb1cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ResourceLoading\TextureLoading">
+      <UniqueIdentifier>{9f03fa62-8f20-4dac-a874-27290f32c3cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ResourceLoading\ShaderLoading">
+      <UniqueIdentifier>{93e00df5-09bf-4093-8865-e79d441b5065}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Helpers">
+      <UniqueIdentifier>{87483c31-c3dd-4646-81ac-3cdbbfa75842}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Helpers\Constants">
+      <UniqueIdentifier>{6a5b5812-5c69-45e2-b20b-6287997bd597}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Helpers\Time">
+      <UniqueIdentifier>{e12e735c-30fd-49ac-b09e-3fd38e5ba4e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Helpers\Random">
+      <UniqueIdentifier>{ef4fe485-bbee-4a5a-8b9a-ac3c11ccc066}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PreCompilerHeader">
+      <UniqueIdentifier>{e8cb735b-b493-48b5-8ad5-5b94e46b45da}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Core\RendererVulkan\Renderer\vkRenderer.cpp">
+      <Filter>Vulkan\Renderer</Filter>
     </ClCompile>
-    <ClCompile Include="vkRenderer.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Core\ResourceLoading\ResourceLoader.cpp">
+      <Filter>ResourceLoading</Filter>
     </ClCompile>
-    <ClCompile Include="ResourceLoader.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Core\Camera\Camera.cpp">
+      <Filter>Camera</Filter>
     </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Core\Application\Application.cpp">
+      <Filter>Application</Filter>
     </ClCompile>
-    <ClCompile Include="vkTimer.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Core\PCH\stdafx.cpp">
+      <Filter>PreCompilerHeader</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Helper\Timer\vkTimer.cpp">
+      <Filter>Helpers\Time</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Core\RendererVulkan\Renderer\vkRenderer.h">
+      <Filter>Vulkan\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="Constans.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Core\RendererVulkan\VulkanHelper\VulkanHelper.hpp">
+      <Filter>Vulkan\VulkanCore</Filter>
     </ClInclude>
-    <ClInclude Include="vkRenderer.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Core\Helper\Validation Layer\ValidationLayer.hpp">
+      <Filter>Vulkan\ValidationLayer</Filter>
     </ClInclude>
-    <ClInclude Include="ValidationLayer.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Core\ResourceLoading\ResourceLoader.h">
+      <Filter>ResourceLoading</Filter>
     </ClInclude>
-    <ClInclude Include="ResourceLoader.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Core\Camera\Camera.h">
+      <Filter>Camera</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Core\Application\Application.h">
+      <Filter>Application</Filter>
     </ClInclude>
-    <ClInclude Include="vkTimer.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Core\PCH\stdafx.h">
+      <Filter>PreCompilerHeader</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="RoadMap.txt" />
+    <ClInclude Include="Core\Helper\Constants\Constans.hpp">
+      <Filter>Helpers\Constants</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Helper\Timer\vkTimer.h">
+      <Filter>Helpers\Time</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

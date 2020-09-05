@@ -180,28 +180,23 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="ResourceLoader.cpp" />
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="vkRenderer.cpp" />
-    <ClCompile Include="vkTimer.cpp" />
+    <ClCompile Include="Core\Application\Application.cpp" />
+    <ClCompile Include="Core\Camera\Camera.cpp" />
+    <ClCompile Include="Core\Helper\Timer\vkTimer.cpp" />
+    <ClCompile Include="Core\PCH\stdafx.cpp" />
+    <ClCompile Include="Core\RendererVulkan\Renderer\vkRenderer.cpp" />
+    <ClCompile Include="Core\ResourceLoading\ResourceLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
-    <ClInclude Include="Constans.hpp" />
-    <ClInclude Include="ResourceLoader.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="ValidationLayer.hpp" />
-    <ClInclude Include="vkRenderer.h" />
-    <ClInclude Include="vkTimer.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="RoadMap.txt" />
+    <ClInclude Include="Core\Application\Application.h" />
+    <ClInclude Include="Core\Camera\Camera.h" />
+    <ClInclude Include="Core\Helper\Constants\Constans.hpp" />
+    <ClInclude Include="Core\Helper\Timer\vkTimer.h" />
+    <ClInclude Include="Core\Helper\Validation Layer\ValidationLayer.hpp" />
+    <ClInclude Include="Core\PCH\stdafx.h" />
+    <ClInclude Include="Core\RendererVulkan\Renderer\vkRenderer.h" />
+    <ClInclude Include="Core\RendererVulkan\VulkanHelper\VulkanHelper.hpp" />
+    <ClInclude Include="Core\ResourceLoading\ResourceLoader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

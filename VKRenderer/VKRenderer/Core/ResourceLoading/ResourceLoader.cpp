@@ -1,4 +1,5 @@
-#include "stdafx.h"
+
+#include "../PCH/stdafx.h"
 #include "ResourceLoader.h"
 
 #pragma region File-Operations
@@ -23,9 +24,22 @@ std::vector<char, std::allocator<char>> FileOperations::readFile(const std::stri
 	return buffer;
 }
 
-bool ResourceLoader::checkIfCharacterExists(const std::string a_string, char a_toSearch)
+bool FileOperations::checkIfCharacterExists(const std::string a_string, char a_toSearch)
 {
 	if (a_string.find(a_toSearch))
+	{
+		return true;
+	}
+
+	return false;
+}
+
+bool FileOperations::CheckIfStringExists(const std::string a_string, std::string a_toSearch)
+{
+	//if (a_string.find(a_toSearch))
+	//	return true;
+
+	if (a_string.find(a_toSearch) != std::string::npos) 
 	{
 		return true;
 	}
@@ -152,7 +166,7 @@ void ResourceLoader::GenerateBatchFile(std::vector<std::string> fileNames)
 	
 	std::string vulkansdk_name_replaced;
 
-	if (checkIfCharacterExists(vulkansdk_name, '\\'))
+	if (m_fileOpsObj.checkIfCharacterExists(vulkansdk_name, '\\'))
 	{
 		vulkansdk_name_replaced = m_fileOpsObj.ReplaceCharacter(vulkansdk_name, '/', '\\' );
 	}
@@ -231,7 +245,7 @@ VkVertexInputBindingDescription MeshLoader::getBindingDescription()
 	return VertexInfo::getBindingDescription();
 }
 
-std::array<VkVertexInputAttributeDescription, 5> MeshLoader::getAttributeDescriptionsofVertex()
+std::vector<VkVertexInputAttributeDescription> MeshLoader::getAttributeDescriptionsofVertex()
 {
 	return VertexInfo::getAttributeDescriptionsofVertex();
 }
@@ -341,7 +355,6 @@ ModelInfo ResourceLoader::LoadModelResource(std::string fileName)
 }
 
 #pragma endregion
-
 
 #pragma region Texture-Loading
 

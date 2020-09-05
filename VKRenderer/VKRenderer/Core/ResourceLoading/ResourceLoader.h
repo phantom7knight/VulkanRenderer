@@ -16,14 +16,16 @@ public:
 	FileOperations() {}
 	~FileOperations() {}
 
-	bool				IfFileExists(const char* filename);
-	FILE*				OpenFile(std::string a_FileName, const char* flags);
-	long				TellFile(FILE* file);
-	bool				SeekFIle(FILE* fp, long offset, int origin);
-	unsigned			GetFileSize(std::string a_FileName);
+	bool									IfFileExists(const char* filename);
+	FILE*									OpenFile(std::string a_FileName, const char* flags);
+	long									TellFile(FILE* file);
+	bool									SeekFIle(FILE* fp, long offset, int origin);
+	unsigned								GetFileSize(std::string a_FileName);
+	bool									checkIfCharacterExists(const std::string a_string, char a_toSearch);
+	bool									CheckIfStringExists(const std::string a_string, std::string a_toSearch);
 	std::vector<char,std::allocator<char>>	readFile(const std::string& filename);
-	std::string ReplaceCharacter(const std::string a_str, char a_toReplaceWith, char a_toSearchFor);
-	std::string get_current_dir();
+	std::string								ReplaceCharacter(const std::string a_str, char a_toReplaceWith, char a_toSearchFor);
+	std::string								get_current_dir();
 };
 
 //==================================
@@ -32,6 +34,7 @@ typedef struct ShaderDesc
 {
 	VkDevice a_device;
 	const std::vector<char>* shaderCode;
+	ShaderStage a_shaderStage;
 }ShaderDesc;
 
 
@@ -55,9 +58,11 @@ struct VertexInfo
 	}
 
 
-	static std::array<VkVertexInputAttributeDescription, 5> getAttributeDescriptionsofVertex()
+	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptionsofVertex()
 	{
-		std::array<VkVertexInputAttributeDescription, 5> attributeDesc = {};
+		std::vector< VkVertexInputAttributeDescription > attributeDesc;
+
+		attributeDesc.resize(5);
 
 		//Position
 		attributeDesc[0].binding = 0;
@@ -94,14 +99,14 @@ struct VertexInfo
 	}
 };
 
-typedef struct
+struct ModelInfo
 {
 	uint32_t vertexBufferSize = 0;
 	std::vector<VertexInfo> vertexbufferData;
 	
 	uint32_t indexBufferSize = 0;
 	std::vector<uint32_t> indexbufferData;
-}ModelInfo;
+};
 
 //Maybe Load Materials if available for the model
 class MeshLoader
@@ -111,7 +116,7 @@ public:
 	~MeshLoader() {}
 
 	static VkVertexInputBindingDescription getBindingDescription();
-	static std::array<VkVertexInputAttributeDescription, 5> getAttributeDescriptionsofVertex();
+	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptionsofVertex();
 
 	ModelInfo LoadModel(std::string fileName);
 
@@ -162,7 +167,6 @@ public:
 private:
 	
 	bool				CreateDirectoryFolder(std::string pathName);
-	bool				checkIfCharacterExists(const std::string a_string, char a_toSearch);
 	bool				CheckifSPIRVGenerated(std::vector<std::string> ShaderFileNames);
 
 	//Bool to check if the SPIR-V files have been generated
