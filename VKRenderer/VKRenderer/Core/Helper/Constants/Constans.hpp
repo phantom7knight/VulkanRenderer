@@ -9,6 +9,18 @@ const int HEIGHT	= 900;
 #define IMAGE_COUNT 3
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
+enum TEXTURE_TYPE
+{
+	eTEXTURETYPE_ALBEDO,
+	eTEXTURETYPE_NORMAL,
+	eTEXTURETYPE_SPECULAR,
+	eTEXTURETYPE_METALLIC,
+	eTEXTURETYPE_ROUGHNESS,
+	eTEXTURETYPE_AO,
+	eTEXTURETYPE_EMISSIVE,
+	eTEXTURETYPE_NOISE,
+	eTEXTURETYPE_DEPTH
+};
 
 typedef struct BufferDesc
 {
@@ -22,12 +34,15 @@ struct TextureBufferDesc
 {
 	VkImage					BufferImage = VK_NULL_HANDLE;
 	VkDeviceMemory			BufferMemory = VK_NULL_HANDLE;
+	VkSampler				Sampler;
+	VkImageView				ImageView;
 	VkFormat				imageFormat;
 	VkImageTiling			tiling;
 	VkImageUsageFlags		usageFlags;
 	VkMemoryPropertyFlags	propertyFlags;
 	int						ImageWidth = 0;
 	int						ImageHeight = 0;
+	TEXTURE_TYPE			textureType;
 };
 
 struct QueueFamilyIndices

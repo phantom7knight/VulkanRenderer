@@ -180,6 +180,8 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\Common\Graphics\Material.cpp" />
+    <ClCompile Include="..\Common\Graphics\PBR-IBL\PBRIBL.cpp" />
     <ClCompile Include="Core\Application\Application.cpp" />
     <ClCompile Include="Core\Camera\Camera.cpp" />
     <ClCompile Include="Core\Helper\Timer\vkTimer.cpp" />
@@ -188,6 +190,8 @@
     <ClCompile Include="Core\ResourceLoading\ResourceLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Common\Graphics\Material.h" />
+    <ClInclude Include="..\Common\Graphics\PBR-IBL\PBRIBL.h" />
     <ClInclude Include="Core\Application\Application.h" />
     <ClInclude Include="Core\Camera\Camera.h" />
     <ClInclude Include="Core\Helper\Constants\Constans.hpp" />

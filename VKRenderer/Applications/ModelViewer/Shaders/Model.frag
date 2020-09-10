@@ -10,7 +10,7 @@ layout(location = 1) in		vec2 TexCoords;
 layout(location = 2) in		vec3 Normals;
 
 //take the sampler data
-layout(binding = 1) uniform sampler2D samplerTexture1;
+layout(binding = 1) uniform sampler2D albedoTexture;
 
 layout(binding = 2) uniform LightInfoUBO
 {
@@ -22,6 +22,9 @@ layout(binding = 2) uniform LightInfoUBO
 	float ObjRoughness;
 }light_ubo;
 
+layout(binding = 3) uniform sampler2D metallicTexture;
+
+layout(binding = 4) uniform sampler2D roughnessTexture;
 
 void CalculatePhong(inout vec4 result)
 {
@@ -52,9 +55,9 @@ void CalculatePhong(inout vec4 result)
 	float spec = pow(max(dot(ViewDir,reflectDir),0.0),specIntensity);
 	vec3 SpecLight = spec * LightColor;
 
+	vec3 AlbedoSamplerOutput = texture(albedoTexture, TexCoords).rgb;
 
-
-	result = vec4((AmbLight + DiffLight + SpecLight) * objColor, 1.0f);
+	result = vec4((AmbLight + DiffLight + SpecLight ) * objColor * AlbedoSamplerOutput, 1.0f);
 
 }
 
@@ -118,9 +121,10 @@ void CalculateBRDF(inout vec4 result)
 	vec4 specularPart = vec4(1.);
 
 	vec3 diffAlbedoColor = vec3(0.5,0.5,0.5);
+	vec3 AlbedoSamplerOutput = texture(albedoTexture, TexCoords).rgb;
 	vec3 specularColor = vec3(0.5,0.5,0.5);
 
-	diffusePart = vec4(diffAlbedoColor, 1.0);
+	diffusePart = vec4(AlbedoSamplerOutput * diffAlbedoColor, 1.0);
 	diffusePart /= PI;
 
 	//Light position
@@ -131,14 +135,17 @@ void CalculateBRDF(inout vec4 result)
 	vec3 camPos	= light_ubo.camPosition;
 	vec3 ViewDir = normalize(camPos - vertPos.xyz);
 	
+	float roughness = texture(roughnessTexture, TexCoords).r;//light_ubo.ObjRoughness ;
+	
+	float metallicness = texture(metallicTexture, TexCoords).r;//light_ubo.ObjRoughness ;
+	
+	vec3 F0 = mix(vec3(0.04f), AlbedoSamplerOutput, metallicness);
 
 	// H = (l+v) / ||l+v||
 	vec3 H = normalize(lightPos + camPos);
 
 	float NH = dot(normalize(Normals), H);
-
-	float roughness = light_ubo.ObjRoughness * light_ubo.ObjRoughness;
-
+	
 	float NDF = NormalDistributionFunction(roughness,NH);
 
 	float GF = GeometricFunction(roughness,LightDir,ViewDir,normalize(Normals));
@@ -152,7 +159,7 @@ void CalculateBRDF(inout vec4 result)
 	
 
 	//specularPart = (( NDF * FF ) / (4 * NL * NV) )* GF;
-	specularPart = (( NDF * FF ) / (4 * NL * NV) )* GF;
+	specularPart = (( NDF * FF ) / (4 * NL * NV)* GF );
 
 
 
@@ -174,8 +181,6 @@ void main()
 			break;
 	}
 
-
-
-	//vec4 samplerOutput = texture(samplerTexture1, TexCoords);
+	//vec4 samplerOutput = texture(albedoTexture, TexCoords);
 	//OutColor = samplerOutput;
 }

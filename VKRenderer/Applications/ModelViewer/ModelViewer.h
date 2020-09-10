@@ -1,8 +1,7 @@
 #pragma once
 
 #include "../../VKRenderer/Core/Application/Application.h"
-//#include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
-
+#include "../../Common/Graphics/Material.h"
 
 struct ModelUBO
 {
@@ -38,9 +37,9 @@ private:
 
 	void SetUpCameraProperties(Camera* a_cam);
 	
-	void SetUpIndexBuffer(const ModelInfo a_modelDesc	, BufferDesc *a_IndexBUffer);
+	void SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_IndexBUffer);
 	
-	void SetUpVertexBuffer(const ModelInfo a_modelDesc	, BufferDesc *a_VertexBUffer);
+	void SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_VertexBUffer);
 
 	void CreateRenderPass();
 
@@ -80,28 +79,32 @@ private:
 
 	void DrawGui(VkCommandBuffer a_cmdBuffer);
 
+	void LoadAllTextures();
 
 private:
 
 	void LoadAModel(std::string fileName);
-	void LoadTexture(std::string fileName);
-	//void CreateImage(TextureBufferDesc *a_texBufferDesc);
+	void LoadTexture(std::string fileName, TextureBufferDesc* a_imageTex);
 
-	BufferDesc IndexBUffer;
+	// Model's buffer related
 	BufferDesc VertexBUffer;
-
+	BufferDesc IndexBUffer;
 	int m_indexBufferCount = 0;
 
-	TextureBufferDesc image1 = {};
-	VkImageView textureImageView;
-	VkSampler textureSampler;
 	CameraMatrices cam_matrices;
-	//glm::vec3 getCamProperties
 
-	
-	//Depth Related variables
+	// Loaded Texture related
+	//TextureBufferDesc image1 = {};
+	//TextureBufferDesc image2 = {};
+	//TextureBufferDesc image3 = {};
+	//TextureBufferDesc image4 = {};
+
+	Material PBRMaterial;
+
+
+	//Depth related variables
 	TextureBufferDesc depthImageInfo;
-	VkImageView depthImageView;
+	
 
 	bool m_showGUILight;
 	glm::vec3	m_lightPosGUILight;
@@ -112,7 +115,7 @@ private:
 	bool m_showBRDFGUILight;
 	float m_roughnessGUILight;
 
-	// Variables
+	// Application related variables
 	vkRenderer*						m_renderer;
 	VkRenderPass					m_renderPass;
 	VkCommandPool					m_commandPool;
