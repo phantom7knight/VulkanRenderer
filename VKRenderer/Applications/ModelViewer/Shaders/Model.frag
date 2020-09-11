@@ -80,7 +80,7 @@ float SubGeometricFunction(float k, vec3 Normal, vec3 inputVector)
 
 	float NV = dot(normalize(Normal), inputVector);
 	
-	res = NV / ((NV * (1-k)) + k);
+	res = NV / ((NV * (1.0-k)) + k);
 
 	return res;
 }
@@ -89,7 +89,7 @@ float GeometricFunction(float roughness, vec3 lightDir, vec3 viewDir, vec3 Norma
 {
 	float result = 0.0f;
 
-	float k = ((roughness + 1) * (roughness + 1)) / 8;
+	float k = ((roughness + 1.0) * (roughness + 1.0)) / 8.0;
 
 	float G1 = SubGeometricFunction(k,Normal,lightDir);
 
@@ -100,15 +100,15 @@ float GeometricFunction(float roughness, vec3 lightDir, vec3 viewDir, vec3 Norma
 	return result;
 }
 
-vec3 FresnelFunction(vec3 viewDir, vec3 HalfwayVec, vec3 SpecularColor)
+vec3 FresnelFunction(vec3 viewDir, vec3 HalfwayVec, vec3 F0)
 {
 	vec3 result = vec3(1.);
 
 	float VH = dot(viewDir, HalfwayVec);
 
-	float crazyCalc = pow(2, (-5.55473*VH) - (-6.98316*VH));
+	float Fc = pow(1 - VH, 5);
 
-	result = SpecularColor + (1 - SpecularColor) * crazyCalc;
+	result = F0 + (1 - F0) * Fc;
 
 	return result;
 }
@@ -120,12 +120,12 @@ void CalculateBRDF(inout vec4 result)
 	vec4 diffusePart = vec4(1.);
 	vec4 specularPart = vec4(1.);
 
-	vec3 diffAlbedoColor = vec3(0.5,0.5,0.5);
+	// Sample the textures
 	vec3 AlbedoSamplerOutput = texture(albedoTexture, TexCoords).rgb;
-	vec3 specularColor = vec3(0.5,0.5,0.5);
-
-	diffusePart = vec4(AlbedoSamplerOutput * diffAlbedoColor, 1.0);
-	diffusePart /= PI;
+	float roughness = texture(roughnessTexture, TexCoords).r;
+	float metallicness = texture(metallicTexture, TexCoords).r;
+	
+	diffusePart = vec4(AlbedoSamplerOutput, 1.0) / PI;
 
 	//Light position
 	vec3 lightPos = light_ubo.lightPosition;
@@ -134,11 +134,7 @@ void CalculateBRDF(inout vec4 result)
 	//View  Position
 	vec3 camPos	= light_ubo.camPosition;
 	vec3 ViewDir = normalize(camPos - vertPos.xyz);
-	
-	float roughness = texture(roughnessTexture, TexCoords).r;//light_ubo.ObjRoughness ;
-	
-	float metallicness = texture(metallicTexture, TexCoords).r;//light_ubo.ObjRoughness ;
-	
+		
 	vec3 F0 = mix(vec3(0.04f), AlbedoSamplerOutput, metallicness);
 
 	// H = (l+v) / ||l+v||
@@ -150,20 +146,21 @@ void CalculateBRDF(inout vec4 result)
 
 	float GF = GeometricFunction(roughness,LightDir,ViewDir,normalize(Normals));
 
-	vec4 FF = vec4(FresnelFunction(ViewDir,H,specularColor),1.0);
+	vec4 FF = vec4(FresnelFunction(ViewDir,H,F0),1.0);
 
 	
 	float NL = dot(normalize(Normals), LightDir);
 
 	float NV = dot(normalize(Normals), ViewDir);
 	
-
-	//specularPart = (( NDF * FF ) / (4 * NL * NV) )* GF;
 	specularPart = (( NDF * FF ) / (4 * NL * NV)* GF );
+	
+	vec3 kS = FF.rgb;
+	
+	vec3 kD = vec3(1.0) - kS;
+	kD * 1.0 - metallicness;
 
-
-
-	result = diffusePart + specularPart;
+	result = (vec4(kD,1.0f) * diffusePart + specularPart) * NL;
 
 }
 
