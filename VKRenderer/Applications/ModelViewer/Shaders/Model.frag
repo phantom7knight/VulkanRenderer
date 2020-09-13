@@ -102,11 +102,11 @@ float GeometricFunction(float roughness, vec3 lightDir, vec3 viewDir, vec3 Norma
 
 vec3 FresnelFunction(vec3 viewDir, vec3 HalfwayVec, vec3 F0)
 {
-	vec3 result = vec3(1.);
+	vec3 result = vec3(1.0);
 
 	float VH = dot(viewDir, HalfwayVec);
 
-	float Fc = pow(1 - VH, 5);
+	float Fc = pow(1.0 - VH, 5.0);
 
 	result = F0 + (1 - F0) * Fc;
 
@@ -138,9 +138,12 @@ void CalculateBRDF(inout vec4 result)
 	vec3 F0 = mix(vec3(0.04f), AlbedoSamplerOutput, metallicness);
 
 	// H = (l+v) / ||l+v||
-	vec3 H = normalize(lightPos + camPos);
+	vec3 H = normalize(LightDir + ViewDir);
 
-	float NH = dot(normalize(Normals), H);
+	float NH = max(dot(normalize(Normals), H), 0.0f);
+	float NL = max(dot(normalize(Normals), LightDir), 0.0f);
+	float NV = max(dot(normalize(Normals), ViewDir), 0.0f);
+	
 	
 	float NDF = NormalDistributionFunction(roughness,NH);
 
@@ -148,12 +151,14 @@ void CalculateBRDF(inout vec4 result)
 
 	vec4 FF = vec4(FresnelFunction(ViewDir,H,F0),1.0);
 
+	//float denom_here = (4 * NL * NV)* GF ;
+	float denom_here = (4 * NL ) ;
 	
-	float NL = dot(normalize(Normals), LightDir);
-
-	float NV = dot(normalize(Normals), ViewDir);
+	if(denom_here <= 0)
+		denom_here = 1.0f;
 	
-	specularPart = (( NDF * FF ) / (4 * NL * NV)* GF );
+	//specularPart = (( NDF * FF ) / denom_here);
+	specularPart = (( NDF * FF ) / denom_here);
 	
 	vec3 kS = FF.rgb;
 	
@@ -162,6 +167,7 @@ void CalculateBRDF(inout vec4 result)
 
 	result = (vec4(kD,1.0f) * diffusePart + specularPart) * NL;
 
+	result += diffusePart * vec4(vec3(0.03f), 1.0f);
 }
 
 void main()

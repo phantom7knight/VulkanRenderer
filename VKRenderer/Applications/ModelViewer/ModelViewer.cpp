@@ -743,6 +743,7 @@ void ModelViewer::PrepareApp()
 #pragma region Model_Load
 		//LoadAModel("../../Assets/Models/monkey/monkey.obj");
 		LoadAModel("../../Assets/Models/Sphere/Sphere.fbx");
+		//LoadAModel("../../Assets/Models/LowPoly/1.obj");
 		//LoadAModel("../../Assets/Models/Kabuto/Kabuto.fbx");
 		//LoadAModel("../../Assets/Models/cornell_box/cornell_box.obj");
 		//LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
