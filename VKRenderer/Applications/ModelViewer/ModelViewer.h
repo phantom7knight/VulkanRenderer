@@ -61,7 +61,7 @@ private:
 	
 	void CreateSemaphoresandFences();
 
-	void UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices properties_Cam);
+	void UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices properties_Cam, float a_deltaTime);
 
 	void UpdateCommandBuffers(uint32_t a_imageIndex);
 	

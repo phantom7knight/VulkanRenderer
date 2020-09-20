@@ -7,6 +7,7 @@
 int i = 0;
 std::chrono::time_point<std::chrono::high_resolution_clock>lastTimeStamp;
 float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 
 void MainLoop(Application* rendererExample)
 {
@@ -15,12 +16,14 @@ void MainLoop(Application* rendererExample)
 	{
 		//Frame Rate Manager Init
 		//float deltaTime = 0.0f;// vkTimer::getInstance()->FrameStart(true) / 1000.0f;
-		auto timeStart = std::chrono::high_resolution_clock::now();
+		auto currentTime = glfwGetTime();// std::chrono::high_resolution_clock::now();
+		deltaTime = currentTime - lastFrame;
+		lastFrame = currentTime;
 
-		if (deltaTime > 0.15f)
+		/*if (deltaTime > 0.15f)
 		{
 			deltaTime = 0.1f;
-		}
+		}*/
 
 		glfwPollEvents();
 
@@ -28,10 +31,10 @@ void MainLoop(Application* rendererExample)
 		rendererExample->Update(deltaTime);
 		
 		rendererExample->Draw(deltaTime);
-		auto timeEnd = std::chrono::high_resolution_clock::now();
+		//auto timeEnd = glfwGetTime();// std::chrono::high_resolution_clock::now();
 
-		float deltaTimeDiff = (float)(std::chrono::duration<double, std::milli>(timeEnd - lastTimeStamp).count());
-		deltaTime = (float)deltaTimeDiff / 1000.0f;
+		//float deltaTimeDiff = (float)(std::chrono::duration<double, std::milli>(timeEnd - lastTimeStamp).count());
+		//deltaTime = timeStart - timeEnd;// (float)deltaTimeDiff / 1000.0f;
 		
 		//Add other updates here
 
@@ -65,7 +68,7 @@ int main()
 
 	MainLoop(rendererExample);
 	
-	//Destroy(rendererExample);
+	Destroy(rendererExample);
 
 	//clean up the pointer
 	delete rendererExample;

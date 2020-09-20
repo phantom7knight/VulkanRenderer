@@ -388,7 +388,7 @@ void ModelViewer::CreateSemaphoresandFences()
 	m_renderer->CreateSemaphoresandFences();
 }
 
-void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices properties_Cam)
+void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices a_propertiesCam, float a_deltaTime)
 {
 
 #pragma region MVP_Update
@@ -397,7 +397,7 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices pro
 	//Model Matrix
 	mvp_UBO.ModelMatrix = glm::mat4(1);
 	mvp_UBO.ModelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0, 0.0, 0.0));
-	//mvp_UBO.ModelMatrix = glm::rotate(mvp_UBO.ModelMatrix, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	mvp_UBO.ModelMatrix = glm::rotate(mvp_UBO.ModelMatrix, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	mvp_UBO.ModelMatrix = glm::scale(mvp_UBO.ModelMatrix, glm::vec3(0.01f));
 
 
@@ -472,7 +472,7 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 			}
 		}
 		
-		ImGui::SliderFloat3("Light Position", &m_lightPosGUILight.x, -200.0f, 200.0f);
+		ImGui::SliderFloat3("Light Position", &m_lightPosGUILight.x, -400.0f, 400.0f);
 
 		ImGui::SliderFloat3("Light Color", &m_lightColorGUILight.x, 0.0f, 1.0f);
 
@@ -741,8 +741,8 @@ void ModelViewer::PrepareApp()
 	CreateGraphicsPipeline();
 
 #pragma region Model_Load
-		//LoadAModel("../../Assets/Models/monkey/monkey.obj");
-		LoadAModel("../../Assets/Models/Sphere/Sphere.fbx");
+		LoadAModel("../../Assets/Models/monkey/monkey.obj");
+		//LoadAModel("../../Assets/Models/Sphere/Sphere.fbx");
 		//LoadAModel("../../Assets/Models/LowPoly/1.obj");
 		//LoadAModel("../../Assets/Models/Kabuto/Kabuto.fbx");
 		//LoadAModel("../../Assets/Models/cornell_box/cornell_box.obj");
@@ -821,7 +821,7 @@ void ModelViewer::Draw(float deltaTime)
 	UpdateCommandBuffers(imageIndex);
 
 	//Update Uniform Buffers which needs to be sent to Shader every frames
-	UpdateUniformBuffer(imageIndex, cam_matrices);
+	UpdateUniformBuffer(imageIndex, cam_matrices, deltaTime);
 
 	FrameSubmissionDesc submissionDesc = {};
 

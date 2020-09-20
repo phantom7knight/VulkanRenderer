@@ -113,10 +113,30 @@ vec3 FresnelFunction(vec3 viewDir, vec3 HalfwayVec, vec3 F0)
 	return result;
 }
 
+float NDF(float roughness, float NH)
+{
+	float numerator = (roughness + 2) * (pow(NH, roughness));
+	float denominator = 2 * PI;
+	
+	return numerator / denominator;
+}
+
+float Geometric(float LH)
+{
+	return (1 / pow(LH, 2));
+}
+
+//F (L , H ) = Ks + (1−Ks)(1−L⋅H )^5
+vec3 FresnelSchlickApproximation(float LH, vec3 Ks)
+{
+	return (Ks + (1 - Ks) * (pow(1-LH, 5)));
+}
 
 //Source : https://cdn2.unrealengine.com/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
 void CalculateBRDF(inout vec4 result)
 {
+	int method = 2;
+	
 	vec4 diffusePart = vec4(1.);
 	vec4 specularPart = vec4(1.);
 
@@ -143,31 +163,49 @@ void CalculateBRDF(inout vec4 result)
 	float NH = max(dot(normalize(Normals), H), 0.0f);
 	float NL = max(dot(normalize(Normals), LightDir), 0.0f);
 	float NV = max(dot(normalize(Normals), ViewDir), 0.0f);
+	float LH = max(dot(LightDir, H), 0.0f);
+	
+	float N, G;
+	vec3 F;
+
+	if(method == 1)
+	{
+		N = NormalDistributionFunction(roughness,NH);
+
+		G = GeometricFunction(roughness,LightDir,ViewDir,normalize(Normals));
+
+		F = FresnelFunction(ViewDir,H,F0);
+	}
+	else
+	{
+		N = NDF(roughness, NH);
+		G = Geometric(LH);
+		F = FresnelSchlickApproximation(LH,F0);		
+	}
 	
 	
-	float NDF = NormalDistributionFunction(roughness,NH);
-
-	float GF = GeometricFunction(roughness,LightDir,ViewDir,normalize(Normals));
-
-	vec4 FF = vec4(FresnelFunction(ViewDir,H,F0),1.0);
-
 	//float denom_here = (4 * NL * NV)* GF ;
-	float denom_here = (4 * NL ) ;
+	float denom_here = (4 * NL * NV) ;
 	
 	if(denom_here <= 0)
 		denom_here = 1.0f;
 	
-	//specularPart = (( NDF * FF ) / denom_here);
-	specularPart = (( NDF * FF ) / denom_here);
+	specularPart = vec4(( N * G * F ) / denom_here,1.0f);
 	
-	vec3 kS = FF.rgb;
+	vec3 kS = F.rgb;
 	
 	vec3 kD = vec3(1.0) - kS;
-	kD * 1.0 - metallicness;
+	kD *= 1.0 - metallicness;
 
 	result = (vec4(kD,1.0f) * diffusePart + specularPart) * NL;
 
 	result += diffusePart * vec4(vec3(0.03f), 1.0f);
+	
+	// vec3 specular = G * F / (4 * NV * NL);
+	// vec3 diffuse = diffusePart.xyz;
+	
+	// result = vec4(diffuse + specular, 1.0f);
+	
 }
 
 void main()
