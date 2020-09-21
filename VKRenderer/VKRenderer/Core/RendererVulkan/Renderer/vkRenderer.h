@@ -110,7 +110,7 @@ public:
 
 	void InitializeVulkan();
 	
-	void ProcessInput(GLFWwindow* window);
+	void ProcessInput(GLFWwindow* window, float deltaTime);
 
 	//Setup Swap-Chain for the App
 	void PrepareApp();

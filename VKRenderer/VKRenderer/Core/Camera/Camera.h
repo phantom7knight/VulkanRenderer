@@ -1,55 +1,59 @@
-/* Copyright (c) 2019, Sascha Willems*/
-
-
 #pragma once
 class Camera
 {
-public:
-	void update(float deltaTime);
 
-	// Update camera passing separate axis data (gamepad)
-	// Returns true if view or position has been changed
-	bool update_gamepad(glm::vec2 axis_left, glm::vec2 axis_right, float delta_time);
-
-	bool getIsUpdate()
-	{
-		return camProperties.updated;
-	}
-
-	Camera();
-	~Camera();
-
-	
+private:
 	CameraMatrices matrices;
 
+public:
+	Camera();
+	~Camera();
+	
+	//Variables
+	float camera_move_speed_;
+	glm::vec3 Camera_Pos_;
+	glm::vec3 Camera_Front_;
+	glm::vec3 Camera_Up_;
+	glm::vec3 Camera_Right_;
+	glm::vec3 Camera_WorldUp_;
+
+	float Yaw;
+	float Pitch;
+
+	float m_MovementSpeed;
+	float m_MouseSensitivity;
+	float m_Zoom;
+	
 	CameraKeys keys;
 
-	glm::vec3 front;
+	void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch = true);
 
-	float move_speed;
+	void ProcessKeyBoardMovement(float a_fDeltaTime);
 
-	bool moving();
+	void CameraUpdate();
 
-	float get_near_clip();
+	void SetPerspective(float fov, float aspect, float znear, float zfar);
 
-	float get_far_clip();
+	void SetPosition(const glm::vec3& position);
 
-	void set_perspective(float fov, float aspect, float znear, float zfar);
+	const glm::vec3& GetCameraPos()
+	{
+		return Camera_Pos_;
+	}
 
-	void update_aspect_ratio(float aspect);
+	glm::mat4 GetViewMatrix()
+	{
+		return matrices.view;
+	}
 
-	void set_position(const glm::vec3& position);
+	glm::mat4 GetpersepectiveMatrix()
+	{
+		return matrices.perspective;
+	}
 
-	void set_rotation(const glm::vec3& rotation);
-
-	void rotate(const glm::vec3& delta);
-
-	void set_translation(const glm::vec3& translation);
-
-	void translate(const glm::vec3& delta);
-
-	CameraProperties camProperties;
-
-	void update_view_matrix();
+	glm::mat4 GetOrthographicMatrix()
+	{
+		return matrices.orthographic;
+	}
 };
 

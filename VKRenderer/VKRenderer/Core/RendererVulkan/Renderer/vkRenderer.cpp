@@ -37,25 +37,28 @@ QueueFamilyIndices vkRenderer::FindQueueFamalies()
 //===================================================================
 //GLFW Input recording
 //===================================================================
-void vkRenderer::ProcessInput(GLFWwindow* window)
+void vkRenderer::ProcessInput(GLFWwindow* window, float deltaTime)
 {
 	//If Esc button is pressed we close
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
 	}
-
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-	{
-		m_MainCamera->camProperties.position = m_MainCamera->camProperties.defPosition;
-	}
-
+	
 	//Update Keys pressed status for the camera update
-	m_MainCamera->keys.up = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS ? true : false;
-	m_MainCamera->keys.down = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS ? true : false;
+	m_MainCamera->keys.forward = glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS ? true : false;
+	m_MainCamera->keys.backward = glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS ? true : false;
 	m_MainCamera->keys.right = glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS ? true : false;
 	m_MainCamera->keys.left = glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS ? true : false;
+	m_MainCamera->keys.up = glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS ? true : false;
+	m_MainCamera->keys.down = glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS ? true : false;
 
+	if (m_MainCamera->keys.backward || m_MainCamera->keys.up ||
+		m_MainCamera->keys.down || m_MainCamera->keys.right ||
+		m_MainCamera->keys.left || m_MainCamera->keys.forward)
+	{
+		m_MainCamera->ProcessKeyBoardMovement(deltaTime);
+	}
 }
 
 void vkRenderer::framebufferResizeCallback(GLFWwindow* window, int width, int height)
@@ -64,27 +67,31 @@ void vkRenderer::framebufferResizeCallback(GLFWwindow* window, int width, int he
 	app->m_frameBufferResized = true;
 }
 
+bool firstMouse = true;
+float lastX = (float)WIDTH / 2.0f;
+float lastY = (float)HEIGHT / 2.0f;
+
 static void MousePosCallBack(GLFWwindow* window, double xpos, double ypos)
 {
 	auto app = reinterpret_cast<vkRenderer*>(glfwGetWindowUserPointer(window));
 
-	app->mousePos.currentPosX = (float)xpos;
-	app->mousePos.currentPosY = (float)ypos;
+	int mouseState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
 
-	int dx = (int)(app->mousePos.PrevPosX - app->mousePos.currentPosX);
-	int dy = (int)(-app->mousePos.PrevPosY + app->mousePos.currentPosY);
-
-	//if left mouse button pressed
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+	if (firstMouse)
 	{
-		app->m_MainCamera->camProperties.rotation.x += dy * app->m_MainCamera->camProperties.rotation_speed;
-		app->m_MainCamera->camProperties.rotation.y -= dx * app->m_MainCamera->camProperties.rotation_speed;
-		app->m_MainCamera->camProperties.rotation += glm::vec3(dy * app->m_MainCamera->camProperties.rotation_speed, -dx * app->m_MainCamera->camProperties.rotation_speed, 0.0);
-		app->m_MainCamera->update_view_matrix();
+		lastX = (float)xpos;
+		lastY = (float)ypos;
+		firstMouse = false;
 	}
 
-	app->mousePos.PrevPosX	=	app->mousePos.currentPosX;
-	app->mousePos.PrevPosY	=	app->mousePos.currentPosY;
+	float xoffset = (float)(xpos - lastX);
+	float yoffset = (float)(lastY - ypos); // reversed since y-coordinates go from bottom to top
+
+	lastX = (float)xpos;
+	lastY = (float)ypos;
+
+	if (mouseState)
+		app->m_MainCamera->ProcessMouseMovement(xoffset, yoffset);
 
 }
 

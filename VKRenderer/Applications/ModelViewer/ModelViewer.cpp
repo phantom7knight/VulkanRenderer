@@ -17,12 +17,12 @@ ModelViewer::~ModelViewer()
 void ModelViewer::SetUpCameraProperties(Camera* a_cam)
 {
 	//SetUp Camera Properties
-	a_cam->set_position(glm::vec3(0.0, 0.0, -1.5));
-	a_cam->camProperties.rotation_speed	   = 0.2f;
-	a_cam->camProperties.translation_speed = 0.0000000002f;
+	a_cam->SetPosition(glm::vec3(0.0, 0.0, 5.0f));
+	//a_cam->camProperties.rotation_speed	   = 0.2f;
+	//a_cam->camProperties.translation_speed = 0.002f;
 	
 	//set proj matrix
-	a_cam->set_perspective(glm::radians(45.0f), (float)m_renderer->m_swapChainDescription.m_swapChainExtent.width / (float)m_renderer->m_swapChainDescription.m_swapChainExtent.height, 0.1f, 1000.0f);
+	a_cam->SetPerspective(glm::radians(45.0f), (float)m_renderer->m_swapChainDescription.m_swapChainExtent.width / (float)m_renderer->m_swapChainDescription.m_swapChainExtent.height, 0.1f, 1000.0f);
 
 }
 
@@ -397,8 +397,8 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices a_p
 	//Model Matrix
 	mvp_UBO.ModelMatrix = glm::mat4(1);
 	mvp_UBO.ModelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(0.0, 0.0, 0.0));
-	mvp_UBO.ModelMatrix = glm::rotate(mvp_UBO.ModelMatrix, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	mvp_UBO.ModelMatrix = glm::scale(mvp_UBO.ModelMatrix, glm::vec3(0.01f));
+	//mvp_UBO.ModelMatrix = glm::rotate(mvp_UBO.ModelMatrix, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	mvp_UBO.ModelMatrix = glm::scale(mvp_UBO.ModelMatrix, glm::vec3(1.0f));
 
 
 	//View Matrix
@@ -427,7 +427,8 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices a_p
 
 	lightInfo_UBO.specularIntensity = m_SpecularIntensityGUILight;
 
-	lightInfo_UBO.camPosition = glm::vec3(0.0, 0.0, -10.5);
+	// TODO: Fix This
+	lightInfo_UBO.camPosition = m_renderer->m_MainCamera->GetCameraPos();
 
 	lightInfo_UBO.lightModel = m_lightModelGUILight;
 
@@ -779,12 +780,12 @@ void ModelViewer::PrepareApp()
 
 void ModelViewer::Update(float deltaTime)
 {
-	m_renderer->ProcessInput(m_renderer->m_window);
+	m_renderer->ProcessInput(m_renderer->m_window, deltaTime);
 	
-	cam_matrices.perspective = m_renderer->m_MainCamera->matrices.perspective;
+	cam_matrices.perspective = m_renderer->m_MainCamera->GetpersepectiveMatrix();
 	
 	//set view matrix
-	cam_matrices.view = m_renderer->m_MainCamera->matrices.view;
+	cam_matrices.view = m_renderer->m_MainCamera->GetViewMatrix();
 
 	return;
 }
