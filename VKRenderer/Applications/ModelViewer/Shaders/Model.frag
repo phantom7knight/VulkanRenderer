@@ -135,30 +135,35 @@ vec3 FresnelSchlickApproximation(float LH, vec3 Ks)
 //Source : https://cdn2.unrealengine.com/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
 void CalculateBRDF(inout vec4 result)
 {
-	int method = 2;
+	int method = 1;
 	
-	vec4 diffusePart = vec4(1.);
-	vec4 specularPart = vec4(1.);
+	vec3 lightColor = vec3(150.0,150.0,150.0);
+	
+	vec3 Lo = vec3(0.0);
 
 	// Sample the textures
-	vec3 AlbedoSamplerOutput = texture(albedoTexture, TexCoords).rgb;
+	vec3 AlbedoSamplerOutput = pow(texture(albedoTexture, TexCoords).rgb, vec3(2.2f));
 	float roughness = texture(roughnessTexture, TexCoords).r;
 	float metallicness = texture(metallicTexture, TexCoords).r;
 	
-	diffusePart = vec4(AlbedoSamplerOutput, 1.0) / PI;
+	//diffusePart = vec4(AlbedoSamplerOutput, 1.0) / PI;
 
-	//Light position
+	//Light position & Direction
 	vec3 lightPos = light_ubo.lightPosition;
 	vec3 LightDir = normalize(lightPos - vertPos.xyz);
 	
-	//View  Position
+	//View  Position & Direction
 	vec3 camPos	= light_ubo.camPosition;
 	vec3 ViewDir = normalize(camPos - vertPos.xyz);
 		
 	vec3 F0 = mix(vec3(0.04f), AlbedoSamplerOutput, metallicness);
 
-	// H = (l+v) / ||l+v||
+	// Halfway Vector: H = (l+v) / ||l+v||
 	vec3 H = normalize(LightDir + ViewDir);
+	
+	float distance = length(lightPos - vertPos.xyz);
+	float attenuation = 1.0f/ (distance * distance);
+	vec3 radiance = lightColor * attenuation;
 
 	float NH = max(dot(normalize(Normals), H), 0.0f);
 	float NL = max(dot(normalize(Normals), LightDir), 0.0f);
@@ -183,28 +188,24 @@ void CalculateBRDF(inout vec4 result)
 		F = FresnelSchlickApproximation(LH,F0);		
 	}
 	
+	vec3 numerator = N * G * F;
+	float denominator = 4 * max(NV, 0.0) * max(NL, 0.0) + 0.001;
+	vec3 specular = numerator / denominator;
 	
-	//float denom_here = (4 * NL * NV)* GF ;
-	float denom_here = (4 * NL * NV) ;
+	vec3 kS = F;
+	vec3 kD = 1.0f - kS;
 	
-	if(denom_here <= 0)
-		denom_here = 1.0f;
+	Lo = (kD * AlbedoSamplerOutput / PI + specular) * radiance * NL;
 	
-	specularPart = vec4(( N * G * F ) / denom_here,1.0f);
+	vec3 ambient = vec3(0.03) * AlbedoSamplerOutput;
 	
-	vec3 kS = F.rgb;
+	result = vec4(ambient + Lo, 1.0f);
 	
-	vec3 kD = vec3(1.0) - kS;
-	kD *= 1.0 - metallicness;
-
-	result = (vec4(kD,1.0f) * diffusePart + specularPart) * NL;
-
-	result += diffusePart * vec4(vec3(0.03f), 1.0f);
+	// Tonemapping
+	result /= (result + vec4(1.0));
 	
-	// vec3 specular = G * F / (4 * NV * NL);
-	// vec3 diffuse = diffusePart.xyz;
-	
-	// result = vec4(diffuse + specular, 1.0f);
+	// Gamma Correct
+	result = pow(result, vec4(1.0/2.2));
 	
 }
 

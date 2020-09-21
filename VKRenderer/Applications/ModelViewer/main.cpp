@@ -28,10 +28,6 @@ void MainLoop(Application* rendererExample)
 		rendererExample->Update(deltaTime);
 		
 		rendererExample->Draw(deltaTime);
-		//auto timeEnd = glfwGetTime();// std::chrono::high_resolution_clock::now();
-
-		//float deltaTimeDiff = (float)(std::chrono::duration<double, std::milli>(timeEnd - lastTimeStamp).count());
-		//deltaTime = timeStart - timeEnd;// (float)deltaTimeDiff / 1000.0f;
 		
 		//Add other updates here
 		//======================
