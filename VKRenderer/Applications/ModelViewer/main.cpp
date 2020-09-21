@@ -3,22 +3,24 @@
 #include "../../VKRenderer/Core/Camera/Camera.h"
 #include "ModelViewer.h"
 
+GLfloat deltaTime = 0.0f;
+GLfloat lastFrame = 0.0f;
 
-int i = 0;
-std::chrono::time_point<std::chrono::high_resolution_clock>lastTimeStamp;
+void StallTillTargetFPS()
+{
+	while (glfwGetTime() < lastFrame + 1.0 / TARGET_FPS) {
+		// TODO: Put the thread to sleep, yield, or simply do nothing
+	}
+}
 
 void MainLoop(Application* rendererExample)
 {
 	
 	while (!glfwWindowShouldClose(rendererExample->getRenderer()->getWindow()))
 	{
-		//Frame Rate Manager Init
-		float deltaTime = 0.0f;// vkTimer::getInstance()->FrameStart(true) / 1000.0f;
-
-		if (deltaTime > 0.15f)
-		{
-			deltaTime = 0.5f;
-		}
+		GLfloat currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
 
 		glfwPollEvents();
 
@@ -32,6 +34,8 @@ void MainLoop(Application* rendererExample)
 
 		//camera update
 		rendererExample->getRenderer()->m_MainCamera->CameraUpdate();
+
+		StallTillTargetFPS();
 	}
 
 	vkDeviceWaitIdle(rendererExample->getRenderer()->getDevice());
@@ -42,7 +46,6 @@ void Destroy(Application* rendererExample)
 {
 	//Renderer destroy
 	rendererExample->Destroy();
-	
 }
 
 

@@ -54,4 +54,3 @@ unsigned int vkTimer::FrameStart(bool is_Reset)
 
 	return elapsedTime;
 }
-

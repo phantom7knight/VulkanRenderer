@@ -7,6 +7,8 @@ const int HEIGHT	= 900;
 #define IMAGE_COUNT 3
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
+const int TARGET_FPS = 120;
+
 typedef struct BufferDesc
 {
 	VkBuffer		Buffer = VK_NULL_HANDLE;
