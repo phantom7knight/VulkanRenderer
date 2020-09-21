@@ -375,7 +375,7 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices pro
 	lightInfo_UBO.specularIntensity = m_SpecularIntensityGUILight;
 
 	// TODO: Fix This
-	lightInfo_UBO.camPosition = m_renderer->m_MainCamera->GetCameraPos(); //glm::vec3(0.0, 0.0, -10.5);
+	lightInfo_UBO.camPosition = m_renderer->m_MainCamera->GetCameraPos();
 
 	lightInfo_UBO.lightModel = m_lightModelGUILight;
 

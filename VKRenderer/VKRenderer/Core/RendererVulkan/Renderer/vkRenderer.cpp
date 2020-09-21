@@ -75,26 +75,6 @@ static void MousePosCallBack(GLFWwindow* window, double xpos, double ypos)
 {
 	auto app = reinterpret_cast<vkRenderer*>(glfwGetWindowUserPointer(window));
 
-	/*app->mousePos.currentPosX = (float)xpos;
-	app->mousePos.currentPosY = (float)ypos;
-
-	int dx = (int)(app->mousePos.PrevPosX - app->mousePos.currentPosX);
-	int dy = (int)(-app->mousePos.PrevPosY + app->mousePos.currentPosY);
-
-	//if left mouse button pressed
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
-	{
-		app->m_MainCamera->camProperties.rotation.x += dy * app->m_MainCamera->camProperties.rotation_speed;
-		app->m_MainCamera->camProperties.rotation.y -= dx * app->m_MainCamera->camProperties.rotation_speed;
-		app->m_MainCamera->camProperties.rotation += glm::vec3(dy * app->m_MainCamera->camProperties.rotation_speed, -dx * app->m_MainCamera->camProperties.rotation_speed, 0.0);
-		app->m_MainCamera->update_view_matrix();
-	}
-
-	app->mousePos.PrevPosX	=	app->mousePos.currentPosX;
-	app->mousePos.PrevPosY	=	app->mousePos.currentPosY;*/
-
-	//======================================================
-
 	int mouseState = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
 
 	if (firstMouse)
