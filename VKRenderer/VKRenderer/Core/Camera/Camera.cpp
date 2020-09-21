@@ -10,7 +10,7 @@ Camera::Camera()
 
 	Camera_WorldUp_ = Camera_Up_;
 
-	camera_move_speed_ = 0.05f;
+	camera_move_speed_ = 10.5f;
 
 	Yaw = -90.0f;
 	Pitch = 0.0f;
@@ -62,7 +62,7 @@ void Camera::SetPosition(const glm::vec3& position)
 
 void Camera::ProcessKeyBoardMovement(float a_fDeltaTime)
 {
-	float fVelocity = camera_move_speed_ * 0.05f;
+	float fVelocity = camera_move_speed_ * a_fDeltaTime;
 
 	if (keys.forward)
 	{
