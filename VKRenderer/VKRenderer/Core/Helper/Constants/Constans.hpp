@@ -1,14 +1,11 @@
 
 #include "../../PCH/stdafx.h"
 
-
 const int WIDTH		= 1600;
 const int HEIGHT	= 900;
 
-
 #define IMAGE_COUNT 3
 const int MAX_FRAMES_IN_FLIGHT = 2;
-
 
 typedef struct BufferDesc
 {
@@ -63,9 +60,10 @@ struct SwapChainDesc
 struct CameraMatrices
 {
 	glm::mat4 perspective;
+	glm::mat4 orthographic;
 	glm::mat4 view;
 
-	CameraMatrices() :perspective(glm::mat4()), view(glm::mat4())
+	CameraMatrices() :perspective(glm::mat4()), view(glm::mat4()), orthographic(glm::mat4())
 	{
 
 	}
@@ -77,6 +75,8 @@ struct CameraKeys
 	bool right = false;
 	bool up = false;
 	bool down = false;
+	bool forward = false;
+	bool backward = false;
 } ;
 
 struct CameraProperties

@@ -28,14 +28,13 @@ void MainLoop(Application* rendererExample)
 		rendererExample->Draw(deltaTime);
 		
 		//Add other updates here
+		//======================
 
 		//camera update
-		rendererExample->getRenderer()->m_MainCamera->update(deltaTime);
+		rendererExample->getRenderer()->m_MainCamera->CameraUpdate();
 	}
 
-
 	vkDeviceWaitIdle(rendererExample->getRenderer()->getDevice());
-
 }
 
 
