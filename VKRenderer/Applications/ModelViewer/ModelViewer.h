@@ -18,10 +18,10 @@ struct LightInfoUBO
 	glm::vec3	lightPosition;
 	int			lightModel;
 	glm::vec3	camPosition;
-	float		ObjRoughness;
+	int			lightIntensity;
 
 	LightInfoUBO() : lightColor(glm::vec3(1.0, 1.0, 1.0)), specularIntensity(4)
-		, lightPosition(glm::vec3(0.0, 0.0, 0.0)), camPosition(glm::vec3(0.0, 0.0, 0.0)), lightModel(0), ObjRoughness(0.3f)
+		, lightPosition(glm::vec3(0.0, 0.0, 0.0)), camPosition(glm::vec3(0.0, 0.0, 0.0)), lightModel(0), lightIntensity(1)
 	{
 		
 	}
@@ -113,7 +113,7 @@ private:
 	int		m_lightModelGUILight;
 	bool m_showPhongGUILight;
 	bool m_showBRDFGUILight;
-	float m_roughnessGUILight;
+	int  m_lightIntensityGUILight;
 
 	// Application related variables
 	vkRenderer*						m_renderer;

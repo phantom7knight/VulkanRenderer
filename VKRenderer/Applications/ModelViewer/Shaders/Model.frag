@@ -19,7 +19,7 @@ layout(binding = 2) uniform LightInfoUBO
 	vec3 lightPosition;
 	int lightModel;
 	vec3 camPosition;
-	float ObjRoughness;
+	int lightIntensity;
 }light_ubo;
 
 layout(binding = 3) uniform sampler2D metallicTexture;
@@ -137,7 +137,7 @@ void CalculateBRDF(inout vec4 result)
 {
 	int method = 1;
 	
-	vec3 lightColor = vec3(150.0,150.0,150.0);
+	vec3 lightColor = vec3(1000.0,1000.0,1000.0) * vec3(light_ubo.lightIntensity);
 	
 	vec3 Lo = vec3(0.0);
 

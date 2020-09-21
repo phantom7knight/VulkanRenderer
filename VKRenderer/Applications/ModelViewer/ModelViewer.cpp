@@ -432,7 +432,7 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices a_p
 
 	lightInfo_UBO.lightModel = m_lightModelGUILight;
 
-	lightInfo_UBO.ObjRoughness = m_roughnessGUILight;
+	lightInfo_UBO.lightIntensity = m_lightIntensityGUILight;
 		
 	//Copy the data
 
@@ -477,9 +477,9 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 
 		ImGui::SliderFloat3("Light Color", &m_lightColorGUILight.x, 0.0f, 1.0f);
 
-		ImGui::SliderInt("Spec Intensity", &m_SpecularIntensityGUILight, 2, 256);
+		ImGui::SliderInt("Spec Intensity[Phong]", &m_SpecularIntensityGUILight, 2, 256);
 
-		ImGui::SliderFloat("OBJ Roughness", &m_roughnessGUILight, 0.0f, 2.0f);
+		ImGui::SliderInt("Light Intensity", &m_lightIntensityGUILight, 2, 15);
 		
 		ImGui::End();
 	}
@@ -688,7 +688,7 @@ void ModelViewer::setGuiVariables()
 	m_lightColorGUILight = glm::vec3(1.0, 1.0, 1.0);
 	m_SpecularIntensityGUILight = 4;
 	m_lightModelGUILight = 1;
-	m_roughnessGUILight = 1.058f;
+	m_lightIntensityGUILight = 3;
 }
 
 void ModelViewer::InitGui()
