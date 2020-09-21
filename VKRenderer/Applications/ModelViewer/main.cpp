@@ -30,7 +30,7 @@ void MainLoop(Application* rendererExample)
 		//Add other updates here
 
 		//camera update
-		rendererExample->getRenderer()->m_MainCamera->CameraUpdate(deltaTime);
+		rendererExample->getRenderer()->m_MainCamera->CameraUpdate();
 	}
 
 

@@ -195,14 +195,14 @@ Camera::Camera()
 
 	Camera_WorldUp_ = Camera_Up_;
 
-	camera_move_speed_ = 0.75f;
+	camera_move_speed_ = 0.05f;
 
 	Yaw = -90.0f;
 	Pitch = 0.0f;
 
 	m_MouseSensitivity = 0.1f;
 
-	CameraUpdate(0.0f);
+	CameraUpdate();
 
 #pragma region Presepective-Matrix
 
@@ -256,39 +256,45 @@ void Camera::SetPosition(const glm::vec3& position)
 
 void Camera::ProcessKeyBoardMovement(float a_fDeltaTime)
 {
-	float fVelocity = camera_move_speed_ * a_fDeltaTime;
+	float fVelocity = camera_move_speed_ * 0.05f;
 
 	if (keys.forward)
 	{
 		Camera_Pos_ += Camera_Front_ * fVelocity;
+		std::cout << "W pressed \n";
 	}
 
 	else if (keys.backward)
 	{
 		Camera_Pos_ -= Camera_Front_ * fVelocity;
+		std::cout << "S pressed \n";
 	}
 
 	else if (keys.left)
 	{
 		Camera_Pos_ -= Camera_Right_ * fVelocity;
+		std::cout << "A pressed \n";
 	}
 
 	else if (keys.right)
 	{
 		Camera_Pos_ += Camera_Right_ * fVelocity;
+		std::cout << "D pressed \n";
 	}
 
 	else if (keys.down)
 	{
 		Camera_Pos_ -= Camera_Up_ * fVelocity;
+		std::cout << "E pressed \n";
 	}
 
 	else if (keys.up)
 	{
 		Camera_Pos_ += Camera_Up_ * fVelocity;
+		std::cout << "Q pressed \n";
 	}
 
-	CameraUpdate(0.0f);
+	CameraUpdate();
 }
 
 //===================================================================================
@@ -314,10 +320,10 @@ void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPi
 
 	// TODO: add smooth movement for mouse and add delta time
 	// Update Front, Right and Up Vectors using the updated Eular angles
-	CameraUpdate(0.0f);
+	CameraUpdate();
 }
 
-void Camera::CameraUpdate(float deltaTime)
+void Camera::CameraUpdate()
 {
 	glm::vec3 front;
 	front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));

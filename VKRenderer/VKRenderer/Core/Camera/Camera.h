@@ -86,7 +86,7 @@ public:
 
 	void ProcessKeyBoardMovement(float a_fDeltaTime);
 
-	void CameraUpdate(float deltaTime);
+	void CameraUpdate();
 
 	void SetPerspective(float fov, float aspect, float znear, float zfar);
 
@@ -99,7 +99,7 @@ public:
 
 	glm::mat4 GetViewMatrix()
 	{
-		matrices.view = glm::lookAt(Camera_Pos_, Camera_Pos_ + Camera_Front_, Camera_Up_);
+		//matrices.view = glm::lookAt(Camera_Pos_, Camera_Pos_ + Camera_Front_, Camera_Up_);
 		return matrices.view;
 	}
 	glm::mat4 GetpersepectiveMatrix()
