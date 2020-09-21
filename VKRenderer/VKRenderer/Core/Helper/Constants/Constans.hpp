@@ -63,9 +63,10 @@ struct SwapChainDesc
 struct CameraMatrices
 {
 	glm::mat4 perspective;
+	glm::mat4 orthographic;
 	glm::mat4 view;
 
-	CameraMatrices() :perspective(glm::mat4()), view(glm::mat4())
+	CameraMatrices() :perspective(glm::mat4()), view(glm::mat4()), orthographic(glm::mat4())
 	{
 
 	}
@@ -77,6 +78,8 @@ struct CameraKeys
 	bool right = false;
 	bool up = false;
 	bool down = false;
+	bool forward = false;
+	bool backward = false;
 } ;
 
 struct CameraProperties
