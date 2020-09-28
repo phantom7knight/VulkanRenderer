@@ -51,7 +51,7 @@ public:
 
 	// Image Creation
 	void CreateImage(TextureBufferDesc* a_texBuffDesc);
-	void CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView *a_imageView);
+	void CreateImageView(VkImage a_image, VkFormat a_format, VkImageAspectFlags a_aspectFlags, VkImageView *a_imageView, VkImageViewType a_imageViewType = VkImageViewType::VK_IMAGE_VIEW_TYPE_2D);
 	
 	static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 

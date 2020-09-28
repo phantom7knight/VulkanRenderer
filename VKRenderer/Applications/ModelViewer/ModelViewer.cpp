@@ -165,6 +165,27 @@ void ModelViewer::CreateDescriptorSetLayout()
 	std::vector< VkDescriptorSetLayoutBinding> descriptorsVector = { layoutBinding ,samplerAlbedoBinding, LightlayoutBinding, samplerMetallicBinding, samplerRoughnessBinding };
 
 	m_renderer->CreateDescriptorSetLayout(descriptorsVector, &m_descriptorSetLayout);
+
+
+	// TODO: check if there is a need to have another descriptor set layout
+	// Skybox descriptor layout setup
+	// ===================================
+
+	//create binding for sampler
+	//used in pixel shader
+	VkDescriptorSetLayoutBinding skyboxCubeMapBinding = {};
+
+	skyboxCubeMapBinding.binding = 1;
+	skyboxCubeMapBinding.descriptorCount = 1;
+	skyboxCubeMapBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	skyboxCubeMapBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	skyboxCubeMapBinding.pImmutableSamplers = nullptr;
+
+	descriptorsVector.clear();
+
+	descriptorsVector = { layoutBinding, skyboxCubeMapBinding };
+
+	m_renderer->CreateDescriptorSetLayout(descriptorsVector, &skyboxdescriptorSetLayout);
 }
 
 void ModelViewer::CreateGraphicsPipeline()
@@ -231,7 +252,7 @@ void ModelViewer::CreateCommandPool()
 
 void ModelViewer::CreateUniformBuffer()
 {
-	VkDeviceSize bufferSize = sizeof(ModelUBO);
+	VkDeviceSize bufferSize = sizeof(MVPUBO);
 	VkDeviceSize lightBufferSize = sizeof(LightInfoUBO);
 
 	m_ModelUniformBuffer.resize(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
@@ -276,6 +297,18 @@ void ModelViewer::CreateDescriptorPool()
 	m_renderer->CreateDescriptorPool(poolSizes, static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size()),
 		static_cast<uint32_t>(poolSizes.size()), &m_DescriptorPool);
 
+	/*poolSizes.clear();
+	poolSizes.resize(2);
+
+	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+
+	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[1].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+	
+	m_renderer->CreateDescriptorPool(poolSizes, static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size()),
+		static_cast<uint32_t>(poolSizes.size()), &skyboxDescriptorPool);*/
+
 }
 
 void ModelViewer::CreateDescriptorSets()
@@ -284,13 +317,20 @@ void ModelViewer::CreateDescriptorSets()
 
 	m_renderer->AllocateDescriptorSets(m_DescriptorPool, layouts, m_DescriptorSets);
 
+	/*std::vector<VkDescriptorSetLayout> skyboxLayouts(m_renderer->m_swapChainDescription.m_SwapChainImages.size(), m_descriptorSetLayout);
+
+	m_renderer->AllocateDescriptorSets(skyboxDescriptorPool, skyboxLayouts, skyboxDescriptorSets);*/
+
 	for (size_t i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImages.size(); ++i)
 	{
+		// Model Descriptor Set
+		//====================================
+
 		VkDescriptorBufferInfo bufferInfo = {};
 
 		bufferInfo.buffer = m_ModelUniformBuffer[i].Buffer;
 		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(ModelUBO);
+		bufferInfo.range = sizeof(MVPUBO);
 
 		VkDescriptorBufferInfo lightBufferInfo = {};
 
@@ -315,6 +355,12 @@ void ModelViewer::CreateDescriptorSets()
 		roughnessImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		roughnessImageInfo.sampler = PBRMaterial.roughnessMap.Sampler;
 		roughnessImageInfo.imageView = PBRMaterial.roughnessMap.ImageView;
+
+		/*VkDescriptorImageInfo skyboxImageInfo = {};
+
+		roughnessImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		roughnessImageInfo.sampler = TokyoHDRMap.Sampler;
+		roughnessImageInfo.imageView = TokyoHDRMap.ImageView;*/
 
 		std::vector< VkWriteDescriptorSet> descriptorWriteInfo = {};
 
@@ -371,6 +417,34 @@ void ModelViewer::CreateDescriptorSets()
 		descriptorWriteInfo[4].pTexelBufferView = nullptr;
 
 		m_renderer->UpdateDescriptorSets(descriptorWriteInfo);
+
+		// Model Descriptor Set
+		//====================================
+
+		/*descriptorWriteInfo.clear();
+		descriptorWriteInfo.resize(2);
+
+		descriptorWriteInfo[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWriteInfo[0].dstSet = skyboxDescriptorSets[i];
+		descriptorWriteInfo[0].dstBinding = 0;
+		descriptorWriteInfo[0].dstArrayElement = 0;
+		descriptorWriteInfo[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWriteInfo[0].descriptorCount = 1;
+		descriptorWriteInfo[0].pBufferInfo = &bufferInfo;
+		descriptorWriteInfo[0].pImageInfo = nullptr;
+		descriptorWriteInfo[0].pTexelBufferView = nullptr;
+
+		descriptorWriteInfo[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWriteInfo[1].dstSet = skyboxDescriptorSets[i];
+		descriptorWriteInfo[1].dstBinding = 1;
+		descriptorWriteInfo[1].dstArrayElement = 0;
+		descriptorWriteInfo[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWriteInfo[1].descriptorCount = 1;
+		descriptorWriteInfo[1].pImageInfo = &skyboxImageInfo;
+		descriptorWriteInfo[1].pBufferInfo = nullptr;
+		descriptorWriteInfo[1].pTexelBufferView = nullptr;
+
+		m_renderer->UpdateDescriptorSets(descriptorWriteInfo);*/
 		
 	}
 }
@@ -392,7 +466,7 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices a_p
 {
 
 #pragma region MVP_Update
-	ModelUBO mvp_UBO = {};
+	MVPUBO mvp_UBO = {};
 
 	//Model Matrix
 	mvp_UBO.ModelMatrix = glm::mat4(1);
@@ -632,19 +706,30 @@ void ModelViewer::LoadTexture(std::string a_textureName, TextureBufferDesc * a_i
 
 void ModelViewer::CreateImageTextureView()
 {
+	// PBR images
 	m_renderer->CreateImageView(PBRMaterial.albedoMap.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &PBRMaterial.albedoMap.ImageView);
 	m_renderer->CreateImageView(PBRMaterial.metallicMap.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &PBRMaterial.metallicMap.ImageView);
 	m_renderer->CreateImageView(PBRMaterial.roughnessMap.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &PBRMaterial.roughnessMap.ImageView);
+
+	// HDR Image
+	m_renderer->CreateImageView(TokyoHDRMap.BufferImage, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT, &TokyoHDRMap.ImageView, VK_IMAGE_VIEW_TYPE_CUBE);
+	
 }
 
 void ModelViewer::LoadAllTextures()
 {
-	//LoadTexture("../../Assets/Textures/Statue.jpg");
+	// Set data for the PBR texture
+	
 	LoadTexture("../../Assets/Textures/Sphere/Albedo.png", &PBRMaterial.albedoMap);
 	LoadTexture("../../Assets/Textures/Sphere/Metallic.png", &PBRMaterial.metallicMap);
 	LoadTexture("../../Assets/Textures/Sphere/Roughness.png", &PBRMaterial.roughnessMap);
-	//LoadTexture("../../Assets/Textures/Kabuto/Albedo.png");
-	//LoadTexture("../../Assets/Textures/green.jpg");
+	
+	// Load HDR image
+	TokyoHDRMap.arrayLayers = 6;
+	TokyoHDRMap.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+	TokyoHDRMap.imageFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
+
+	LoadTexture("../../Assets/Textures/HDR/Tokyo/Tokyo.hdr", &TokyoHDRMap);
 }
 
 void ModelViewer::CreateTextureSampler()
@@ -659,6 +744,8 @@ void ModelViewer::CreateTextureSampler()
 	m_renderer->CreateTextureSampler(samplerDesc, &PBRMaterial.albedoMap.Sampler);
 	m_renderer->CreateTextureSampler(samplerDesc, &PBRMaterial.metallicMap.Sampler);
 	m_renderer->CreateTextureSampler(samplerDesc, &PBRMaterial.roughnessMap.Sampler);
+
+	//m_renderer->CreateTextureSampler(samplerDesc, &TokyoHDRMap.Sampler);
 
 }
 
@@ -676,10 +763,7 @@ void ModelViewer::CreateDepthResources()
 	depthImageInfo.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	m_renderer->CreateImage(&depthImageInfo);
 
-	m_renderer->CreateImageView(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &depthImageInfo.ImageView);
-
-	//TransitionImageLayouts(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-	
+	m_renderer->CreateImageView(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &depthImageInfo.ImageView);	
 }
 
 void ModelViewer::setGuiVariables()
@@ -742,9 +826,9 @@ void ModelViewer::PrepareApp()
 	CreateGraphicsPipeline();
 
 #pragma region Model_Load
-		//LoadAModel("../../Assets/Models/monkey/monkey.obj");
+		LoadAModel("../../Assets/Models/monkey/monkey.obj");
 		//LoadAModel("../../Assets/Models/ShaderBall/shaderBall.obj");
-		LoadAModel("../../Assets/Models/Sphere/Sphere.fbx");
+		//LoadAModel("../../Assets/Models/Sphere/Sphere.fbx");
 		//LoadAModel("../../Assets/Models/LowPoly/1.obj");
 		//LoadAModel("../../Assets/Models/Kabuto/Kabuto.fbx");
 		//LoadAModel("../../Assets/Models/cornell_box/cornell_box.obj");

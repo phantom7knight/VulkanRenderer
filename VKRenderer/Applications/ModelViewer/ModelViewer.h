@@ -3,7 +3,7 @@
 #include "../../VKRenderer/Core/Application/Application.h"
 #include "../../Common/Graphics/Material.h"
 
-struct ModelUBO
+struct MVPUBO
 {
 	glm::mat4 ModelMatrix;
 	glm::mat4 ViewMatrix;
@@ -101,8 +101,10 @@ private:
 
 	Material PBRMaterial;
 
+	// HDR image
+	TextureBufferDesc TokyoHDRMap;
 
-	//Depth related variables
+	// Depth related variables
 	TextureBufferDesc depthImageInfo;
 	
 
@@ -120,7 +122,9 @@ private:
 	VkRenderPass					m_renderPass;
 	VkCommandPool					m_commandPool;
 	VkDescriptorSetLayout			m_descriptorSetLayout;
+	VkDescriptorSetLayout			skyboxdescriptorSetLayout;
 	VkDescriptorPool				m_DescriptorPool;
+	VkDescriptorPool				skyboxDescriptorPool;
 	FrameBufferDesc					m_FBO;
 	GraphicsPipelineInfo			ModelGraphicsPipeline;
 	BufferDesc						m_ModelVertexBuffer;
@@ -129,6 +133,7 @@ private:
 	std::vector<BufferDesc>			m_ModelUniformBuffer;
 	std::vector<BufferDesc>			m_LightInfoUniformBuffer;
 	std::vector<VkDescriptorSet>	m_DescriptorSets;
+	std::vector<VkDescriptorSet>	skyboxDescriptorSets;
 	size_t							m_currentFrame = 0;
 
 public:

@@ -123,19 +123,19 @@ void vkRenderer::CreateImage(TextureBufferDesc* a_texBuffDesc)
 	VkImageCreateInfo ImageCreateInfo = {};
 
 	ImageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	ImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+	ImageCreateInfo.imageType = a_texBuffDesc->imageType;
 	ImageCreateInfo.extent.width = a_texBuffDesc->ImageWidth;
 	ImageCreateInfo.extent.height = a_texBuffDesc->ImageHeight;
 	ImageCreateInfo.extent.depth = 1;
-	ImageCreateInfo.mipLevels = 1;
-	ImageCreateInfo.arrayLayers = 1;
+	ImageCreateInfo.mipLevels = a_texBuffDesc->mipLevels;
+	ImageCreateInfo.arrayLayers = a_texBuffDesc->arrayLayers;
 	ImageCreateInfo.format = a_texBuffDesc->imageFormat;
 	ImageCreateInfo.tiling = a_texBuffDesc->tiling;
 	ImageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	ImageCreateInfo.usage = a_texBuffDesc->usageFlags;
 	ImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-	ImageCreateInfo.flags = 0;
+	ImageCreateInfo.flags = a_texBuffDesc->flags;
 
 
 	if (vkCreateImage(m_device, &ImageCreateInfo, nullptr, &(a_texBuffDesc->BufferImage)) != VK_SUCCESS)
@@ -159,9 +159,9 @@ void vkRenderer::CreateImage(TextureBufferDesc* a_texBuffDesc)
 	vkBindImageMemory(m_device, a_texBuffDesc->BufferImage, a_texBuffDesc->BufferMemory, 0);
 }
 
-void vkRenderer::CreateImageView(VkImage a_image, VkFormat a_format, VkImageAspectFlags a_aspectFlags, VkImageView *a_imageView)
+void vkRenderer::CreateImageView(VkImage a_image, VkFormat a_format, VkImageAspectFlags a_aspectFlags, VkImageView *a_imageView, VkImageViewType a_imageViewType)
 {
-	VulkanHelper::CreateImageView(m_device, a_image, a_format, a_aspectFlags, a_imageView);
+	VulkanHelper::CreateImageView(m_device, a_image, a_format, a_imageViewType, a_aspectFlags, a_imageView);
 	return;
 }
 
@@ -232,13 +232,19 @@ void vkRenderer::LoadImageTexture(std::string textureName, TextureBufferDesc *a_
 	stbi_image_free(pixels);
 
 	//Set the image Property
-
-	a_imageData->ImageWidth = texWidth;
-	a_imageData->ImageHeight = texHeight;
-	a_imageData->imageFormat = VK_FORMAT_R8G8B8A8_SRGB;
-	a_imageData->tiling = VK_IMAGE_TILING_OPTIMAL;
-	a_imageData->usageFlags = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-	a_imageData->propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	if (a_imageData->flags != VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT)
+	{
+		a_imageData->ImageWidth = texWidth;
+		a_imageData->ImageHeight = texHeight;
+	}
+	else
+	{
+		const int32_t dim = 64;
+		a_imageData->ImageWidth = dim;
+		a_imageData->ImageHeight = dim;
+		a_imageData->mipLevels = static_cast<uint32_t>(floor(log2(dim))) + 1;
+	}
+	
 
 	CreateImage(a_imageData);
 

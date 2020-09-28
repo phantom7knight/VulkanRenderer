@@ -26,6 +26,8 @@ A. Current Pipeline plans
 12. Bump Mapping
 13. Shadows Basic
 14. Implement Pipeline cache
+15. Look into batching draw calls
+16. Look into "vkCmdDrawIndexedIndirect" call.
 
 
 

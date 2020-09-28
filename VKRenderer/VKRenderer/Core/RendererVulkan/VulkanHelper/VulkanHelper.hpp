@@ -769,7 +769,7 @@ namespace VulkanHelper
 	//===================================================================
 	// Creating Image Views
 	//===================================================================
-	void CreateImageView(VkDevice a_device,	VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView* a_imageView)
+	void CreateImageView(VkDevice a_device,	VkImage image, VkFormat format, VkImageViewType viewType, VkImageAspectFlags aspectFlags, VkImageView* a_imageView)
 	{
 		VkImageViewCreateInfo createInfo = {};
 
@@ -777,7 +777,7 @@ namespace VulkanHelper
 		createInfo.image = image;
 		createInfo.format = format;
 		createInfo.pNext = nullptr;
-		createInfo.viewType = VkImageViewType::VK_IMAGE_VIEW_TYPE_2D;
+		createInfo.viewType = viewType;
 		createInfo.subresourceRange.aspectMask = aspectFlags;
 		createInfo.subresourceRange.baseMipLevel = 0;
 		createInfo.subresourceRange.levelCount = 1;

@@ -32,15 +32,19 @@ typedef struct BufferDesc
 struct TextureBufferDesc
 {
 	VkImage					BufferImage = VK_NULL_HANDLE;
+	VkImageType				imageType = VK_IMAGE_TYPE_2D;
 	VkDeviceMemory			BufferMemory = VK_NULL_HANDLE;
 	VkSampler				Sampler;
 	VkImageView				ImageView;
-	VkFormat				imageFormat;
-	VkImageTiling			tiling;
-	VkImageUsageFlags		usageFlags;
-	VkMemoryPropertyFlags	propertyFlags;
+	VkFormat				imageFormat = VK_FORMAT_R8G8B8A8_SRGB;
+	VkImageTiling			tiling = VK_IMAGE_TILING_OPTIMAL;
+	VkImageCreateFlags		flags = 0;
+	VkImageUsageFlags		usageFlags = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	VkMemoryPropertyFlags	propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	int						ImageWidth = 0;
 	int						ImageHeight = 0;
+	uint32_t				arrayLayers = 1;
+	uint32_t				mipLevels = 1;
 	TEXTURE_TYPE			textureType;
 };
 
