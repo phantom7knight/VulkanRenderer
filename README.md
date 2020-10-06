@@ -33,6 +33,7 @@ PBR Lighting #2
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 PBR Lighting vs Old Phong Lighting
+
 ![Updated_BRDF](https://user-images.githubusercontent.com/32849841/95172863-c6512080-076c-11eb-966b-67f5a16299a2.png)
 ![Old_Phong](https://user-images.githubusercontent.com/32849841/95172832-bb968b80-076c-11eb-9a01-6ebf45cb673d.png)
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
