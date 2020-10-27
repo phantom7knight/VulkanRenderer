@@ -2,6 +2,7 @@
 
 #include "../../VKRenderer/Core/Application/Application.h"
 #include "../../Common/Graphics/Material.h"
+#include "../../Common/Graphics/PBR-IBL/PBRIBL.h"
 
 struct MVPUBO
 {
@@ -26,6 +27,11 @@ struct LightInfoUBO
 		
 	}
 
+};
+
+struct Pipelines
+{
+	GraphicsPipelineInfo			ModelGraphicsPipeline;
 };
 
 class Camera;
@@ -93,16 +99,11 @@ private:
 
 	CameraMatrices cam_matrices;
 
-	// Loaded Texture related
-	//TextureBufferDesc image1 = {};
-	//TextureBufferDesc image2 = {};
-	//TextureBufferDesc image3 = {};
-	//TextureBufferDesc image4 = {};
-
 	Material PBRMaterial;
 
 	// HDR image
-	TextureBufferDesc TokyoHDRMap;
+	//TextureBufferDesc TokyoHDRMap;
+	PBRIBL *m_PbrIbl;
 
 	// Depth related variables
 	TextureBufferDesc depthImageInfo;
@@ -126,7 +127,6 @@ private:
 	VkDescriptorPool				m_DescriptorPool;
 	VkDescriptorPool				skyboxDescriptorPool;
 	FrameBufferDesc					m_FBO;
-	GraphicsPipelineInfo			ModelGraphicsPipeline;
 	BufferDesc						m_ModelVertexBuffer;
 	BufferDesc						m_ModelIndexBuffer;
 	std::vector<VkCommandBuffer>	m_commandBuffers;
@@ -135,6 +135,8 @@ private:
 	std::vector<VkDescriptorSet>	m_DescriptorSets;
 	std::vector<VkDescriptorSet>	skyboxDescriptorSets;
 	size_t							m_currentFrame = 0;
+	Pipelines						appPipelines;
+	
 
 public:
 	ModelViewer();

@@ -8,6 +8,7 @@ ModelViewer::ModelViewer() : m_showGUILight(true), m_showPhongGUILight(false), m
 	//Initialize Renderer
 	m_renderer = new vkRenderer();
 
+	m_PbrIbl = new PBRIBL(m_renderer);
 }
 
 ModelViewer::~ModelViewer()
@@ -197,34 +198,34 @@ void ModelViewer::CreateGraphicsPipeline()
 	ShaderFileNames[0] = "Model.vert";
 	ShaderFileNames[1] = "Model.frag";
 
-	ModelGraphicsPipeline.ShaderFileNames = ShaderFileNames;
+	appPipelines.ModelGraphicsPipeline.ShaderFileNames = ShaderFileNames;
 
 	// Vertex Input
-	ModelGraphicsPipeline.vertexBindingDesc = m_renderer->rsrcLdr.getModelLoaderobj().getBindingDescription();;
-	ModelGraphicsPipeline.AttributeDescriptionsofVertex = m_renderer->rsrcLdr.getModelLoaderobj().getAttributeDescriptionsofVertex();
+	appPipelines.ModelGraphicsPipeline.vertexBindingDesc = m_renderer->rsrcLdr.getModelLoaderobj().getBindingDescription();;
+	appPipelines.ModelGraphicsPipeline.AttributeDescriptionsofVertex = m_renderer->rsrcLdr.getModelLoaderobj().getAttributeDescriptionsofVertex();
 
 	//Input Assembly
-	ModelGraphicsPipeline.pipelineTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	appPipelines.ModelGraphicsPipeline.pipelineTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
 	// Rasterizer
-	ModelGraphicsPipeline.polygonMode = VK_POLYGON_MODE_FILL;
-	ModelGraphicsPipeline.cullMode = VK_CULL_MODE_BACK_BIT;
-	ModelGraphicsPipeline.frontFaceCullingMode = VK_FRONT_FACE_CLOCKWISE;
-	ModelGraphicsPipeline.depthBiasEnableMode = VK_FALSE;
+	appPipelines.ModelGraphicsPipeline.polygonMode = VK_POLYGON_MODE_FILL;
+	appPipelines.ModelGraphicsPipeline.cullMode = VK_CULL_MODE_BACK_BIT;
+	appPipelines.ModelGraphicsPipeline.frontFaceCullingMode = VK_FRONT_FACE_CLOCKWISE;
+	appPipelines.ModelGraphicsPipeline.depthBiasEnableMode = VK_FALSE;
 
 	// Depth Testing
-	ModelGraphicsPipeline.depthTestEnable = VK_TRUE;
-	ModelGraphicsPipeline.depthWriteEnable = VK_TRUE;
-	ModelGraphicsPipeline.depthCompareOperation = VK_COMPARE_OP_LESS;
-	ModelGraphicsPipeline.stencilTestEnable = VK_FALSE;
+	appPipelines.ModelGraphicsPipeline.depthTestEnable = VK_TRUE;
+	appPipelines.ModelGraphicsPipeline.depthWriteEnable = VK_TRUE;
+	appPipelines.ModelGraphicsPipeline.depthCompareOperation = VK_COMPARE_OP_LESS;
+	appPipelines.ModelGraphicsPipeline.stencilTestEnable = VK_FALSE;
 
 	//Create Pipeline Layout b4 creating Graphics Pipeline
-	ModelGraphicsPipeline.a_descriptorSetLayout = m_descriptorSetLayout;
+	appPipelines.ModelGraphicsPipeline.a_descriptorSetLayout = m_descriptorSetLayout;
 
-	ModelGraphicsPipeline.renderPass = m_renderPass;
-	ModelGraphicsPipeline.subpass = 0;
+	appPipelines.ModelGraphicsPipeline.renderPass = m_renderPass;
+	appPipelines.ModelGraphicsPipeline.subpass = 0;
 
-	m_renderer->CreateGraphicsPipeline(&ModelGraphicsPipeline);
+	m_renderer->CreateGraphicsPipeline(&appPipelines.ModelGraphicsPipeline);
 }
 
 void ModelViewer::CreateFrameBuffers()
@@ -596,9 +597,9 @@ void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 
 	vkCmdBeginRenderPass(m_commandBuffers[i], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, ModelGraphicsPipeline.a_pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
+		vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, appPipelines.ModelGraphicsPipeline.a_pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
 
-		vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, ModelGraphicsPipeline.a_Pipeline);
+		vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, appPipelines.ModelGraphicsPipeline.a_Pipeline);
 
 		VkDeviceSize offset = { 0 };
 
@@ -710,10 +711,6 @@ void ModelViewer::CreateImageTextureView()
 	m_renderer->CreateImageView(PBRMaterial.albedoMap.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &PBRMaterial.albedoMap.ImageView);
 	m_renderer->CreateImageView(PBRMaterial.metallicMap.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &PBRMaterial.metallicMap.ImageView);
 	m_renderer->CreateImageView(PBRMaterial.roughnessMap.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &PBRMaterial.roughnessMap.ImageView);
-
-	// HDR Image
-	m_renderer->CreateImageView(TokyoHDRMap.BufferImage, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT, &TokyoHDRMap.ImageView, VK_IMAGE_VIEW_TYPE_CUBE);
-	
 }
 
 void ModelViewer::LoadAllTextures()
@@ -725,11 +722,8 @@ void ModelViewer::LoadAllTextures()
 	LoadTexture("../../Assets/Textures/Sphere/Roughness.png", &PBRMaterial.roughnessMap);
 	
 	// Load HDR image
-	TokyoHDRMap.arrayLayers = 6;
-	TokyoHDRMap.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-	TokyoHDRMap.imageFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
-
-	LoadTexture("../../Assets/Textures/HDR/Tokyo/Tokyo.hdr", &TokyoHDRMap);
+	// This loads Image data, imageView Data and TextureSampler
+	m_PbrIbl->LoadHDRImageData("../../Assets/Textures/HDR/Tokyo/Tokyo.hdr", m_commandPool, m_commandBuffers.data());
 }
 
 void ModelViewer::CreateTextureSampler()
@@ -744,9 +738,6 @@ void ModelViewer::CreateTextureSampler()
 	m_renderer->CreateTextureSampler(samplerDesc, &PBRMaterial.albedoMap.Sampler);
 	m_renderer->CreateTextureSampler(samplerDesc, &PBRMaterial.metallicMap.Sampler);
 	m_renderer->CreateTextureSampler(samplerDesc, &PBRMaterial.roughnessMap.Sampler);
-
-	//m_renderer->CreateTextureSampler(samplerDesc, &TokyoHDRMap.Sampler);
-
 }
 
 void ModelViewer::CreateDepthResources()
@@ -827,6 +818,7 @@ void ModelViewer::PrepareApp()
 
 #pragma region Model_Load
 		LoadAModel("../../Assets/Models/monkey/monkey.obj");
+		//LoadAModel("../../Assets/Models/Voxel/NeonCity-0.obj");
 		//LoadAModel("../../Assets/Models/ShaderBall/shaderBall.obj");
 		//LoadAModel("../../Assets/Models/Sphere/Sphere.fbx");
 		//LoadAModel("../../Assets/Models/LowPoly/1.obj");
@@ -835,7 +827,6 @@ void ModelViewer::PrepareApp()
 		//LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
 		//LoadAModel("../../Assets/Models/venus/venus.fbx");
 #pragma endregion
-
 
 #pragma region Models_Tex
 		LoadAllTextures();
@@ -949,9 +940,9 @@ void ModelViewer::Destroy()
 
 	vkFreeCommandBuffers(m_renderer->m_device, m_commandPool, static_cast<uint32_t>(m_commandBuffers.size()), m_commandBuffers.data());
 
-	vkDestroyPipeline(m_renderer->m_device, ModelGraphicsPipeline.a_Pipeline, nullptr);
+	vkDestroyPipeline(m_renderer->m_device, appPipelines.ModelGraphicsPipeline.a_Pipeline, nullptr);
 
-	vkDestroyPipelineLayout(m_renderer->m_device, ModelGraphicsPipeline.a_pipelineLayout, nullptr);
+	vkDestroyPipelineLayout(m_renderer->m_device, appPipelines.ModelGraphicsPipeline.a_pipelineLayout, nullptr);
 
 	vkDestroyRenderPass(m_renderer->m_device, m_renderPass, nullptr);
 

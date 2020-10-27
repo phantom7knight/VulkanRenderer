@@ -78,7 +78,7 @@
     <ClCompile Include="..\Common\Graphics\PBR-IBL\PBRIBL.cpp">
       <Filter>Common\Graphics\PBR-IBL</Filter>
     </ClCompile>
-    <ClCompile Include="..\Common\Graphics\Material.cpp">
+    <ClCompile Include="..\Common\Graphics\Offscreen.cpp">
       <Filter>Common\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
@@ -114,6 +114,9 @@
       <Filter>Common\Graphics\PBR-IBL</Filter>
     </ClInclude>
     <ClInclude Include="..\Common\Graphics\Material.h">
+      <Filter>Common\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Graphics\Offscreen.h">
       <Filter>Common\Graphics</Filter>
     </ClInclude>
   </ItemGroup>

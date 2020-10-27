@@ -180,7 +180,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Common\Graphics\Material.cpp" />
+    <ClCompile Include="..\Common\Graphics\Offscreen.cpp" />
     <ClCompile Include="..\Common\Graphics\PBR-IBL\PBRIBL.cpp" />
     <ClCompile Include="Core\Application\Application.cpp" />
     <ClCompile Include="Core\Camera\Camera.cpp" />
@@ -191,6 +191,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Common\Graphics\Material.h" />
+    <ClInclude Include="..\Common\Graphics\Offscreen.h" />
     <ClInclude Include="..\Common\Graphics\PBR-IBL\PBRIBL.h" />
     <ClInclude Include="Core\Application\Application.h" />
     <ClInclude Include="Core\Camera\Camera.h" />

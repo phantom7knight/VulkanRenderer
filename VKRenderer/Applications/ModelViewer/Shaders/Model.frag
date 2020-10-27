@@ -44,21 +44,21 @@ void CalculatePhong(inout vec4 result)
 
 	//Diffuse Lighting
 	vec3 lightPos = light_ubo.lightPosition;
-	
 	vec3 LightDir = normalize(lightPos - vertPos.xyz);
-	float diff = max(dot(normalize(Normals),LightDir),0.0);
-	vec3 DiffLight =  diff * LightColor;
+	
+	float diffuse = max(dot(normalize(Normals),LightDir),0.0);
+	
+	vec3 DiffLight =  diffuse * LightColor;
 
 	//Specular Lighting
 	vec3 ViewDir = normalize(camPos - vertPos.xyz);
 	vec3 reflectDir = reflect(-LightDir,normalize(Normals));
-	float spec = pow(max(dot(ViewDir,reflectDir),0.0),specIntensity);
-	vec3 SpecLight = spec * LightColor;
+	float spec = pow(max(dot(ViewDir,reflectDir),0.0),64);
+	vec3 SpecLight = specIntensity * spec * LightColor;
 
 	vec3 AlbedoSamplerOutput = texture(albedoTexture, TexCoords).rgb;
 
 	result = vec4((AmbLight + DiffLight + SpecLight ) * objColor * AlbedoSamplerOutput, 1.0f);
-
 }
 
 float NormalDistributionFunction(float roughness, float NH)
