@@ -852,7 +852,7 @@ void ModelViewer::PrepareApp()
 	InitGui();
 
 	// Init PBRIBL maps
-	m_PbrIbl->Initialization();
+	m_PbrIbl->Initialization(m_commandPool);
 
 }
 

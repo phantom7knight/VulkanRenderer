@@ -9,17 +9,19 @@ private:
 	TextureBufferDesc HDRtexture;
 	TextureBufferDesc irradianceMap;
 	TextureBufferDesc preFilteredCubeMap;
+	TextureBufferDesc OffScreenImage;
 
 	VkRenderPass					m_renderPass;
+	FrameBufferDesc					m_OffscreenFBO;
+	std::vector<VkCommandBuffer>	m_cmdBuffer;
+
 	/*VkCommandPool					m_commandPool;
 	VkDescriptorSetLayout			m_descriptorSetLayout;
 	VkDescriptorSetLayout			skyboxdescriptorSetLayout;
 	VkDescriptorPool				m_DescriptorPool;
 	VkDescriptorPool				skyboxDescriptorPool;
-	FrameBufferDesc					m_FBO;
 	BufferDesc						m_ModelVertexBuffer;
 	BufferDesc						m_ModelIndexBuffer;
-	std::vector<VkCommandBuffer>	m_commandBuffers;
 	std::vector<BufferDesc>			m_ModelUniformBuffer;
 	std::vector<BufferDesc>			m_LightInfoUniformBuffer;
 	std::vector<VkDescriptorSet>	m_DescriptorSets;
@@ -36,14 +38,15 @@ private:
 	// Generate Pre-filtered Map
 	void ImageDataPreFilteredCubeMap();
 	void RenderPassPreFilteredCubeMap();
-	void FrameBufferPreFilteredCubeMap();
-	void GeneratePreFilteredCubeMap();
+	void OffScreemPreFilteredCubeMap(VkCommandPool a_cmdPool);
+	//void CmdBufferPreFilteredCubeMap();
+	void GeneratePreFilteredCubeMap(VkCommandPool a_cmdPool);
 
 public:
 	// Setup the loading of the HDR Texture
 	void LoadHDRImageData(std::string a_textureName, VkCommandPool a_cmdPool, VkCommandBuffer* a_cmdBuffer);
 
-	void Initialization();
+	void Initialization(VkCommandPool a_cmdPool);
 	void Update(float deltaTime);
 	void Draw(float deltaTime);
 	void Destroy();

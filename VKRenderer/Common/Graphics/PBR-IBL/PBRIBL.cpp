@@ -84,12 +84,12 @@ void PBRIBL::RenderPassPreFilteredCubeMap()
 	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
-	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass shud start with
-	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;		//How render pass final image shud translate at end of render pass
+	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass should start with
+	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;		//How render pass final image should translate at end of render pass
 
 
-	//Each renderpass can have multiple sub-passes
-	//which will help or can be used for the Post-Processing,...etc
+	// Each render pass can have multiple sub-passes
+	// which will help or can be used for the Post-Processing,...etc
 
 	VkAttachmentReference colorAttachmentRef = {};
 
@@ -145,13 +145,47 @@ void PBRIBL::RenderPassPreFilteredCubeMap()
 	return;
 }
 
-void PBRIBL::FrameBufferPreFilteredCubeMap()
+void PBRIBL::OffScreemPreFilteredCubeMap(VkCommandPool a_cmdPool)
 {
+	// off screen image creation
+	OffScreenImage.textureType = TEXTURE_TYPE::eTEXTURETYPE_OFFSCREEN;
+
+	const int32_t dimensions = 512;
+	const uint32_t numMips = static_cast<uint32_t>(floor(log2(dimensions))) + 1;
+
+	OffScreenImage.ImageHeight = dimensions;
+	OffScreenImage.ImageWidth = dimensions;
+	OffScreenImage.mipLevels = 1;
+	OffScreenImage.arrayLayers = 1;
+	OffScreenImage.imageFormat = cubeMapFormat;
+	OffScreenImage.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	OffScreenImage.usageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+	m_renderer->CreateImage(&OffScreenImage);
+
+	// off screen image view creation
+	m_renderer->CreateImageView(OffScreenImage.BufferImage, cubeMapFormat, VK_IMAGE_ASPECT_COLOR_BIT, &OffScreenImage.ImageView);
+
+	// frame buffer creation
+
+	std::vector< VkImageView> attachments = { OffScreenImage.ImageView };
+
+	m_OffscreenFBO.attachmentCount = 1;
+	m_OffscreenFBO.Attachments = attachments;
+	m_OffscreenFBO.FBOHeight = dimensions;
+	m_OffscreenFBO.FBOWidth = dimensions;
+
+	m_renderer->CreateFrameBuffer(m_OffscreenFBO, m_renderPass, &m_OffscreenFBO.FrameBuffer);
+
+	// cmd buffer
+	m_cmdBuffer.resize(1);
+
+	m_renderer->TransitionImageLayouts(a_cmdPool, &m_cmdBuffer[0], OffScreenImage.BufferImage,
+		cubeMapFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
 	return;
 }
 
-void PBRIBL::GeneratePreFilteredCubeMap()
+void PBRIBL::GeneratePreFilteredCubeMap(VkCommandPool a_cmdPool)
 {
 	// Image related data
 	ImageDataPreFilteredCubeMap();
@@ -159,8 +193,12 @@ void PBRIBL::GeneratePreFilteredCubeMap()
 	// Create Render Pass
 	RenderPassPreFilteredCubeMap();
 
-	// Create Frame Buffer
-	FrameBufferPreFilteredCubeMap();
+	// Create Off-Screen Frame Buffer & cmd buffer
+	OffScreemPreFilteredCubeMap(a_cmdPool);
+
+	// Create Command buffer for off screen
+	//CmdBufferPreFilteredCubeMap();
+
 	// Create Pipeline for Cube Map
 
 	// Create descriptor data
@@ -169,9 +207,9 @@ void PBRIBL::GeneratePreFilteredCubeMap()
 }
 #pragma endregion
 
-void PBRIBL::Initialization()
+void PBRIBL::Initialization(VkCommandPool a_cmdPool)
 {
-	GeneratePreFilteredCubeMap();
+	GeneratePreFilteredCubeMap(a_cmdPool);
 	GenerateIrradianceMap();
 }
 

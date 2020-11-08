@@ -250,12 +250,12 @@ void vkRenderer::LoadImageTexture(std::string textureName, TextureBufferDesc *a_
 	CreateImage(a_imageData);
 
 	VulkanHelper::TransitionImageLayouts(m_device, a_commandPool, m_graphicsQueue, a_imageData->BufferImage, VK_FORMAT_R8G8B8A8_SRGB,
-		VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
 
 	VulkanHelper::CopyBufferToImage(m_device, a_commandPool, m_graphicsQueue, stagingBuffer.Buffer, *a_imageData);
 
 	VulkanHelper::TransitionImageLayouts(m_device, a_commandPool, m_graphicsQueue, a_imageData->BufferImage, VK_FORMAT_R8G8B8A8_SRGB,
-		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
 	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
 	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
@@ -552,22 +552,25 @@ bool vkRenderer::hasStencilComponent(VkFormat format)
 //Command Buffer Recording Related
 //===================================================================
 
+// Allocate Cmd Buffers from Cmd Pool
 VkCommandBuffer vkRenderer::BeginSingleTimeCommands(VkCommandPool a_commandPool)
 {
 	VkCommandBuffer resultCmdBuffer = VulkanHelper::BeginSingleTimeCommands(m_device, a_commandPool);
 	return resultCmdBuffer;
 }
 
+// Finish recording and subit to queue
 void vkRenderer::EndSingleTimeCommands(VkCommandBuffer* a_commandBuffer, VkCommandPool a_commandPool)
 {
 	VulkanHelper::EndSingleTimeCommands(a_commandBuffer, a_commandPool, m_device, m_graphicsQueue);
 }
 
 void vkRenderer::TransitionImageLayouts(VkCommandPool a_commandPool, VkCommandBuffer* a_commandBuffer,
-	VkImage a_image, VkFormat a_format, VkImageLayout a_oldLayout, VkImageLayout a_newLayout)
+	VkImage a_image, VkFormat a_format, VkImageLayout a_oldLayout, VkImageLayout a_newLayout, VkPipelineStageFlags a_sourceStage,
+	VkPipelineStageFlags a_destinationStage)
 {
 	VulkanHelper::TransitionImageLayouts(m_device, a_commandPool, m_graphicsQueue, a_image,
-		a_format, a_oldLayout, a_newLayout);
+		a_format, a_oldLayout, a_newLayout, a_sourceStage, a_destinationStage);
 }
 
 
