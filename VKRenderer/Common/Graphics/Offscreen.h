@@ -7,13 +7,14 @@ class OffScreen
 private:
 	vkRenderer* m_renderer;
 	FrameBufferDesc	m_OffScreenFBO;
+	TextureBufferDesc m_OffScreenImage;
 
 public:
 	OffScreen(vkRenderer* a_renderer) : m_renderer(a_renderer)
 	{
-
 	}
 
 	void GenerateOffScreenFrameBuffer();
+	void Testing();
 
 };

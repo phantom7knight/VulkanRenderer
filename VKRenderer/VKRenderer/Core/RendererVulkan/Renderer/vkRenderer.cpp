@@ -126,7 +126,7 @@ void vkRenderer::CreateImage(TextureBufferDesc* a_texBuffDesc)
 	ImageCreateInfo.imageType = a_texBuffDesc->imageType;
 	ImageCreateInfo.extent.width = a_texBuffDesc->ImageWidth;
 	ImageCreateInfo.extent.height = a_texBuffDesc->ImageHeight;
-	ImageCreateInfo.extent.depth = 1;
+	ImageCreateInfo.extent.depth = a_texBuffDesc->ImageDepth;
 	ImageCreateInfo.mipLevels = a_texBuffDesc->mipLevels;
 	ImageCreateInfo.arrayLayers = a_texBuffDesc->arrayLayers;
 	ImageCreateInfo.format = a_texBuffDesc->imageFormat;
@@ -149,7 +149,7 @@ void vkRenderer::CreateImage(TextureBufferDesc* a_texBuffDesc)
 	VkMemoryAllocateInfo allocateInfo = {};
 	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocateInfo.allocationSize = memRequirements.size;
-	allocateInfo.memoryTypeIndex = VulkanHelper::FindMemoryType(m_physicalDevice,memRequirements.memoryTypeBits, a_texBuffDesc->propertyFlags);
+	allocateInfo.memoryTypeIndex = VulkanHelper::FindMemoryType(m_physicalDevice, memRequirements.memoryTypeBits, a_texBuffDesc->propertyFlags);
 
 	if (vkAllocateMemory(m_device, &allocateInfo, nullptr, &a_texBuffDesc->BufferMemory) != VK_SUCCESS)
 	{
@@ -159,9 +159,10 @@ void vkRenderer::CreateImage(TextureBufferDesc* a_texBuffDesc)
 	vkBindImageMemory(m_device, a_texBuffDesc->BufferImage, a_texBuffDesc->BufferMemory, 0);
 }
 
-void vkRenderer::CreateImageView(VkImage a_image, VkFormat a_format, VkImageAspectFlags a_aspectFlags, VkImageView *a_imageView, VkImageViewType a_imageViewType)
+void vkRenderer::CreateImageView(VkImage a_image, VkFormat a_format, VkImageAspectFlags a_aspectFlags, VkImageView *a_imageView, VkImageViewType a_imageViewType,
+	uint32_t a_levelCount, uint32_t a_layerCount)
 {
-	VulkanHelper::CreateImageView(m_device, a_image, a_format, a_imageViewType, a_aspectFlags, a_imageView);
+	VulkanHelper::CreateImageView(m_device, a_image, a_format, a_imageViewType, a_aspectFlags, a_imageView, a_levelCount, a_layerCount);
 	return;
 }
 
@@ -175,9 +176,9 @@ void vkRenderer::CreateTextureSampler(SamplerCreationDesc a_createInfo, VkSample
 	createInfo.magFilter = a_createInfo.magFilter;
 	createInfo.minFilter = a_createInfo.minFilter;
 
-	createInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	createInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	createInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	createInfo.addressModeU = a_createInfo.addressModeU;
+	createInfo.addressModeV = a_createInfo.addressModeV;
+	createInfo.addressModeW = a_createInfo.addressModeW;
 
 	createInfo.anisotropyEnable = a_createInfo.anisotropyEnable;
 	createInfo.maxAnisotropy = 16; // lower value bad quality more performance
@@ -192,8 +193,8 @@ void vkRenderer::CreateTextureSampler(SamplerCreationDesc a_createInfo, VkSample
 
 	createInfo.mipmapMode = a_createInfo.MipMode;
 	createInfo.mipLodBias = 0.0f;
-	createInfo.minLod = 0.0f;
-	createInfo.maxLod = 0.0f;
+	createInfo.minLod = a_createInfo.minLod;
+	createInfo.maxLod = a_createInfo.maxLod;
 
 	VulkanHelper::CreateSampler(m_device, createInfo, a_sampler);
 	

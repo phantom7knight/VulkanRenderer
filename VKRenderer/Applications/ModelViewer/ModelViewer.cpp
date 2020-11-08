@@ -749,7 +749,6 @@ void ModelViewer::CreateDepthResources()
 	depthImageInfo.ImageHeight = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
 	depthImageInfo.ImageWidth = m_renderer->m_swapChainDescription.m_swapChainExtent.width;
 	depthImageInfo.imageFormat = depthFormat;
-	depthImageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	depthImageInfo.usageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	depthImageInfo.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	m_renderer->CreateImage(&depthImageInfo);
@@ -846,11 +845,14 @@ void ModelViewer::PrepareApp()
 	
 	CreateSemaphoresandFences();
 	
-	//// set up the camera position
+	// Set up the camera position
 	SetUpCameraProperties(m_renderer->m_MainCamera);
 	
-	//Initialize Dear ImGui
+	// Initialize Dear ImGui
 	InitGui();
+
+	// Init PBRIBL maps
+	m_PbrIbl->Initialization();
 
 }
 

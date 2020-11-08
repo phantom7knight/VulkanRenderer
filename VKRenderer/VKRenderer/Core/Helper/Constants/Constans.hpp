@@ -18,7 +18,8 @@ enum TEXTURE_TYPE
 	eTEXTURETYPE_AO,
 	eTEXTURETYPE_EMISSIVE,
 	eTEXTURETYPE_NOISE,
-	eTEXTURETYPE_DEPTH
+	eTEXTURETYPE_DEPTH,
+	eTEXTURETYPE_CUBEMAP
 };
 
 typedef struct BufferDesc
@@ -43,6 +44,7 @@ struct TextureBufferDesc
 	VkMemoryPropertyFlags	propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	int						ImageWidth = 0;
 	int						ImageHeight = 0;
+	int						ImageDepth = 1;
 	uint32_t				arrayLayers = 1;
 	uint32_t				mipLevels = 1;
 	TEXTURE_TYPE			textureType;
@@ -209,9 +211,14 @@ struct FrameSubmissionDesc
 
 struct SamplerCreationDesc
 {
-	VkFilter			minFilter;
-	VkFilter			magFilter;
-	VkBool32			anisotropyEnable;
-	VkSamplerMipmapMode MipMode;
-
+	VkFilter				minFilter = VK_FILTER_LINEAR;
+	VkFilter				magFilter = VK_FILTER_LINEAR;
+	VkBool32				anisotropyEnable;
+	VkSamplerMipmapMode		MipMode;
+	float					minLod = 0.0f;
+	float					maxLod = 0.0f;
+	VkSamplerAddressMode	addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	VkSamplerAddressMode	addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	VkSamplerAddressMode	addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	VkBorderColor			borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
 };
