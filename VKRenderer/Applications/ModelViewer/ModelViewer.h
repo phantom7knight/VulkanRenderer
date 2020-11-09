@@ -123,7 +123,7 @@ private:
 	VkRenderPass					m_renderPass;
 	VkCommandPool					m_commandPool;
 	VkDescriptorSetLayout			m_descriptorSetLayout;
-	VkDescriptorSetLayout			skyboxdescriptorSetLayout;
+	/*VkDescriptorSetLayout			skyboxdescriptorSetLayout;*/
 	VkDescriptorPool				m_DescriptorPool;
 	VkDescriptorPool				skyboxDescriptorPool;
 	FrameBufferDesc					m_FBO;

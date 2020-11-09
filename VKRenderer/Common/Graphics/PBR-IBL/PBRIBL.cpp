@@ -145,7 +145,7 @@ void PBRIBL::RenderPassPreFilteredCubeMap()
 	return;
 }
 
-void PBRIBL::OffScreemPreFilteredCubeMap(VkCommandPool a_cmdPool)
+void PBRIBL::OffScreenPreFilteredCubeMapSetup(VkCommandPool a_cmdPool)
 {
 	// off screen image creation
 	OffScreenImage.textureType = TEXTURE_TYPE::eTEXTURETYPE_OFFSCREEN;
@@ -185,6 +185,61 @@ void PBRIBL::OffScreemPreFilteredCubeMap(VkCommandPool a_cmdPool)
 	return;
 }
 
+void PBRIBL::DescriptorSetupPreFilteredCubeMap()
+{
+	// Descriptor
+	VkDescriptorSetLayoutBinding skyboxCubeMapBinding = {};
+
+	skyboxCubeMapBinding.binding = 0;
+	skyboxCubeMapBinding.descriptorCount = 1;
+	skyboxCubeMapBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	skyboxCubeMapBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	skyboxCubeMapBinding.pImmutableSamplers = nullptr;
+
+	std::vector< VkDescriptorSetLayoutBinding > descriptorsVector = { skyboxCubeMapBinding };
+
+	m_renderer->CreateDescriptorSetLayout(descriptorsVector, &m_skyboxdescriptorSetLayout);
+
+	// Descriptor Pool
+	std::vector<VkDescriptorPoolSize> poolSizes = {};
+
+	poolSizes.resize(1);
+
+	poolSizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+
+	m_renderer->CreateDescriptorPool(poolSizes, 2, static_cast<uint32_t>(poolSizes.size()), &m_DescriptorPool);
+
+	// Descriptor Sets
+	std::vector<VkDescriptorSetLayout> layouts(1, m_skyboxdescriptorSetLayout);
+
+	m_renderer->AllocateDescriptorSets(m_DescriptorPool, layouts, m_DescriptorSets);
+
+	VkDescriptorImageInfo environmentCubeMapImageInfo = {};
+
+	environmentCubeMapImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	environmentCubeMapImageInfo.sampler = HDRtexture.Sampler;
+	environmentCubeMapImageInfo.imageView = HDRtexture.ImageView;
+
+	std::vector< VkWriteDescriptorSet> descriptorWriteInfo = {};
+
+	descriptorWriteInfo.resize(1);
+
+	descriptorWriteInfo[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	descriptorWriteInfo[0].dstSet = m_DescriptorSets[0];
+	descriptorWriteInfo[0].dstBinding = 0;
+	descriptorWriteInfo[0].dstArrayElement = 0;
+	descriptorWriteInfo[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	descriptorWriteInfo[0].descriptorCount = 1;
+	descriptorWriteInfo[0].pImageInfo = &environmentCubeMapImageInfo;
+	descriptorWriteInfo[0].pBufferInfo = nullptr;
+	descriptorWriteInfo[0].pTexelBufferView = nullptr;
+
+	m_renderer->UpdateDescriptorSets(descriptorWriteInfo);
+
+	return;
+}
+
 void PBRIBL::GeneratePreFilteredCubeMap(VkCommandPool a_cmdPool)
 {
 	// Image related data
@@ -194,10 +249,10 @@ void PBRIBL::GeneratePreFilteredCubeMap(VkCommandPool a_cmdPool)
 	RenderPassPreFilteredCubeMap();
 
 	// Create Off-Screen Frame Buffer & cmd buffer
-	OffScreemPreFilteredCubeMap(a_cmdPool);
+	OffScreenPreFilteredCubeMapSetup(a_cmdPool);
 
-	// Create Command buffer for off screen
-	//CmdBufferPreFilteredCubeMap();
+	// Create Descriptor related Info and Pipeline Layout
+	DescriptorSetupPreFilteredCubeMap();
 
 	// Create Pipeline for Cube Map
 

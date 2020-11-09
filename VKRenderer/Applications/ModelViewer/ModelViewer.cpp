@@ -174,7 +174,7 @@ void ModelViewer::CreateDescriptorSetLayout()
 
 	//create binding for sampler
 	//used in pixel shader
-	VkDescriptorSetLayoutBinding skyboxCubeMapBinding = {};
+	/*VkDescriptorSetLayoutBinding skyboxCubeMapBinding = {};
 
 	skyboxCubeMapBinding.binding = 1;
 	skyboxCubeMapBinding.descriptorCount = 1;
@@ -186,7 +186,7 @@ void ModelViewer::CreateDescriptorSetLayout()
 
 	descriptorsVector = { layoutBinding, skyboxCubeMapBinding };
 
-	m_renderer->CreateDescriptorSetLayout(descriptorsVector, &skyboxdescriptorSetLayout);
+	m_renderer->CreateDescriptorSetLayout(descriptorsVector, &skyboxdescriptorSetLayout);*/
 }
 
 void ModelViewer::CreateGraphicsPipeline()

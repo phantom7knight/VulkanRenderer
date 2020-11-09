@@ -14,17 +14,17 @@ private:
 	VkRenderPass					m_renderPass;
 	FrameBufferDesc					m_OffscreenFBO;
 	std::vector<VkCommandBuffer>	m_cmdBuffer;
+	VkDescriptorSetLayout			m_skyboxdescriptorSetLayout;
+	VkDescriptorPool				m_DescriptorPool;
+	VkDescriptorPool				m_skyboxDescriptorPool;
+	std::vector<VkDescriptorSet>	m_DescriptorSets;
 
 	/*VkCommandPool					m_commandPool;
 	VkDescriptorSetLayout			m_descriptorSetLayout;
-	VkDescriptorSetLayout			skyboxdescriptorSetLayout;
-	VkDescriptorPool				m_DescriptorPool;
-	VkDescriptorPool				skyboxDescriptorPool;
 	BufferDesc						m_ModelVertexBuffer;
 	BufferDesc						m_ModelIndexBuffer;
 	std::vector<BufferDesc>			m_ModelUniformBuffer;
 	std::vector<BufferDesc>			m_LightInfoUniformBuffer;
-	std::vector<VkDescriptorSet>	m_DescriptorSets;
 	std::vector<VkDescriptorSet>	skyboxDescriptorSets;
 	size_t							m_currentFrame = 0;
 	Pipelines						appPipelines;*/
@@ -38,8 +38,8 @@ private:
 	// Generate Pre-filtered Map
 	void ImageDataPreFilteredCubeMap();
 	void RenderPassPreFilteredCubeMap();
-	void OffScreemPreFilteredCubeMap(VkCommandPool a_cmdPool);
-	//void CmdBufferPreFilteredCubeMap();
+	void OffScreenPreFilteredCubeMapSetup(VkCommandPool a_cmdPool);
+	void DescriptorSetupPreFilteredCubeMap();
 	void GeneratePreFilteredCubeMap(VkCommandPool a_cmdPool);
 
 public:
