@@ -46,6 +46,7 @@ struct VertexInfo
 	glm::vec3 Tangent;
 	glm::vec3 BiTangent;
 
+	// TODO: look into removing this static
 	static VkVertexInputBindingDescription getBindingDescription()
 	{
 		VkVertexInputBindingDescription bindingDesc = {};

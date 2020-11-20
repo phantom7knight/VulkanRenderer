@@ -745,7 +745,8 @@ void vkRenderer::AllocateDescriptorSets(VkDescriptorPool a_descriptorPool, std::
 
 	allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocateInfo.descriptorPool = a_descriptorPool;
-	allocateInfo.descriptorSetCount = static_cast<uint32_t>(m_swapChainDescription.m_SwapChainImages.size());
+	//allocateInfo.descriptorSetCount = static_cast<uint32_t>(m_swapChainDescription.m_SwapChainImages.size());
+	allocateInfo.descriptorSetCount = layouts.size();
 	allocateInfo.pSetLayouts = layouts.data();
 
 	a_DescriptorSets.resize(m_swapChainDescription.m_SwapChainImages.size());

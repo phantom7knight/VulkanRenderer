@@ -2,6 +2,11 @@
 #include "../../VKRenderer/Core/PCH/stdafx.h"
 #include "../../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
 
+struct PBRIBLPipelines
+{
+	GraphicsPipelineInfo			PreFilterEnvMapGraphicsPipeline;
+};
+
 class PBRIBL
 {
 private:
@@ -18,6 +23,7 @@ private:
 	VkDescriptorPool				m_DescriptorPool;
 	VkDescriptorPool				m_skyboxDescriptorPool;
 	std::vector<VkDescriptorSet>	m_DescriptorSets;
+	PBRIBLPipelines					IBLPipelines;
 
 	/*VkCommandPool					m_commandPool;
 	VkDescriptorSetLayout			m_descriptorSetLayout;
@@ -27,7 +33,7 @@ private:
 	std::vector<BufferDesc>			m_LightInfoUniformBuffer;
 	std::vector<VkDescriptorSet>	skyboxDescriptorSets;
 	size_t							m_currentFrame = 0;
-	Pipelines						appPipelines;*/
+	*/
 
 	// Instance of the Renderer created
 	vkRenderer *m_renderer;
@@ -40,7 +46,10 @@ private:
 	void RenderPassPreFilteredCubeMap();
 	void OffScreenPreFilteredCubeMapSetup(VkCommandPool a_cmdPool);
 	void DescriptorSetupPreFilteredCubeMap();
+	void PipelineSetupPreFiltererdCubeMap();
 	void GeneratePreFilteredCubeMap(VkCommandPool a_cmdPool);
+	void RenderPreFilteredCubeMap();
+	void DestroyPreFilteredCubeMap();
 
 public:
 	// Setup the loading of the HDR Texture

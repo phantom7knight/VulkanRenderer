@@ -221,7 +221,7 @@ void PBRIBL::DescriptorSetupPreFilteredCubeMap()
 	environmentCubeMapImageInfo.sampler = HDRtexture.Sampler;
 	environmentCubeMapImageInfo.imageView = HDRtexture.ImageView;
 
-	std::vector< VkWriteDescriptorSet> descriptorWriteInfo = {};
+	std::vector<VkWriteDescriptorSet> descriptorWriteInfo = {};
 
 	descriptorWriteInfo.resize(1);
 
@@ -236,6 +236,47 @@ void PBRIBL::DescriptorSetupPreFilteredCubeMap()
 	descriptorWriteInfo[0].pTexelBufferView = nullptr;
 
 	m_renderer->UpdateDescriptorSets(descriptorWriteInfo);
+
+	return;
+}
+
+void PBRIBL::PipelineSetupPreFiltererdCubeMap()
+{
+	std::vector<std::string> ShaderFileNames;
+
+	ShaderFileNames.resize(2);
+
+	ShaderFileNames[0] = "PreFilterEnvMap.vert";
+	ShaderFileNames[1] = "PreFilterEnvMap.frag";
+
+	IBLPipelines.PreFilterEnvMapGraphicsPipeline.ShaderFileNames = ShaderFileNames;
+
+	// Vertex Input
+	IBLPipelines.PreFilterEnvMapGraphicsPipeline.vertexBindingDesc = m_renderer->rsrcLdr.getModelLoaderobj().getBindingDescription();;
+	IBLPipelines.PreFilterEnvMapGraphicsPipeline.AttributeDescriptionsofVertex = m_renderer->rsrcLdr.getModelLoaderobj().getAttributeDescriptionsofVertex();
+
+	//Input Assembly
+	IBLPipelines.PreFilterEnvMapGraphicsPipeline.pipelineTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+	// Rasterizer
+	IBLPipelines.PreFilterEnvMapGraphicsPipeline.polygonMode = VK_POLYGON_MODE_FILL;
+	IBLPipelines.PreFilterEnvMapGraphicsPipeline.cullMode = VK_CULL_MODE_BACK_BIT;
+	IBLPipelines.PreFilterEnvMapGraphicsPipeline.frontFaceCullingMode = VK_FRONT_FACE_CLOCKWISE;
+	IBLPipelines.PreFilterEnvMapGraphicsPipeline.depthBiasEnableMode = VK_FALSE;
+
+	// Depth Testing
+	IBLPipelines.PreFilterEnvMapGraphicsPipeline.depthTestEnable = VK_TRUE;
+	IBLPipelines.PreFilterEnvMapGraphicsPipeline.depthWriteEnable = VK_TRUE;
+	IBLPipelines.PreFilterEnvMapGraphicsPipeline.depthCompareOperation = VK_COMPARE_OP_LESS;
+	IBLPipelines.PreFilterEnvMapGraphicsPipeline.stencilTestEnable = VK_FALSE;
+
+	//Create Pipeline Layout b4 creating Graphics Pipeline
+	IBLPipelines.PreFilterEnvMapGraphicsPipeline.a_descriptorSetLayout = m_skyboxdescriptorSetLayout;
+
+	IBLPipelines.PreFilterEnvMapGraphicsPipeline.renderPass = m_renderPass;
+	IBLPipelines.PreFilterEnvMapGraphicsPipeline.subpass = 0;
+
+	m_renderer->CreateGraphicsPipeline(&IBLPipelines.PreFilterEnvMapGraphicsPipeline);
 
 	return;
 }
@@ -255,9 +296,14 @@ void PBRIBL::GeneratePreFilteredCubeMap(VkCommandPool a_cmdPool)
 	DescriptorSetupPreFilteredCubeMap();
 
 	// Create Pipeline for Cube Map
-
-	// Create descriptor data
+	PipelineSetupPreFiltererdCubeMap();
 	
+	return;
+}
+
+void PBRIBL::RenderPreFilteredCubeMap()
+{
+
 	return;
 }
 #pragma endregion
@@ -275,10 +321,17 @@ void PBRIBL::Update(float deltaTime)
 
 void PBRIBL::Draw(float deltaTime)
 {
+	RenderPreFilteredCubeMap();
+	return;
+}
+
+void PBRIBL::DestroyPreFilteredCubeMap()
+{
+
 	return;
 }
 
 void PBRIBL::Destroy()
 {
-
+	DestroyPreFilteredCubeMap();
 }
