@@ -28,9 +28,302 @@ void PBRIBL::LoadHDRImageData(std::string a_textureName, VkCommandPool a_cmdPool
 }
 
 #pragma region IrradianceMap
-void PBRIBL::GenerateIrradianceMap()
+
+const VkFormat irradianceCubeMapFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
+
+void PBRIBL::ImageDataIrradianceCubeMap()
+{
+	irradianceMap.textureType = TEXTURE_TYPE::eTEXTURETYPE_CUBEMAP;
+
+	const int32_t dimensions = 64;
+	const uint32_t numMips = static_cast<uint32_t>(floor(log2(dimensions))) + 1;
+
+	irradianceMap.ImageHeight = dimensions;
+	irradianceMap.ImageWidth = dimensions;
+	irradianceMap.mipLevels = numMips;
+	irradianceMap.arrayLayers = 6;
+	irradianceMap.imageFormat = irradianceCubeMapFormat;
+	irradianceMap.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	irradianceMap.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+	m_renderer->CreateImage(&irradianceMap);
+
+	m_renderer->CreateImageView(irradianceMap.BufferImage, irradianceCubeMapFormat, VK_IMAGE_ASPECT_COLOR_BIT, &irradianceMap.ImageView
+		, VK_IMAGE_VIEW_TYPE_CUBE, numMips, 6);
+
+	SamplerCreationDesc samplerDesc = {};
+
+	samplerDesc.anisotropyEnable = VK_TRUE;
+	samplerDesc.MipMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	samplerDesc.minLod = 0.0f;
+	samplerDesc.maxLod = static_cast<float>(numMips);
+	samplerDesc.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+
+	m_renderer->CreateTextureSampler(samplerDesc, &irradianceMap.Sampler);
+}
+
+void PBRIBL::RenderPassIrradianceCubeMap()
+{
+	VkAttachmentDescription colorAttachment = {};
+
+	colorAttachment.format = irradianceCubeMapFormat;
+	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass should start with
+	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;		//How render pass final image should translate at end of render pass
+
+
+	// Each render pass can have multiple sub-passes
+	// which will help or can be used for the Post-Processing,...etc
+
+	VkAttachmentReference colorAttachmentRef = {};
+
+	colorAttachmentRef.attachment = 0;
+	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+
+	VkSubpassDescription subpassInfo = {};
+
+	subpassInfo.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpassInfo.colorAttachmentCount = 1;	//layout(location = 0) out vec4 outColor this is where it will be referenced
+	subpassInfo.pColorAttachments = &colorAttachmentRef;
+
+	std::vector< VkSubpassDependency> subPassDependency = {};
+
+	subPassDependency.resize(2);
+
+	subPassDependency[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+	subPassDependency[0].dstSubpass = 0;
+	subPassDependency[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	subPassDependency[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+	subPassDependency[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subPassDependency[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	subPassDependency[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+	subPassDependency[1].srcSubpass = 0;
+	subPassDependency[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+	subPassDependency[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subPassDependency[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	subPassDependency[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	subPassDependency[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+	subPassDependency[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+
+	//array of attachments for this render pass
+	std::vector< VkAttachmentDescription> attachments = { colorAttachment };
+
+	std::vector<VkAttachmentReference> attachmentReferences;
+
+	attachmentReferences.resize(attachments.size());
+
+	attachmentReferences[0] = colorAttachmentRef;
+
+	RenderPassInfo renderPassdesc = {};
+
+	renderPassdesc.attachmentDescriptions = attachments;
+	renderPassdesc.attachmentReferences = attachmentReferences;
+	renderPassdesc.subpassDependecy = subPassDependency;
+	renderPassdesc.subpassInfo = subpassInfo;
+
+	m_renderer->CreateRenderPass(renderPassdesc, &m_renderPass);
+
+	return;
+}
+
+void PBRIBL::OffScreenIrradianceCubeMapSetup(VkCommandPool a_cmdPool)
+{
+	// off screen image creation
+	OffScreenImage.textureType = TEXTURE_TYPE::eTEXTURETYPE_OFFSCREEN;
+
+	const int32_t dimensions = 64;
+	const uint32_t numMips = static_cast<uint32_t>(floor(log2(dimensions))) + 1;
+
+	OffScreenImage.ImageHeight = dimensions;
+	OffScreenImage.ImageWidth = dimensions;
+	OffScreenImage.mipLevels = 1;
+	OffScreenImage.arrayLayers = 1;
+	OffScreenImage.imageFormat = irradianceCubeMapFormat;
+	OffScreenImage.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+	OffScreenImage.usageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+	m_renderer->CreateImage(&OffScreenImage);
+
+	// off screen image view creation
+	m_renderer->CreateImageView(OffScreenImage.BufferImage, irradianceCubeMapFormat, VK_IMAGE_ASPECT_COLOR_BIT, &OffScreenImage.ImageView);
+
+	// frame buffer creation
+
+	std::vector< VkImageView> attachments = { OffScreenImage.ImageView };
+
+	m_OffscreenFBO.attachmentCount = 1;
+	m_OffscreenFBO.Attachments = attachments;
+	m_OffscreenFBO.FBOHeight = dimensions;
+	m_OffscreenFBO.FBOWidth = dimensions;
+
+	m_renderer->CreateFrameBuffer(m_OffscreenFBO, m_renderPass, &m_OffscreenFBO.FrameBuffer);
+
+	// cmd buffer
+	m_cmdBuffer.resize(1);
+
+	m_renderer->TransitionImageLayouts(a_cmdPool, &m_cmdBuffer[0], OffScreenImage.BufferImage,
+		irradianceCubeMapFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+	return;
+}
+
+void PBRIBL::DescriptorSetupIrradianceCubeMap()
+{
+	// Descriptor
+	VkDescriptorSetLayoutBinding IrradianceCubeMapBinding = {};
+
+	IrradianceCubeMapBinding.binding = 0;
+	IrradianceCubeMapBinding.descriptorCount = 1;
+	IrradianceCubeMapBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	IrradianceCubeMapBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	IrradianceCubeMapBinding.pImmutableSamplers = nullptr;
+
+	std::vector< VkDescriptorSetLayoutBinding > descriptorsVector = { IrradianceCubeMapBinding };
+
+	m_renderer->CreateDescriptorSetLayout(descriptorsVector, &m_descriptorSetLayout);
+
+	// Descriptor Pool
+	std::vector<VkDescriptorPoolSize> poolSizes = {};
+
+	poolSizes.resize(1);
+
+	poolSizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+
+	m_renderer->CreateDescriptorPool(poolSizes, 2, static_cast<uint32_t>(poolSizes.size()), &m_DescriptorPool);
+
+	// Descriptor Sets
+	std::vector<VkDescriptorSetLayout> layouts(1, m_descriptorSetLayout);
+
+	m_renderer->AllocateDescriptorSets(m_DescriptorPool, layouts, m_DescriptorSets);
+
+	VkDescriptorImageInfo environmentCubeMapImageInfo = {};
+
+	environmentCubeMapImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	environmentCubeMapImageInfo.sampler = HDRtexture.Sampler;
+	environmentCubeMapImageInfo.imageView = HDRtexture.ImageView;
+
+	std::vector<VkWriteDescriptorSet> descriptorWriteInfo = {};
+
+	descriptorWriteInfo.resize(1);
+
+	descriptorWriteInfo[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	descriptorWriteInfo[0].dstSet = m_DescriptorSets[0];
+	descriptorWriteInfo[0].dstBinding = 0;
+	descriptorWriteInfo[0].dstArrayElement = 0;
+	descriptorWriteInfo[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	descriptorWriteInfo[0].descriptorCount = 1;
+	descriptorWriteInfo[0].pImageInfo = &environmentCubeMapImageInfo;
+	descriptorWriteInfo[0].pBufferInfo = nullptr;
+	descriptorWriteInfo[0].pTexelBufferView = nullptr;
+
+	m_renderer->UpdateDescriptorSets(descriptorWriteInfo);
+
+	return;
+}
+
+void PBRIBL::PipelineSetupIrradianceCubeMap()
+{
+	// Add Push Constant data
+	struct PushBlock
+	{
+		glm::mat4 mvp;
+		float delta_Phi = (2.0f * float(PI)) / 180.0f;
+		float delta_Theta = (0.5f * float(PI)) / 64.0f;
+	};
+
+	VkPushConstantRange pushConstantRange = {};
+
+	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+	pushConstantRange.offset = 0;
+	pushConstantRange.size = sizeof(PushBlock);
+
+	std::vector<VkPushConstantRange> pushConstantRanges = { pushConstantRange };
+
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.pushConstantRangeCount = static_cast<uint32_t>(pushConstantRanges.size());
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.pPushConstantRanges = pushConstantRanges.data();
+
+	std::vector<std::string> ShaderFileNames;
+
+	ShaderFileNames.resize(2);
+
+	ShaderFileNames[0] = "IrradianceCube.vert";
+	ShaderFileNames[1] = "IrradianceCube.frag";
+
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.ShaderFileNames = ShaderFileNames;
+
+	// Vertex Input
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.vertexBindingDesc = m_renderer->rsrcLdr.getModelLoaderobj().getBindingDescription();;
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.AttributeDescriptionsofVertex = m_renderer->rsrcLdr.getModelLoaderobj().getAttributeDescriptionsofVertex();
+
+	//Input Assembly
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.pipelineTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+	// Rasterizer
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.polygonMode = VK_POLYGON_MODE_FILL;
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.cullMode = VK_CULL_MODE_BACK_BIT;
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.frontFaceCullingMode = VK_FRONT_FACE_CLOCKWISE;
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.depthBiasEnableMode = VK_FALSE;
+
+	// Depth Testing
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.depthTestEnable = VK_TRUE;
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.depthWriteEnable = VK_TRUE;
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.depthCompareOperation = VK_COMPARE_OP_LESS;
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.stencilTestEnable = VK_FALSE;
+
+	//Create Pipeline Layout b4 creating Graphics Pipeline
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.a_descriptorSetLayout = m_descriptorSetLayout;
+
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.renderPass = m_renderPass;
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.subpass = 0;
+
+	m_renderer->CreateGraphicsPipeline(&IBLPipelines.IrradianceEnvMapGraphicsPipeline);
+
+	return;
+}
+
+void PBRIBL::RenderIrradianceCubeMap()
 {
 
+	return;
+}
+
+void PBRIBL::DestroyIrradianceCubeMap()
+{
+
+	return;
+}
+
+void PBRIBL::GenerateIrradianceCubeMap(VkCommandPool a_cmdPool)
+{
+	// Image related data
+	ImageDataIrradianceCubeMap();
+
+	// Create Render Pass
+	RenderPassIrradianceCubeMap();
+
+	// Create Off-Screen Frame Buffer & cmd buffer
+	OffScreenIrradianceCubeMapSetup(a_cmdPool);
+
+	// Create Descriptor related Info and Pipeline Layout
+	DescriptorSetupIrradianceCubeMap();
+
+	// Create Pipeline for Cube Map
+	PipelineSetupIrradianceCubeMap();
+
+	// Render the CubeMap
+	RenderIrradianceCubeMap();
+
+	// Destroy resources created for cube map
+	DestroyIrradianceCubeMap();
 
 	return;
 }
@@ -188,17 +481,17 @@ void PBRIBL::OffScreenPreFilteredCubeMapSetup(VkCommandPool a_cmdPool)
 void PBRIBL::DescriptorSetupPreFilteredCubeMap()
 {
 	// Descriptor
-	VkDescriptorSetLayoutBinding skyboxCubeMapBinding = {};
+	VkDescriptorSetLayoutBinding preFilterCubeMapBinding = {};
 
-	skyboxCubeMapBinding.binding = 0;
-	skyboxCubeMapBinding.descriptorCount = 1;
-	skyboxCubeMapBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	skyboxCubeMapBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	skyboxCubeMapBinding.pImmutableSamplers = nullptr;
+	preFilterCubeMapBinding.binding = 0;
+	preFilterCubeMapBinding.descriptorCount = 1;
+	preFilterCubeMapBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	preFilterCubeMapBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	preFilterCubeMapBinding.pImmutableSamplers = nullptr;
 
-	std::vector< VkDescriptorSetLayoutBinding > descriptorsVector = { skyboxCubeMapBinding };
+	std::vector< VkDescriptorSetLayoutBinding > descriptorsVector = { preFilterCubeMapBinding };
 
-	m_renderer->CreateDescriptorSetLayout(descriptorsVector, &m_skyboxdescriptorSetLayout);
+	m_renderer->CreateDescriptorSetLayout(descriptorsVector, &m_descriptorSetLayout);
 
 	// Descriptor Pool
 	std::vector<VkDescriptorPoolSize> poolSizes = {};
@@ -211,7 +504,7 @@ void PBRIBL::DescriptorSetupPreFilteredCubeMap()
 	m_renderer->CreateDescriptorPool(poolSizes, 2, static_cast<uint32_t>(poolSizes.size()), &m_DescriptorPool);
 
 	// Descriptor Sets
-	std::vector<VkDescriptorSetLayout> layouts(1, m_skyboxdescriptorSetLayout);
+	std::vector<VkDescriptorSetLayout> layouts(1, m_descriptorSetLayout);
 
 	m_renderer->AllocateDescriptorSets(m_DescriptorPool, layouts, m_DescriptorSets);
 
@@ -271,12 +564,24 @@ void PBRIBL::PipelineSetupPreFiltererdCubeMap()
 	IBLPipelines.PreFilterEnvMapGraphicsPipeline.stencilTestEnable = VK_FALSE;
 
 	//Create Pipeline Layout b4 creating Graphics Pipeline
-	IBLPipelines.PreFilterEnvMapGraphicsPipeline.a_descriptorSetLayout = m_skyboxdescriptorSetLayout;
+	IBLPipelines.PreFilterEnvMapGraphicsPipeline.a_descriptorSetLayout = m_descriptorSetLayout;
 
 	IBLPipelines.PreFilterEnvMapGraphicsPipeline.renderPass = m_renderPass;
 	IBLPipelines.PreFilterEnvMapGraphicsPipeline.subpass = 0;
 
 	m_renderer->CreateGraphicsPipeline(&IBLPipelines.PreFilterEnvMapGraphicsPipeline);
+
+	return;
+}
+
+void PBRIBL::RenderPreFilteredCubeMap()
+{
+
+	return;
+}
+
+void PBRIBL::DestroyPreFilteredCubeMap()
+{
 
 	return;
 }
@@ -301,17 +606,12 @@ void PBRIBL::GeneratePreFilteredCubeMap(VkCommandPool a_cmdPool)
 	return;
 }
 
-void PBRIBL::RenderPreFilteredCubeMap()
-{
-
-	return;
-}
 #pragma endregion
 
 void PBRIBL::Initialization(VkCommandPool a_cmdPool)
 {
-	GeneratePreFilteredCubeMap(a_cmdPool);
-	GenerateIrradianceMap();
+	GenerateIrradianceCubeMap(a_cmdPool);
+	//GeneratePreFilteredCubeMap(a_cmdPool);
 }
 
 void PBRIBL::Update(float deltaTime)
@@ -325,13 +625,7 @@ void PBRIBL::Draw(float deltaTime)
 	return;
 }
 
-void PBRIBL::DestroyPreFilteredCubeMap()
-{
-
-	return;
-}
-
 void PBRIBL::Destroy()
 {
-	DestroyPreFilteredCubeMap();
+	
 }

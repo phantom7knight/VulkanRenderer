@@ -37,6 +37,18 @@
     <None Include="Shaders\Model.vert">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Shaders\IrradianceCube.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\IrradianceCube.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\PreFilterEnvMap.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\PreFilterEnvMap.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\Assets\Textures\Statue.jpg">

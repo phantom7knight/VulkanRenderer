@@ -357,6 +357,8 @@ void ModelViewer::CreateDescriptorSets()
 		roughnessImageInfo.sampler = PBRMaterial.roughnessMap.Sampler;
 		roughnessImageInfo.imageView = PBRMaterial.roughnessMap.ImageView;
 
+		// TODO: Add other maps here such as IrradianceMap, PreFilterMap & BRDFLUT Map
+
 		/*VkDescriptorImageInfo skyboxImageInfo = {};
 
 		roughnessImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;

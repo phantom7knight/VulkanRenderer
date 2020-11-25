@@ -4,6 +4,7 @@
 
 struct PBRIBLPipelines
 {
+	GraphicsPipelineInfo			IrradianceEnvMapGraphicsPipeline;
 	GraphicsPipelineInfo			PreFilterEnvMapGraphicsPipeline;
 };
 
@@ -19,7 +20,7 @@ private:
 	VkRenderPass					m_renderPass;
 	FrameBufferDesc					m_OffscreenFBO;
 	std::vector<VkCommandBuffer>	m_cmdBuffer;
-	VkDescriptorSetLayout			m_skyboxdescriptorSetLayout;
+	VkDescriptorSetLayout			m_descriptorSetLayout;
 	VkDescriptorPool				m_DescriptorPool;
 	VkDescriptorPool				m_skyboxDescriptorPool;
 	std::vector<VkDescriptorSet>	m_DescriptorSets;
@@ -39,7 +40,14 @@ private:
 	vkRenderer *m_renderer;
 
 	// Generate Irradiance Map
-	void GenerateIrradianceMap();
+	void ImageDataIrradianceCubeMap();
+	void RenderPassIrradianceCubeMap();
+	void OffScreenIrradianceCubeMapSetup(VkCommandPool a_cmdPool);
+	void DescriptorSetupIrradianceCubeMap();
+	void PipelineSetupIrradianceCubeMap();
+	void GenerateIrradianceCubeMap(VkCommandPool a_cmdPool);
+	void RenderIrradianceCubeMap();
+	void DestroyIrradianceCubeMap();
 
 	// Generate Pre-filtered Map
 	void ImageDataPreFilteredCubeMap();

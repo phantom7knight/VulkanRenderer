@@ -147,8 +147,12 @@
     <ClCompile Include="ModelViewer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\IrradianceCube.frag" />
+    <None Include="Shaders\IrradianceCube.vert" />
     <None Include="Shaders\Model.frag" />
     <None Include="Shaders\Model.vert" />
+    <None Include="Shaders\PreFilterEnvMap.frag" />
+    <None Include="Shaders\PreFilterEnvMap.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\Assets\Textures\Statue.jpg" />

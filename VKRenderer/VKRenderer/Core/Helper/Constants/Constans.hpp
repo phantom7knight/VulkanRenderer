@@ -8,6 +8,9 @@ const int HEIGHT	= 900;
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
 const int TARGET_FPS = 120;
+
+#define PI 3.14159265
+
 enum TEXTURE_TYPE
 {
 	eTEXTURETYPE_ALBEDO,
@@ -179,6 +182,9 @@ struct GraphicsPipelineInfo
 	VkDescriptorSetLayout							a_descriptorSetLayout;
 	VkRenderPass                                    renderPass;
 	uint32_t                                        subpass;
+
+	uint32_t										pushConstantRangeCount = 0;
+	VkPushConstantRange*							pPushConstantRanges = nullptr;
 	
 	//Final Pipeline Info
 	VkPipelineLayout								a_pipelineLayout;
