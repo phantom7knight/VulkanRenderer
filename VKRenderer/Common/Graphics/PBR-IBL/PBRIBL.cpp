@@ -30,13 +30,20 @@ void PBRIBL::LoadHDRImageData(std::string a_textureName, VkCommandPool a_cmdPool
 #pragma region IrradianceMap
 
 const VkFormat irradianceCubeMapFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
+const int32_t dimensions = 64;
+const uint32_t numMips = static_cast<uint32_t>(floor(log2(dimensions))) + 1;
+
+// Add Push Constant data
+struct PushBlock
+{
+	glm::mat4 mvp;
+	float delta_Phi = (2.0f * float(PI)) / 180.0f;
+	float delta_Theta = (0.5f * float(PI)) / 64.0f;
+}pushBlock;
 
 void PBRIBL::ImageDataIrradianceCubeMap()
 {
 	irradianceMap.textureType = TEXTURE_TYPE::eTEXTURETYPE_CUBEMAP;
-
-	const int32_t dimensions = 64;
-	const uint32_t numMips = static_cast<uint32_t>(floor(log2(dimensions))) + 1;
 
 	irradianceMap.ImageHeight = dimensions;
 	irradianceMap.ImageWidth = dimensions;
@@ -232,14 +239,6 @@ void PBRIBL::DescriptorSetupIrradianceCubeMap()
 
 void PBRIBL::PipelineSetupIrradianceCubeMap()
 {
-	// Add Push Constant data
-	struct PushBlock
-	{
-		glm::mat4 mvp;
-		float delta_Phi = (2.0f * float(PI)) / 180.0f;
-		float delta_Theta = (0.5f * float(PI)) / 64.0f;
-	};
-
 	VkPushConstantRange pushConstantRange = {};
 
 	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -290,14 +289,201 @@ void PBRIBL::PipelineSetupIrradianceCubeMap()
 	return;
 }
 
-void PBRIBL::RenderIrradianceCubeMap()
+void PBRIBL::RenderIrradianceCubeMap(VkCommandPool a_cmdPool)
 {
+	VkRenderPassBeginInfo renderpassBeginInfo = {};
+
+	renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderpassBeginInfo.renderPass = m_renderPass;
+	renderpassBeginInfo.framebuffer = m_OffscreenFBO.FrameBuffer;
+	renderpassBeginInfo.renderArea.offset = { 0,0 };
+	renderpassBeginInfo.renderArea.extent.width = dimensions;
+	renderpassBeginInfo.renderArea.extent.height = dimensions;
+
+
+	//Clear Color//
+	VkClearValue clearColor[1];
+	clearColor[0] = { 0.,0.,0.2,1.0 };
+	renderpassBeginInfo.clearValueCount = 2;
+	renderpassBeginInfo.pClearValues = clearColor;
+
+	std::vector<glm::mat4> matrices = {
+		// POSITIVE_X
+		glm::rotate(glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+		// NEGATIVE_X
+		glm::rotate(glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f)), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+		// POSITIVE_Y
+		glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+		// NEGATIVE_Y
+		glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+		// POSITIVE_Z
+		glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+		// NEGATIVE_Z
+		glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f)),
+	};
+
+	// Create Command Buffer
+	m_commandBuffers.resize(1);
+	m_renderer->AllocateCommandBuffers(m_commandBuffers, a_cmdPool);
+
+	VkCommandBufferBeginInfo beginInfo = {};
+
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+	beginInfo.pInheritanceInfo = nullptr;
+
+	//Start Recording
+	if (vkBeginCommandBuffer(m_commandBuffers[0], &beginInfo) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to begin recording Command Buffer");
+	}
+
+	// Setup ViewPort and Scissor
+
+	VkViewport viewPort = {};
+
+	viewPort.width = dimensions;
+	viewPort.height = dimensions;
+	viewPort.minDepth = 0.0f;
+	viewPort.maxDepth = 1.0f;
+
+	VkRect2D scissor = {};
+
+	scissor.offset = { 0,0 };
+	scissor.extent.width = dimensions;
+	scissor.extent.height = dimensions;
+
+	vkCmdSetScissor(m_commandBuffers[0], 0, 1, &scissor);
+	vkCmdSetViewport(m_commandBuffers[0], 0, 1, &viewPort);
+
+	VkImageSubresourceRange subResourceRange = {};
+
+	subResourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	subResourceRange.baseMipLevel = 0;
+	subResourceRange.levelCount = numMips;
+	subResourceRange.layerCount = 6;
+
+	// Change Image layout for cube map faces for transfer to FBO destination
+	m_renderer->SetImageLayout(
+		m_commandBuffers[0],
+		irradianceMap.BufferImage,
+		VK_IMAGE_LAYOUT_UNDEFINED,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		subResourceRange);
+
+	for (uint32_t m = 0; m < numMips; ++m)
+	{
+		for (uint32_t f = 0; f < 6; ++f)
+		{
+			viewPort.width = static_cast<float>(dimensions * std::pow(0.5f, m));
+			viewPort.height = static_cast<float>(dimensions * std::pow(0.5f, m));
+			vkCmdSetViewport(m_commandBuffers[0], 0, 1, &viewPort);
+
+			vkCmdBeginRenderPass(m_commandBuffers[0], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+				pushBlock.mvp = glm::perspective((float)(PI / 2.0), 1.0f, 0.1f, 512.0f) * matrices[f];
+
+				vkCmdPushConstants(m_commandBuffers[0], IBLPipelines.IrradianceEnvMapGraphicsPipeline.a_pipelineLayout,
+					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushBlock), &pushBlock);
+
+				vkCmdBindPipeline(m_commandBuffers[0], VK_PIPELINE_BIND_POINT_GRAPHICS, IBLPipelines.IrradianceEnvMapGraphicsPipeline.a_Pipeline);
+				vkCmdBindDescriptorSets(m_commandBuffers[0], VK_PIPELINE_BIND_POINT_GRAPHICS, IBLPipelines.IrradianceEnvMapGraphicsPipeline.a_pipelineLayout, 
+					0, 1, &m_DescriptorSets[0], 0, NULL);
+
+				VkDeviceSize offset = { 0 };
+
+				//Bind Vertex Buffer
+				vkCmdBindVertexBuffers(m_commandBuffers[0], 0, 1, &VertexBuffer.Buffer, &offset);
+				
+				//Bind Index Buffer
+				vkCmdBindIndexBuffer(m_commandBuffers[0], IndexBuffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
+				
+				//Call Draw Indexed for the skybox
+				vkCmdDrawIndexed(m_commandBuffers[0], static_cast<uint32_t>(m_indexBufferCount), 1, 0, 0, 0);
+
+			vkCmdEndRenderPass(m_commandBuffers[0]);
+
+			m_renderer->SetImageLayout(
+				m_commandBuffers[0],
+				OffScreenImage.BufferImage,
+				VK_IMAGE_ASPECT_COLOR_BIT,
+				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+				VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+
+			// Copy region for transfer from framebuffer to cube face
+			VkImageCopy copyRegion = {};
+
+			copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			copyRegion.srcSubresource.baseArrayLayer = 0;
+			copyRegion.srcSubresource.mipLevel = 0;
+			copyRegion.srcSubresource.layerCount = 1;
+			copyRegion.srcOffset = { 0, 0, 0 };
+
+			copyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			copyRegion.dstSubresource.baseArrayLayer = f;
+			copyRegion.dstSubresource.mipLevel = m;
+			copyRegion.dstSubresource.layerCount = 1;
+			copyRegion.dstOffset = { 0, 0, 0 };
+
+			copyRegion.extent.width = static_cast<uint32_t>(viewPort.width);
+			copyRegion.extent.height = static_cast<uint32_t>(viewPort.height);
+			copyRegion.extent.depth = 1;
+
+			vkCmdCopyImage(
+				m_commandBuffers[0],
+				OffScreenImage.BufferImage,
+				VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+				irradianceMap.BufferImage,
+				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				1,
+				&copyRegion);
+
+			// Transform framebuffer color attachment back
+			m_renderer->SetImageLayout(
+				m_commandBuffers[0],
+				OffScreenImage.BufferImage,
+				VK_IMAGE_ASPECT_COLOR_BIT,
+				VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+				VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+		}
+	}
+
+	m_renderer->SetImageLayout(
+		m_commandBuffers[0],
+		irradianceMap.BufferImage,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		subResourceRange);
+
+	//End Recording
+	if (vkEndCommandBuffer(m_commandBuffers[0]) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to record Command Buffer");
+	}
 
 	return;
 }
 
-void PBRIBL::DestroyIrradianceCubeMap()
+void PBRIBL::DestroyIrradianceCubeMap(VkCommandPool a_cmdPool)
 {
+	vkDestroyImageView(m_renderer->m_device, OffScreenImage.ImageView, nullptr);
+	vkDestroyImage(m_renderer->m_device, OffScreenImage.BufferImage, nullptr);
+	vkFreeMemory(m_renderer->m_device, OffScreenImage.BufferMemory, nullptr);
+	vkDestroySampler(m_renderer->m_device, OffScreenImage.Sampler, nullptr);
+
+	vkFreeCommandBuffers(m_renderer->m_device, a_cmdPool, static_cast<uint32_t>(m_commandBuffers.size()), m_commandBuffers.data());
+
+	vkDestroyPipeline(m_renderer->m_device, IBLPipelines.IrradianceEnvMapGraphicsPipeline.a_Pipeline, nullptr);
+
+	vkDestroyPipelineLayout(m_renderer->m_device, IBLPipelines.IrradianceEnvMapGraphicsPipeline.a_pipelineLayout, nullptr);
+
+	vkDestroyFramebuffer(m_renderer->m_device, m_OffscreenFBO.FrameBuffer, nullptr);
+
+	vkDestroyRenderPass(m_renderer->m_device, m_renderPass, nullptr);
+
+	vkDestroyDescriptorPool(m_renderer->m_device, m_DescriptorPool, nullptr);
+
+	vkDestroyDescriptorSetLayout(m_renderer->m_device, m_descriptorSetLayout, nullptr);
 
 	return;
 }
@@ -320,10 +506,10 @@ void PBRIBL::GenerateIrradianceCubeMap(VkCommandPool a_cmdPool)
 	PipelineSetupIrradianceCubeMap();
 
 	// Render the CubeMap
-	RenderIrradianceCubeMap();
+	RenderIrradianceCubeMap(a_cmdPool);
 
 	// Destroy resources created for cube map
-	DestroyIrradianceCubeMap();
+	DestroyIrradianceCubeMap(a_cmdPool);
 
 	return;
 }
@@ -580,7 +766,7 @@ void PBRIBL::RenderPreFilteredCubeMap()
 	return;
 }
 
-void PBRIBL::DestroyPreFilteredCubeMap()
+void PBRIBL::DestroyPreFilteredCubeMap(VkCommandPool a_cmdPool)
 {
 
 	return;
@@ -608,8 +794,22 @@ void PBRIBL::GeneratePreFilteredCubeMap(VkCommandPool a_cmdPool)
 
 #pragma endregion
 
+void PBRIBL::LoadAssets(VkCommandPool a_cmdPool)
+{
+	ModelInfo modelinfor = m_renderer->rsrcLdr.LoadModelResource("../../Assets/Models/cube/cube.obj");
+
+	m_renderer->SetUpVertexBuffer(modelinfor, &VertexBuffer, a_cmdPool);
+	m_renderer->SetUpIndexBuffer(modelinfor, &IndexBuffer, a_cmdPool);
+
+	m_indexBufferCount = static_cast<uint32_t>(modelinfor.indexbufferData.size());
+
+}
+
 void PBRIBL::Initialization(VkCommandPool a_cmdPool)
 {
+	// Load Skybox Cube
+	LoadAssets(a_cmdPool);
+
 	GenerateIrradianceCubeMap(a_cmdPool);
 	//GeneratePreFilteredCubeMap(a_cmdPool);
 }
@@ -627,5 +827,29 @@ void PBRIBL::Draw(float deltaTime)
 
 void PBRIBL::Destroy()
 {
-	
+	// Irradiance Map cleanup
+	vkDestroyImageView(m_renderer->m_device, irradianceMap.ImageView, nullptr);
+	vkDestroyImage(m_renderer->m_device, irradianceMap.BufferImage, nullptr);
+	vkFreeMemory(m_renderer->m_device, irradianceMap.BufferMemory, nullptr);
+	vkDestroySampler(m_renderer->m_device, irradianceMap.Sampler, nullptr);
+
+	// PreFiltered Cube Map cleanup
+	vkDestroyImageView(m_renderer->m_device, preFilteredCubeMap.ImageView, nullptr);
+	vkDestroyImage(m_renderer->m_device, preFilteredCubeMap.BufferImage, nullptr);
+	vkFreeMemory(m_renderer->m_device, preFilteredCubeMap.BufferMemory, nullptr);
+	vkDestroySampler(m_renderer->m_device, preFilteredCubeMap.Sampler, nullptr);
+
+	// HDRtexture cleanup
+	vkDestroyImageView(m_renderer->m_device, HDRtexture.ImageView, nullptr);
+	vkDestroyImage(m_renderer->m_device, HDRtexture.BufferImage, nullptr);
+	vkFreeMemory(m_renderer->m_device, HDRtexture.BufferMemory, nullptr);
+	vkDestroySampler(m_renderer->m_device, HDRtexture.Sampler, nullptr);
+
+	//Destroy skybox's Index Buffer
+	vkDestroyBuffer(m_renderer->m_device, IndexBuffer.Buffer, nullptr);
+	vkFreeMemory(m_renderer->m_device, IndexBuffer.BufferMemory, nullptr);
+
+	//Destroy skybox's Vertex Buffer
+	vkDestroyBuffer(m_renderer->m_device, VertexBuffer.Buffer, nullptr);
+	vkFreeMemory(m_renderer->m_device, VertexBuffer.BufferMemory, nullptr);
 }

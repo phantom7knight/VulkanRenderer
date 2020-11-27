@@ -25,6 +25,7 @@ private:
 	VkDescriptorPool				m_skyboxDescriptorPool;
 	std::vector<VkDescriptorSet>	m_DescriptorSets;
 	PBRIBLPipelines					IBLPipelines;
+	std::vector< VkCommandBuffer>	m_commandBuffers;
 
 	/*VkCommandPool					m_commandPool;
 	VkDescriptorSetLayout			m_descriptorSetLayout;
@@ -36,6 +37,11 @@ private:
 	size_t							m_currentFrame = 0;
 	*/
 
+	// Model's buffer related
+	BufferDesc VertexBuffer;
+	BufferDesc IndexBuffer;
+	int m_indexBufferCount = 0;
+
 	// Instance of the Renderer created
 	vkRenderer *m_renderer;
 
@@ -46,8 +52,8 @@ private:
 	void DescriptorSetupIrradianceCubeMap();
 	void PipelineSetupIrradianceCubeMap();
 	void GenerateIrradianceCubeMap(VkCommandPool a_cmdPool);
-	void RenderIrradianceCubeMap();
-	void DestroyIrradianceCubeMap();
+	void RenderIrradianceCubeMap(VkCommandPool a_cmdPool);
+	void DestroyIrradianceCubeMap(VkCommandPool a_cmdPool);
 
 	// Generate Pre-filtered Map
 	void ImageDataPreFilteredCubeMap();
@@ -57,7 +63,9 @@ private:
 	void PipelineSetupPreFiltererdCubeMap();
 	void GeneratePreFilteredCubeMap(VkCommandPool a_cmdPool);
 	void RenderPreFilteredCubeMap();
-	void DestroyPreFilteredCubeMap();
+	void DestroyPreFilteredCubeMap(VkCommandPool a_cmdPool);
+
+	void LoadAssets(VkCommandPool a_cmdPool);
 
 public:
 	// Setup the loading of the HDR Texture

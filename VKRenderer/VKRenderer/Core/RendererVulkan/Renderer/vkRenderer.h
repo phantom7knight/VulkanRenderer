@@ -62,8 +62,18 @@ public:
 	void CopyBuffer(VkBuffer a_srcBuffer, VkBuffer a_dstBuffer, VkDeviceSize a_size);
 	void CopyBufferToImage(VkBuffer buffer, TextureBufferDesc desc);
 
+	// Vertex Buffer Setup
+	void SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc* a_VertexBUffer, VkCommandPool a_cmdPool);
+
+	// Index Buffer Setup
+	void SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc* a_IndexBUffer, VkCommandPool a_cmdPool);
+
 	void CreateBuffer(void const* databuffer, VkDeviceSize a_bufferSize, BufferDesc* a_BufferToCreate, VkBufferUsageFlags a_usage,
 		VkCommandPool a_commandPool);
+
+	void SetImageLayout(VkCommandBuffer cmdbuffer, VkImage image, VkImageLayout oldImageLayout, VkImageLayout newImageLayout,
+		VkImageSubresourceRange subresourceRange, VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 
+		VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 
 	//Command Buffer
 	VkCommandBuffer BeginSingleTimeCommands(VkCommandPool a_commandPool);
@@ -73,6 +83,14 @@ public:
 		VkPipelineStageFlags a_sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
 		VkPipelineStageFlags a_destinationStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 
+	void SetImageLayout(
+		VkCommandBuffer cmdbuffer,
+		VkImage image,
+		VkImageAspectFlags aspectMask,
+		VkImageLayout oldImageLayout,
+		VkImageLayout newImageLayout,
+		VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+		VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 
 	VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 	VkFormat FindDepthFormat();

@@ -262,6 +262,36 @@ void vkRenderer::LoadImageTexture(std::string textureName, TextureBufferDesc *a_
 }
 
 //===================================================================
+// Changing ImageLayouts
+//===================================================================
+
+void vkRenderer::SetImageLayout(
+	VkCommandBuffer cmdbuffer,
+	VkImage image,
+	VkImageLayout oldImageLayout,
+	VkImageLayout newImageLayout,
+	VkImageSubresourceRange subresourceRange,
+	VkPipelineStageFlags srcStageMask,
+	VkPipelineStageFlags dstStageMask)
+{
+	VulkanHelper::TransitionImageLayouts(cmdbuffer, image, oldImageLayout, newImageLayout, subresourceRange, srcStageMask, dstStageMask);
+}
+
+void vkRenderer::SetImageLayout(
+	VkCommandBuffer cmdbuffer,
+	VkImage image,
+	VkImageAspectFlags aspectMask,
+	VkImageLayout oldImageLayout,
+	VkImageLayout newImageLayout,
+	VkPipelineStageFlags srcStageMask,
+	VkPipelineStageFlags dstStageMask)
+{
+	VulkanHelper::TransisitionImageLayout(cmdbuffer, image, aspectMask, oldImageLayout, newImageLayout, srcStageMask, dstStageMask);
+}
+
+
+
+//===================================================================
 //RenderPass Creation
 //===================================================================
 void vkRenderer::CreateRenderPass(RenderPassInfo a_renderPassDesc, VkRenderPass* a_renderPass)
@@ -611,7 +641,7 @@ void vkRenderer::AllocateCommandBuffers(std::vector<VkCommandBuffer> &a_cmdBuffe
 //===================================================================
 //Buffer Creation
 //===================================================================
-//, const ModelInfo a_modelDesc
+
 void vkRenderer::CreateBuffer(void const* databuffer, VkDeviceSize a_bufferSize, BufferDesc* a_BufferToCreate, VkBufferUsageFlags a_usage,
 	VkCommandPool a_commandPool)
 {
@@ -651,6 +681,22 @@ void vkRenderer::CreateBufferWithoutStaging(VkDeviceSize a_size, VkBufferUsageFl
 	VulkanHelper::CreateBuffer(m_device, m_physicalDevice, a_size, a_usage, a_properties, a_buffer, a_bufferMemory);
 	
 	return;
+}
+
+void vkRenderer::SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc* a_VertexBUffer, VkCommandPool a_cmdPool)
+{
+	VkDeviceSize bufferSize = a_modelDesc.vertexBufferSize;
+
+	CreateBuffer(a_modelDesc.vertexbufferData.data(), bufferSize, a_VertexBUffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+		a_cmdPool);
+}
+
+void vkRenderer::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc* a_IndexBUffer, VkCommandPool a_cmdPool)
+{
+	VkDeviceSize bufferSize = a_modelDesc.indexBufferSize;
+
+	CreateBuffer(a_modelDesc.indexbufferData.data(), bufferSize, a_IndexBUffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+		a_cmdPool);
 }
 
 

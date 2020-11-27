@@ -568,6 +568,7 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 {
 	uint32_t i = a_imageIndex;
+	
 	VkCommandBufferBeginInfo beginInfo = {};
 
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -695,11 +696,10 @@ void ModelViewer::LoadAModel(std::string fileName)
 	ModelInfo modelinfor = 	m_renderer->rsrcLdr.LoadModelResource(fileName);
 
 	//Load Index and Vertex Buffer
-	SetUpVertexBuffer(modelinfor, &VertexBUffer);
-	SetUpIndexBuffer(modelinfor	, &IndexBUffer);
+	m_renderer->SetUpVertexBuffer(modelinfor, &VertexBUffer,m_commandPool);
+	m_renderer->SetUpIndexBuffer(modelinfor	, &IndexBUffer, m_commandPool);
 
 	m_indexBufferCount = static_cast<uint32_t>(modelinfor.indexbufferData.size());
-	
 }
 
 void ModelViewer::LoadTexture(std::string a_textureName, TextureBufferDesc * a_imageTex)
@@ -853,6 +853,7 @@ void ModelViewer::PrepareApp()
 	// Initialize Dear ImGui
 	InitGui();
 
+	// TODO: Parallelize these Maps Generation
 	// Init PBRIBL maps
 	m_PbrIbl->Initialization(m_commandPool);
 
