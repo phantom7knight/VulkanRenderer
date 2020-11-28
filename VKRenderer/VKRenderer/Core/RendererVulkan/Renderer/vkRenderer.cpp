@@ -491,6 +491,13 @@ void vkRenderer::CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo)
 	colorBlending.blendConstants[2] = 0.0f;
 	colorBlending.blendConstants[3] = 0.0f;
 
+	VkPipelineDynamicStateCreateInfo pipelineDynamicState = {};
+
+	pipelineDynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	pipelineDynamicState.pDynamicStates = a_pipelineInfo->pDynamicStates;
+	pipelineDynamicState.dynamicStateCount = a_pipelineInfo->dynamicStatesCount;
+	pipelineDynamicState.flags = a_pipelineInfo->dynamicStatesFlags;
+
 	//Create Pipeline Layout b4 creating Graphics Pipeline
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 
@@ -515,7 +522,7 @@ void vkRenderer::CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo)
 	createGraphicsPipelineInfo.pMultisampleState = &multiSampling;
 	createGraphicsPipelineInfo.pDepthStencilState = &depthStencilInfo;
 	createGraphicsPipelineInfo.pColorBlendState = &colorBlending;
-	createGraphicsPipelineInfo.pDynamicState = nullptr;
+	createGraphicsPipelineInfo.pDynamicState = &pipelineDynamicState;
 	createGraphicsPipelineInfo.layout = a_pipelineInfo->a_pipelineLayout;
 	createGraphicsPipelineInfo.renderPass = a_pipelineInfo->renderPass;
 	createGraphicsPipelineInfo.subpass = a_pipelineInfo->subpass;
@@ -783,7 +790,6 @@ void vkRenderer::CreateDesciptorSets(uint32_t descriptorSetCount, VkDescriptorSe
 
 	}
 }
-
 
 void vkRenderer::AllocateDescriptorSets(VkDescriptorPool a_descriptorPool, std::vector<VkDescriptorSetLayout> layouts, std::vector<VkDescriptorSet> &a_DescriptorSets)
 {

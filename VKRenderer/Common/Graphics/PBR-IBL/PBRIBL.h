@@ -6,6 +6,7 @@ struct PBRIBLPipelines
 {
 	GraphicsPipelineInfo			IrradianceEnvMapGraphicsPipeline;
 	GraphicsPipelineInfo			PreFilterEnvMapGraphicsPipeline;
+	GraphicsPipelineInfo			BRDFLUTMapGraphicsPipeline;
 };
 
 class PBRIBL
@@ -72,8 +73,9 @@ private:
 	// Generate BRDF LUT
 	void ImageDataBRDFLUTMap();
 	void RenderPassBRDFLUTMap();
-	void FBOBRDFLUTMapSetup(VkCommandPool a_cmdPool);
+	void FBOBRDFLUTMapSetup();
 	void DescriptorSetupBRDFLUTMap();
+	void PipelineSetupBRDFLUTMap();
 	void RenderBRDFLUTMap(VkCommandPool a_cmdPool);
 	void DestroyBRDFLUTMap(VkCommandPool a_cmdPool);
 	void GenerateBRDFLUT(VkCommandPool a_cmdPool);

@@ -161,6 +161,7 @@ struct ShaderPipelineModule
 struct GraphicsPipelineInfo
 {
 	std::vector<std::string>						ShaderFileNames;
+
 	VkVertexInputBindingDescription					vertexBindingDesc;
 	std::vector<VkVertexInputAttributeDescription>	AttributeDescriptionsofVertex;
 
@@ -185,6 +186,10 @@ struct GraphicsPipelineInfo
 
 	uint32_t										pushConstantRangeCount = 0;
 	VkPushConstantRange*							pPushConstantRanges = nullptr;
+
+	uint32_t										dynamicStatesCount = 0;
+	VkDynamicState*									pDynamicStates = nullptr;
+	VkPipelineDynamicStateCreateFlags				dynamicStatesFlags = 0;
 	
 	//Final Pipeline Info
 	VkPipelineLayout								a_pipelineLayout;

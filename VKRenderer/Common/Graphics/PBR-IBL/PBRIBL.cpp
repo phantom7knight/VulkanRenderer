@@ -1022,6 +1022,7 @@ void PBRIBL::ImageDataBRDFLUTMap()
 	brdfLUTMap.mipLevels = 1;
 	brdfLUTMap.arrayLayers = 1;
 	brdfLUTMap.imageFormat = VK_FORMAT_R16G16_SFLOAT;
+	brdfLUTMap.usageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	m_renderer->CreateImage(&brdfLUTMap);
 
 	m_renderer->CreateImageView(brdfLUTMap.BufferImage, VK_FORMAT_R16G16_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT, &brdfLUTMap.ImageView);
@@ -1111,26 +1112,135 @@ void PBRIBL::RenderPassBRDFLUTMap()
 	return;
 }
 
-void PBRIBL::FBOBRDFLUTMapSetup(VkCommandPool a_cmdPool)
+void PBRIBL::FBOBRDFLUTMapSetup()
 {
 	// frame buffer creation
 	std::vector<VkImageView> attachments = { brdfLUTMap.ImageView };
 
-	m_OffscreenFBO.attachmentCount = 1;
-	m_OffscreenFBO.Attachments = attachments;
-	m_OffscreenFBO.FBOHeight = 512;
-	m_OffscreenFBO.FBOWidth = 512;
+	m_FBO.attachmentCount = 1;
+	m_FBO.Attachments = attachments;
+	m_FBO.FBOHeight = 512;
+	m_FBO.FBOWidth = 512;
 
 	m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_FBO.FrameBuffer);
 
 	return;
 }
 
+void PBRIBL::DescriptorSetupBRDFLUTMap()
+{
+	// Descriptor
+	VkDescriptorSetLayoutBinding brdfLUTMapBinding = {};
+
+	brdfLUTMapBinding.binding = 0;
+	brdfLUTMapBinding.descriptorCount = 1;
+	brdfLUTMapBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	brdfLUTMapBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	brdfLUTMapBinding.pImmutableSamplers = nullptr;
+
+	std::vector<VkDescriptorSetLayoutBinding> descriptorsVector = { brdfLUTMapBinding };
+
+	m_renderer->CreateDescriptorSetLayout(descriptorsVector, &m_descriptorSetLayout);
+
+	// Descriptor Pool
+	std::vector<VkDescriptorPoolSize> poolSizes = {};
+
+	poolSizes.resize(1);
+
+	poolSizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[0].descriptorCount = 1;
+
+	m_renderer->CreateDescriptorPool(poolSizes, 2, static_cast<uint32_t>(poolSizes.size()), &m_DescriptorPool);
+
+	// Descriptor Sets
+	std::vector<VkDescriptorSetLayout> layouts(1, m_descriptorSetLayout);
+
+	m_renderer->AllocateDescriptorSets(m_DescriptorPool, layouts, m_DescriptorSets);
+
+	/*VkDescriptorImageInfo environmentCubeMapImageInfo = {};
+
+	environmentCubeMapImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	environmentCubeMapImageInfo.sampler = HDRtexture.Sampler;
+	environmentCubeMapImageInfo.imageView = HDRtexture.ImageView;
+
+	std::vector<VkWriteDescriptorSet> descriptorWriteInfo = {};
+
+	descriptorWriteInfo.resize(1);
+
+	descriptorWriteInfo[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	descriptorWriteInfo[0].dstSet = m_DescriptorSets[0];
+	descriptorWriteInfo[0].dstBinding = 0;
+	descriptorWriteInfo[0].dstArrayElement = 0;
+	descriptorWriteInfo[0].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	descriptorWriteInfo[0].descriptorCount = 1;
+	descriptorWriteInfo[0].pImageInfo = &environmentCubeMapImageInfo;
+	descriptorWriteInfo[0].pBufferInfo = nullptr;
+	descriptorWriteInfo[0].pTexelBufferView = nullptr;
+
+	m_renderer->UpdateDescriptorSets(descriptorWriteInfo);*/
+
+	return;
+}
+
+void PBRIBL::PipelineSetupBRDFLUTMap()
+{
+	std::vector<std::string> ShaderFileNames;
+
+	ShaderFileNames.resize(2);
+
+	ShaderFileNames[0] = "BRDFLUT.vert";
+	ShaderFileNames[1] = "BRDFLUT.frag";
+
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.ShaderFileNames = ShaderFileNames;
+
+	// Vertex Input
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.vertexBindingDesc = m_renderer->rsrcLdr.getModelLoaderobj().getBindingDescription();;
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.AttributeDescriptionsofVertex = m_renderer->rsrcLdr.getModelLoaderobj().getAttributeDescriptionsofVertex();
+
+	//Input Assembly
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.pipelineTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+
+	// Rasterizer
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.polygonMode = VK_POLYGON_MODE_FILL;
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.cullMode = VK_CULL_MODE_BACK_BIT;
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.frontFaceCullingMode = VK_FRONT_FACE_CLOCKWISE;
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.depthBiasEnableMode = VK_FALSE;
+
+	// Depth Testing
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.depthTestEnable = VK_TRUE;
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.depthWriteEnable = VK_TRUE;
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.depthCompareOperation = VK_COMPARE_OP_LESS;
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.stencilTestEnable = VK_FALSE;
+
+	// Dynamic States
+	std::vector<VkDynamicState> dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.pDynamicStates = dynamicStateEnables.data();
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.dynamicStatesCount = dynamicStateEnables.size();
+
+	//Create Pipeline Layout b4 creating Graphics Pipeline
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.a_descriptorSetLayout = m_descriptorSetLayout;
+
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.renderPass = m_renderPass;
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.subpass = 0;
+
+	m_renderer->CreateGraphicsPipeline(&IBLPipelines.BRDFLUTMapGraphicsPipeline);
+
+	return;
+}
+
+void PBRIBL::RenderBRDFLUTMap(VkCommandPool a_cmdPool)
+{
+}
+
 void PBRIBL::GenerateBRDFLUT(VkCommandPool a_cmdPool)
 {
 	ImageDataBRDFLUTMap();
 	RenderPassBRDFLUTMap();
-	//FBOBRDFLUTMapSetup(a_cmdPool);
+	FBOBRDFLUTMapSetup();
+	DescriptorSetupBRDFLUTMap();
+	PipelineSetupBRDFLUTMap();
+	RenderBRDFLUTMap(a_cmdPool);
 }
 #pragma endregion
 
