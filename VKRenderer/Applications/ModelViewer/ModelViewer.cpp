@@ -160,10 +160,17 @@ void ModelViewer::CreateDescriptorSetLayout()
 	samplerRoughnessBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	samplerRoughnessBinding.pImmutableSamplers = nullptr;
 
+	// Testing
+	/*VkDescriptorSetLayoutBinding samplerIBLBinding = {};
 
+	samplerIBLBinding.binding = 5;
+	samplerIBLBinding.descriptorCount = 1;
+	samplerIBLBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerIBLBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerIBLBinding.pImmutableSamplers = nullptr;*/
 
 	//create an vector of descriptors
-	std::vector< VkDescriptorSetLayoutBinding> descriptorsVector = { layoutBinding ,samplerAlbedoBinding, LightlayoutBinding, samplerMetallicBinding, samplerRoughnessBinding };
+	std::vector< VkDescriptorSetLayoutBinding> descriptorsVector = { layoutBinding ,samplerAlbedoBinding, LightlayoutBinding, samplerMetallicBinding, samplerRoughnessBinding/*, samplerIBLBinding*/ };
 
 	m_renderer->CreateDescriptorSetLayout(descriptorsVector, &m_descriptorSetLayout);
 
@@ -234,7 +241,7 @@ void ModelViewer::CreateFrameBuffers()
 
 	for (uint32_t i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImageViews.size(); ++i)
 	{
-		std::vector< VkImageView> attachments = { m_renderer->m_swapChainDescription.m_SwapChainImageViews[i],
+		std::vector<VkImageView> attachments = { m_renderer->m_swapChainDescription.m_SwapChainImageViews[i],
 													depthImageInfo.ImageView };
 
 		m_FBO.attachmentCount = static_cast<uint32_t>(attachments.size());
@@ -294,6 +301,10 @@ void ModelViewer::CreateDescriptorPool()
 
 	poolSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	poolSizes[4].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+
+	// Testing this for CUBEMAP IBL
+	/*poolSizes[5].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[5].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());*/
 
 	m_renderer->CreateDescriptorPool(poolSizes, static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size()),
 		static_cast<uint32_t>(poolSizes.size()), &m_DescriptorPool);
@@ -359,6 +370,13 @@ void ModelViewer::CreateDescriptorSets()
 
 		// TODO: Add other maps here such as IrradianceMap, PreFilterMap & BRDFLUT Map
 
+		/*VkDescriptorImageInfo IBLCubeMapImageInfo = {};
+
+		IBLCubeMapImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		IBLCubeMapImageInfo.sampler = m_PbrIbl->GetPBRIBLMaps().at(0).Sampler;
+		IBLCubeMapImageInfo.imageView = m_PbrIbl->GetPBRIBLMaps().at(0).ImageView;*/
+
+
 		/*VkDescriptorImageInfo skyboxImageInfo = {};
 
 		roughnessImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -419,6 +437,16 @@ void ModelViewer::CreateDescriptorSets()
 		descriptorWriteInfo[4].pBufferInfo = nullptr; //TODO: Check this
 		descriptorWriteInfo[4].pTexelBufferView = nullptr;
 
+		/*descriptorWriteInfo[5].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWriteInfo[5].dstSet = m_DescriptorSets[i];
+		descriptorWriteInfo[5].dstBinding = 5;
+		descriptorWriteInfo[5].dstArrayElement = 0;
+		descriptorWriteInfo[5].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWriteInfo[5].descriptorCount = 1;
+		descriptorWriteInfo[5].pImageInfo = &IBLCubeMapImageInfo;
+		descriptorWriteInfo[5].pBufferInfo = nullptr; //TODO: Check this
+		descriptorWriteInfo[5].pTexelBufferView = nullptr;*/
+
 		m_renderer->UpdateDescriptorSets(descriptorWriteInfo);
 
 		// Model Descriptor Set
@@ -447,8 +475,7 @@ void ModelViewer::CreateDescriptorSets()
 		descriptorWriteInfo[1].pBufferInfo = nullptr;
 		descriptorWriteInfo[1].pTexelBufferView = nullptr;
 
-		m_renderer->UpdateDescriptorSets(descriptorWriteInfo);*/
-		
+		m_renderer->UpdateDescriptorSets(descriptorWriteInfo);*/		
 	}
 }
 
@@ -833,6 +860,12 @@ void ModelViewer::PrepareApp()
 		LoadAllTextures();
 #pragma endregion
 
+#pragma region IBL_Maps_Generation
+	// TODO: Parallelize these Maps Generation
+	// Init PBRIBL maps
+	m_PbrIbl->Initialization(m_commandPool);
+#pragma endregion
+
 	CreateImageTextureView();
 	
 	CreateTextureSampler();
@@ -852,11 +885,6 @@ void ModelViewer::PrepareApp()
 	
 	// Initialize Dear ImGui
 	InitGui();
-
-	// TODO: Parallelize these Maps Generation
-	// Init PBRIBL maps
-	m_PbrIbl->Initialization(m_commandPool);
-
 }
 
 void ModelViewer::Update(float deltaTime)

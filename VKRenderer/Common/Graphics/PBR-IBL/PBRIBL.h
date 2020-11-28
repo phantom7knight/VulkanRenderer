@@ -18,10 +18,12 @@ private:
 	TextureBufferDesc HDRtexture;
 	TextureBufferDesc irradianceMap;
 	TextureBufferDesc preFilteredCubeMap;
+	TextureBufferDesc brdfLUTMap;
 	TextureBufferDesc OffScreenImage;
 
 	VkRenderPass					m_renderPass;
 	FrameBufferDesc					m_OffscreenFBO;
+	FrameBufferDesc					m_FBO;
 	VkDescriptorSetLayout			m_descriptorSetLayout;
 	VkDescriptorPool				m_DescriptorPool;
 	VkDescriptorPool				m_skyboxDescriptorPool;
@@ -53,9 +55,9 @@ private:
 	void OffScreenIrradianceCubeMapSetup(VkCommandPool a_cmdPool);
 	void DescriptorSetupIrradianceCubeMap();
 	void PipelineSetupIrradianceCubeMap();
-	void GenerateIrradianceCubeMap(VkCommandPool a_cmdPool);
 	void RenderIrradianceCubeMap(VkCommandPool a_cmdPool);
 	void DestroyIrradianceCubeMap(VkCommandPool a_cmdPool);
+	void GenerateIrradianceCubeMap(VkCommandPool a_cmdPool);
 
 	// Generate Pre-filtered Map
 	void ImageDataPreFilteredCubeMap();
@@ -63,9 +65,18 @@ private:
 	void OffScreenPreFilteredCubeMapSetup(VkCommandPool a_cmdPool);
 	void DescriptorSetupPreFilteredCubeMap();
 	void PipelineSetupPreFiltererdCubeMap();
-	void GeneratePreFilteredCubeMap(VkCommandPool a_cmdPool);
 	void RenderPreFilteredCubeMap(VkCommandPool a_cmdPool);
 	void DestroyPreFilteredCubeMap(VkCommandPool a_cmdPool);
+	void GeneratePreFilteredCubeMap(VkCommandPool a_cmdPool);
+
+	// Generate BRDF LUT
+	void ImageDataBRDFLUTMap();
+	void RenderPassBRDFLUTMap();
+	void FBOBRDFLUTMapSetup(VkCommandPool a_cmdPool);
+	void DescriptorSetupBRDFLUTMap();
+	void RenderBRDFLUTMap(VkCommandPool a_cmdPool);
+	void DestroyBRDFLUTMap(VkCommandPool a_cmdPool);
+	void GenerateBRDFLUT(VkCommandPool a_cmdPool);
 
 	void LoadAssets(VkCommandPool a_cmdPool);
 
@@ -79,4 +90,13 @@ public:
 	void Destroy();
 
 	PBRIBL(vkRenderer *a_renderer);
+
+	// Obtain the Env Maps
+	inline std::vector<TextureBufferDesc> GetPBRIBLMaps()
+	{
+		std::vector< TextureBufferDesc> result = { irradianceMap, preFilteredCubeMap, brdfLUTMap };
+		return result;
+	}
+
+
 };

@@ -516,7 +516,6 @@ void PBRIBL::GenerateIrradianceCubeMap(VkCommandPool a_cmdPool)
 }
 #pragma endregion
 
-
 #pragma region PreFilteredCubeMap
 
 const VkFormat cubeMapFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
@@ -1012,6 +1011,129 @@ void PBRIBL::GeneratePreFilteredCubeMap(VkCommandPool a_cmdPool)
 
 #pragma endregion
 
+#pragma region BRDF_LUT
+
+void PBRIBL::ImageDataBRDFLUTMap()
+{
+	brdfLUTMap.textureType = TEXTURE_TYPE::eTEXTURETYPE_OFFSCREEN;
+
+	brdfLUTMap.ImageHeight = 512;
+	brdfLUTMap.ImageWidth = 512;
+	brdfLUTMap.mipLevels = 1;
+	brdfLUTMap.arrayLayers = 1;
+	brdfLUTMap.imageFormat = VK_FORMAT_R16G16_SFLOAT;
+	m_renderer->CreateImage(&brdfLUTMap);
+
+	m_renderer->CreateImageView(brdfLUTMap.BufferImage, VK_FORMAT_R16G16_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT, &brdfLUTMap.ImageView);
+
+	SamplerCreationDesc samplerDesc = {};
+
+	samplerDesc.anisotropyEnable = VK_TRUE;
+	samplerDesc.MipMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	samplerDesc.minLod = 0.0f;
+	samplerDesc.maxLod = 1.0f;
+	samplerDesc.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+
+	m_renderer->CreateTextureSampler(samplerDesc, &brdfLUTMap.Sampler);
+}
+
+void PBRIBL::RenderPassBRDFLUTMap()
+{
+	VkAttachmentDescription colorAttachment = {};
+
+	colorAttachment.format = VK_FORMAT_R16G16_SFLOAT;
+	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+
+	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass should start with
+	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;		//How render pass final image should translate at end of render pass
+
+
+	// Each render pass can have multiple sub-passes
+	// which will help or can be used for the Post-Processing,...etc
+
+	VkAttachmentReference colorAttachmentRef = {};
+
+	colorAttachmentRef.attachment = 0;
+	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+
+	VkSubpassDescription subpassInfo = {};
+
+	subpassInfo.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpassInfo.colorAttachmentCount = 1;	//layout(location = 0) out vec4 outColor this is where it will be referenced
+	subpassInfo.pColorAttachments = &colorAttachmentRef;
+
+	std::vector<VkSubpassDependency> subPassDependency = {};
+
+	subPassDependency.resize(2);
+
+	subPassDependency[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+	subPassDependency[0].dstSubpass = 0;
+	subPassDependency[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	subPassDependency[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+	subPassDependency[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subPassDependency[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	subPassDependency[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+	subPassDependency[1].srcSubpass = 0;
+	subPassDependency[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+	subPassDependency[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subPassDependency[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	subPassDependency[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	subPassDependency[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+	subPassDependency[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+
+	//array of attachments for this render pass
+	std::vector<VkAttachmentDescription> attachments = { colorAttachment };
+
+	std::vector<VkAttachmentReference> attachmentReferences;
+
+	attachmentReferences.resize(attachments.size());
+
+	attachmentReferences[0] = colorAttachmentRef;
+
+	RenderPassInfo renderPassdesc = {};
+
+	renderPassdesc.attachmentDescriptions = attachments;
+	renderPassdesc.attachmentReferences = attachmentReferences;
+	renderPassdesc.subpassDependecy = subPassDependency;
+	renderPassdesc.subpassInfo = subpassInfo;
+
+	m_renderer->CreateRenderPass(renderPassdesc, &m_renderPass);
+
+	return;
+}
+
+void PBRIBL::FBOBRDFLUTMapSetup(VkCommandPool a_cmdPool)
+{
+	// frame buffer creation
+	std::vector<VkImageView> attachments = { brdfLUTMap.ImageView };
+
+	m_OffscreenFBO.attachmentCount = 1;
+	m_OffscreenFBO.Attachments = attachments;
+	m_OffscreenFBO.FBOHeight = 512;
+	m_OffscreenFBO.FBOWidth = 512;
+
+	m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_FBO.FrameBuffer);
+
+	return;
+}
+
+void PBRIBL::GenerateBRDFLUT(VkCommandPool a_cmdPool)
+{
+	ImageDataBRDFLUTMap();
+	RenderPassBRDFLUTMap();
+	//FBOBRDFLUTMapSetup(a_cmdPool);
+}
+#pragma endregion
+
 void PBRIBL::LoadAssets(VkCommandPool a_cmdPool)
 {
 	ModelInfo modelinfor = m_renderer->rsrcLdr.LoadModelResource("../../Assets/Models/cube/cube.obj");
@@ -1030,6 +1152,7 @@ void PBRIBL::Initialization(VkCommandPool a_cmdPool)
 
 	GenerateIrradianceCubeMap(a_cmdPool);
 	GeneratePreFilteredCubeMap(a_cmdPool);
+	GenerateBRDFLUT(a_cmdPool);
 }
 
 void PBRIBL::Update(float deltaTime)
@@ -1055,6 +1178,12 @@ void PBRIBL::Destroy()
 	vkDestroyImage(m_renderer->m_device, preFilteredCubeMap.BufferImage, nullptr);
 	vkFreeMemory(m_renderer->m_device, preFilteredCubeMap.BufferMemory, nullptr);
 	vkDestroySampler(m_renderer->m_device, preFilteredCubeMap.Sampler, nullptr);
+	
+	// BRDFLUT Map cleanup
+	vkDestroyImageView(m_renderer->m_device, brdfLUTMap.ImageView, nullptr);
+	vkDestroyImage(m_renderer->m_device, brdfLUTMap.BufferImage, nullptr);
+	vkFreeMemory(m_renderer->m_device, brdfLUTMap.BufferMemory, nullptr);
+	vkDestroySampler(m_renderer->m_device, brdfLUTMap.Sampler, nullptr);
 
 	// HDRtexture cleanup
 	vkDestroyImageView(m_renderer->m_device, HDRtexture.ImageView, nullptr);
