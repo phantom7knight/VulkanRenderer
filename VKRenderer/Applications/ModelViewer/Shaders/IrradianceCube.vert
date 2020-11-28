@@ -16,10 +16,6 @@ layout(location = 4) in 	vec2 aBiTangents;
 
 layout(location = 0) out 	vec3 vertPos;
 
-// out gl_PerVertex {
-	// vec4 gl_Position;
-// };
-
 void main() 
 {
 	vertPos = aPos;

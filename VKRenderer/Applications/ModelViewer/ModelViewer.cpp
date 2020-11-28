@@ -976,6 +976,9 @@ void ModelViewer::Destroy()
 
 	vkDestroyCommandPool(m_renderer->m_device, m_commandPool, nullptr);
 
+	// Destroy Application Dependent resources
+	m_PbrIbl->Destroy();
+
 	// Remove all the Vulkan related intialized values
 	m_renderer->Destroy();
 

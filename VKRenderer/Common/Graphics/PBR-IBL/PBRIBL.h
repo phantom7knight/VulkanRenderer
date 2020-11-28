@@ -12,6 +12,9 @@ class PBRIBL
 {
 private:
 
+	int32_t dimensions = 64;
+	uint32_t numMips = static_cast<uint32_t>(floor(log2(dimensions))) + 1;
+
 	TextureBufferDesc HDRtexture;
 	TextureBufferDesc irradianceMap;
 	TextureBufferDesc preFilteredCubeMap;
@@ -19,7 +22,6 @@ private:
 
 	VkRenderPass					m_renderPass;
 	FrameBufferDesc					m_OffscreenFBO;
-	std::vector<VkCommandBuffer>	m_cmdBuffer;
 	VkDescriptorSetLayout			m_descriptorSetLayout;
 	VkDescriptorPool				m_DescriptorPool;
 	VkDescriptorPool				m_skyboxDescriptorPool;
@@ -62,7 +64,7 @@ private:
 	void DescriptorSetupPreFilteredCubeMap();
 	void PipelineSetupPreFiltererdCubeMap();
 	void GeneratePreFilteredCubeMap(VkCommandPool a_cmdPool);
-	void RenderPreFilteredCubeMap();
+	void RenderPreFilteredCubeMap(VkCommandPool a_cmdPool);
 	void DestroyPreFilteredCubeMap(VkCommandPool a_cmdPool);
 
 	void LoadAssets(VkCommandPool a_cmdPool);
