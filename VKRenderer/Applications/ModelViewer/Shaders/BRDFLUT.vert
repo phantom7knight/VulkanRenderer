@@ -1,19 +1,9 @@
 #version 450
 
-layout(location = 0) in 	vec3 aPos;
-	
-layout(location = 1) in 	vec3 aNormal;
-	
-layout(location = 2) in 	vec2 aTexCoords;
+layout (location = 0) out vec2 outUV;
 
-layout(location = 3) in 	vec2 aTangents;
-
-layout(location = 4) in 	vec2 aBiTangents;
-
-layout(location = 0) out 	vec3 vertPos;
-
-void main() 
+void main()
 {
-	vertPos = aPos;
-	gl_Position = pushConst.mvp * vec4(aPos.xyz, 1.0);
+	outUV = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
+	gl_Position = vec4(outUV * 2.0f - 1.0f, 0.0f, 1.0f);
 }

@@ -382,20 +382,22 @@ void vkRenderer::CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo)
 	//Get Shader Info
 	std::vector<VkPipelineShaderStageCreateInfo> shaderInfo = ShaderStageInfoGeneration(a_pipelineInfo->ShaderFileNames);
 
-
 	// Vertex Input
 	VkPipelineVertexInputStateCreateInfo VertexInputInfo = {};
 
 	VertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	
+	auto bindingDesc = a_pipelineInfo->vertexBindingDesc;
+	auto attributeDesc = a_pipelineInfo->AttributeDescriptionsofVertex;
 
-	auto bindingDesc	= a_pipelineInfo->vertexBindingDesc;
-	auto attributeDesc	= a_pipelineInfo->AttributeDescriptionsofVertex;
-
-	VertexInputInfo.vertexBindingDescriptionCount = 1;
-	VertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDesc.size());
-	VertexInputInfo.pVertexBindingDescriptions = &bindingDesc;
-	VertexInputInfo.pVertexAttributeDescriptions = attributeDesc.data();
-
+	// Check if we are creating an empty VkPipelineVertexInputStateCreateInfo, if true we don't set anything
+	if (a_pipelineInfo->vertexBindingDescInit)
+	{
+		VertexInputInfo.vertexBindingDescriptionCount = 1;
+		VertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDesc.size());
+		VertexInputInfo.pVertexBindingDescriptions = &bindingDesc;
+		VertexInputInfo.pVertexAttributeDescriptions = attributeDesc.data();
+	}
 	//Input Assembly
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
 
@@ -873,7 +875,6 @@ VkResult vkRenderer::AcquireNextImage(uint32_t *a_imageIndex, size_t a_currentFr
 
 }
 
-
 void vkRenderer::SubmissionAndPresentation(FrameSubmissionDesc a_frameSubmissionDesc)
 {
 	VkSubmitInfo submitInfo = {};
@@ -929,6 +930,49 @@ void vkRenderer::SubmissionAndPresentation(FrameSubmissionDesc a_frameSubmission
 	else if (a_frameSubmissionDesc.result != VK_SUCCESS)
 	{
 		throw std::runtime_error("Failed to present Swap Chain image!");
+	}
+
+	return;
+}
+
+void vkRenderer::FlushCommandBuffer(VkCommandBuffer a_CmdBuffer, VkCommandPool a_cmdPool, bool wait)
+{
+	if (a_CmdBuffer == VK_NULL_HANDLE)
+	{
+		throw std::runtime_error("Failed to record Command Buffer");
+	}
+
+	vkEndCommandBuffer(a_CmdBuffer);
+
+	VkSubmitInfo submitInfo = {};
+
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &a_CmdBuffer;
+
+	// Create fence to ensure that the command buffer has finished executing
+	VkFence fence;
+	
+	VkFenceCreateInfo createFenceInfo = {};
+
+	createFenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	createFenceInfo.flags = 0;
+
+	vkCreateFence(m_device, &createFenceInfo, nullptr, &fence);
+
+	// Submit to the queue
+	vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, fence);
+
+	// Wait for the fence to signal that command buffer has finished executing
+	vkWaitForFences(m_device, 1, &fence, VK_TRUE, 100000000000);
+
+	vkDestroyFence(m_device, fence, nullptr);
+
+	//vkFreeCommandBuffers(m_device, a_cmdPool, 1, &a_CmdBuffer);
+
+	if (wait)
+	{
+		vkQueueWaitIdle(m_graphicsQueue);
 	}
 
 	return;

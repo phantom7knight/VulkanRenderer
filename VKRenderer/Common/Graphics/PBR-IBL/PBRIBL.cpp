@@ -454,10 +454,7 @@ void PBRIBL::RenderIrradianceCubeMap(VkCommandPool a_cmdPool)
 		subResourceRange);
 
 	//End Recording
-	if (vkEndCommandBuffer(m_commandBuffers[0]) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to record Command Buffer");
-	}
+	m_renderer->FlushCommandBuffer(m_commandBuffers[0], a_cmdPool);
 
 	return;
 }
@@ -948,10 +945,7 @@ void PBRIBL::RenderPreFilteredCubeMap(VkCommandPool a_cmdPool)
 		subResourceRange);
 
 	//End Recording
-	if (vkEndCommandBuffer(m_commandBuffers[0]) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to record Command Buffer");
-	}
+	m_renderer->FlushCommandBuffer(m_commandBuffers[0], a_cmdPool);
 
 	return;
 }
@@ -1194,8 +1188,7 @@ void PBRIBL::PipelineSetupBRDFLUTMap()
 	IBLPipelines.BRDFLUTMapGraphicsPipeline.ShaderFileNames = ShaderFileNames;
 
 	// Vertex Input
-	IBLPipelines.BRDFLUTMapGraphicsPipeline.vertexBindingDesc = m_renderer->rsrcLdr.getModelLoaderobj().getBindingDescription();;
-	IBLPipelines.BRDFLUTMapGraphicsPipeline.AttributeDescriptionsofVertex = m_renderer->rsrcLdr.getModelLoaderobj().getAttributeDescriptionsofVertex();
+	IBLPipelines.BRDFLUTMapGraphicsPipeline.vertexBindingDescInit = false;
 
 	//Input Assembly
 	IBLPipelines.BRDFLUTMapGraphicsPipeline.pipelineTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -1231,6 +1224,84 @@ void PBRIBL::PipelineSetupBRDFLUTMap()
 
 void PBRIBL::RenderBRDFLUTMap(VkCommandPool a_cmdPool)
 {
+	VkRenderPassBeginInfo renderpassBeginInfo = {};
+
+	renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	renderpassBeginInfo.renderPass = m_renderPass;
+	renderpassBeginInfo.framebuffer = m_FBO.FrameBuffer;
+	renderpassBeginInfo.renderArea.offset = { 0,0 };
+	renderpassBeginInfo.renderArea.extent.width = 512;
+	renderpassBeginInfo.renderArea.extent.height = 512;
+
+	//Clear Color
+	VkClearValue clearColor[1];
+	clearColor[0] = { 0.,0.,0.,1.0 };
+	renderpassBeginInfo.clearValueCount = 1;
+	renderpassBeginInfo.pClearValues = clearColor;
+
+	// Create Command Buffer
+	m_commandBuffers.resize(1);
+	m_renderer->AllocateCommandBuffers(m_commandBuffers, a_cmdPool);
+
+	VkCommandBufferBeginInfo beginInfo = {};
+
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+	beginInfo.pInheritanceInfo = nullptr;
+
+	//Start Recording
+	if (vkBeginCommandBuffer(m_commandBuffers[0], &beginInfo) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to begin recording Command Buffer");
+	}
+
+	vkCmdBeginRenderPass(m_commandBuffers[0], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+	VkViewport viewPort = {};
+
+	viewPort.width = 512;
+	viewPort.height = 512;
+	viewPort.minDepth = 0.0f;
+	viewPort.maxDepth = 1.0f;
+
+	VkRect2D scissor = {};
+
+	scissor.offset = { 0,0 };
+	scissor.extent.width = 512;
+	scissor.extent.height = 512;
+
+	vkCmdSetScissor(m_commandBuffers[0], 0, 1, &scissor);
+	vkCmdSetViewport(m_commandBuffers[0], 0, 1, &viewPort);
+
+	vkCmdBindPipeline(m_commandBuffers[0], VK_PIPELINE_BIND_POINT_GRAPHICS, IBLPipelines.BRDFLUTMapGraphicsPipeline.a_Pipeline);
+
+	vkCmdDraw(m_commandBuffers[0], 3, 1, 0, 0);
+
+	vkCmdEndRenderPass(m_commandBuffers[0]);
+
+	m_renderer->FlushCommandBuffer(m_commandBuffers[0], a_cmdPool, true);
+}
+
+void PBRIBL::DestroyBRDFLUTMap(VkCommandPool a_cmdPool)
+{
+	vkFreeCommandBuffers(m_renderer->m_device, a_cmdPool, static_cast<uint32_t>(m_commandBuffers.size()), m_commandBuffers.data());
+
+	vkDestroyPipeline(m_renderer->m_device, IBLPipelines.BRDFLUTMapGraphicsPipeline.a_Pipeline, nullptr);
+
+	vkDestroyPipelineLayout(m_renderer->m_device, IBLPipelines.BRDFLUTMapGraphicsPipeline.a_pipelineLayout, nullptr);
+
+	vkDestroyFramebuffer(m_renderer->m_device, m_FBO.FrameBuffer, nullptr);
+
+	vkDestroyRenderPass(m_renderer->m_device, m_renderPass, nullptr);
+
+	vkDestroyDescriptorPool(m_renderer->m_device, m_DescriptorPool, nullptr);
+
+	vkDestroyDescriptorSetLayout(m_renderer->m_device, m_descriptorSetLayout, nullptr);
+
+	m_DescriptorSets.clear();
+	m_commandBuffers.clear();
+
+	return;
 }
 
 void PBRIBL::GenerateBRDFLUT(VkCommandPool a_cmdPool)
@@ -1241,6 +1312,7 @@ void PBRIBL::GenerateBRDFLUT(VkCommandPool a_cmdPool)
 	DescriptorSetupBRDFLUTMap();
 	PipelineSetupBRDFLUTMap();
 	RenderBRDFLUTMap(a_cmdPool);
+	DestroyBRDFLUTMap(a_cmdPool);
 }
 #pragma endregion
 

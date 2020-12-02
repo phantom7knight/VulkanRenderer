@@ -915,7 +915,6 @@ void ModelViewer::Draw(float deltaTime)
 
 	VkResult result = m_renderer->AcquireNextImage(&imageIndex, m_currentFrame);
 
-
 	if (result == VK_ERROR_OUT_OF_DATE_KHR)
 	{
 		//TODO: need to fix it

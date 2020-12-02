@@ -162,7 +162,11 @@ struct GraphicsPipelineInfo
 {
 	std::vector<std::string>						ShaderFileNames;
 
-	VkVertexInputBindingDescription					vertexBindingDesc;
+	// If this is set to true, that means that there is a vertex binding desc available,
+	// if not it's a empty VkPipelineVertexInputStateCreateInfo creation
+	bool											vertexBindingDescInit = true;
+
+	VkVertexInputBindingDescription					vertexBindingDesc = {};
 	std::vector<VkVertexInputAttributeDescription>	AttributeDescriptionsofVertex;
 
 	VkPrimitiveTopology								pipelineTopology;
