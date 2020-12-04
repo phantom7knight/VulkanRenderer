@@ -32,16 +32,6 @@ private:
 	PBRIBLPipelines					IBLPipelines;
 	std::vector< VkCommandBuffer>	m_commandBuffers;
 
-	/*VkCommandPool					m_commandPool;
-	VkDescriptorSetLayout			m_descriptorSetLayout;
-	BufferDesc						m_ModelVertexBuffer;
-	BufferDesc						m_ModelIndexBuffer;
-	std::vector<BufferDesc>			m_ModelUniformBuffer;
-	std::vector<BufferDesc>			m_LightInfoUniformBuffer;
-	std::vector<VkDescriptorSet>	skyboxDescriptorSets;
-	size_t							m_currentFrame = 0;
-	*/
-
 	// Model's buffer related
 	BufferDesc VertexBuffer;
 	BufferDesc IndexBuffer;

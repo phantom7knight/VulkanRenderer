@@ -160,22 +160,45 @@ void ModelViewer::CreateDescriptorSetLayout()
 	samplerRoughnessBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	samplerRoughnessBinding.pImmutableSamplers = nullptr;
 
-	// Testing
-	/*VkDescriptorSetLayoutBinding samplerIBLBinding = {};
+	//create binding for sampler
+	//used in pixel shader
+	VkDescriptorSetLayoutBinding samplerIrradianceBinding = {};
 
-	samplerIBLBinding.binding = 5;
-	samplerIBLBinding.descriptorCount = 1;
-	samplerIBLBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	samplerIBLBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	samplerIBLBinding.pImmutableSamplers = nullptr;*/
+	samplerIrradianceBinding.binding = 5;
+	samplerIrradianceBinding.descriptorCount = 1;
+	samplerIrradianceBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerIrradianceBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerIrradianceBinding.pImmutableSamplers = nullptr;
+
+	//create binding for sampler
+	//used in pixel shader
+	VkDescriptorSetLayoutBinding samplerPreFilterBinding = {};
+
+	samplerPreFilterBinding.binding = 6;
+	samplerPreFilterBinding.descriptorCount = 1;
+	samplerPreFilterBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerPreFilterBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerPreFilterBinding.pImmutableSamplers = nullptr;
+
+	//create binding for sampler
+	//used in pixel shader
+	VkDescriptorSetLayoutBinding samplerBRDFLUTBinding = {};
+
+	samplerBRDFLUTBinding.binding = 7;
+	samplerBRDFLUTBinding.descriptorCount = 1;
+	samplerBRDFLUTBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerBRDFLUTBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerBRDFLUTBinding.pImmutableSamplers = nullptr;
 
 	//create an vector of descriptors
-	std::vector< VkDescriptorSetLayoutBinding> descriptorsVector = { layoutBinding ,samplerAlbedoBinding, LightlayoutBinding, samplerMetallicBinding, samplerRoughnessBinding/*, samplerIBLBinding*/ };
+	std::vector< VkDescriptorSetLayoutBinding> descriptorsVector = { layoutBinding ,samplerAlbedoBinding, LightlayoutBinding, 
+								samplerMetallicBinding, samplerRoughnessBinding, samplerIrradianceBinding, samplerPreFilterBinding, samplerBRDFLUTBinding };
 
 	m_renderer->CreateDescriptorSetLayout(descriptorsVector, &m_descriptorSetLayout);
 
 
 	// TODO: check if there is a need to have another descriptor set layout
+
 	// Skybox descriptor layout setup
 	// ===================================
 
@@ -285,7 +308,7 @@ void ModelViewer::CreateDescriptorPool()
 {
 	std::vector<VkDescriptorPoolSize> poolSizes = {};
 
-	poolSizes.resize(5);
+	poolSizes.resize(8);
 
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
@@ -302,13 +325,22 @@ void ModelViewer::CreateDescriptorPool()
 	poolSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	poolSizes[4].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
 
-	// Testing this for CUBEMAP IBL
-	/*poolSizes[5].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[5].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());*/
+	// Ir-radiance Map
+	poolSizes[5].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[5].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+
+	// PreFilter Map
+	poolSizes[6].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[6].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+
+	// BRDF-LUT Map
+	poolSizes[7].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[7].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
 
 	m_renderer->CreateDescriptorPool(poolSizes, static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size()),
 		static_cast<uint32_t>(poolSizes.size()), &m_DescriptorPool);
 
+	// Skybox
 	/*poolSizes.clear();
 	poolSizes.resize(2);
 
@@ -329,6 +361,7 @@ void ModelViewer::CreateDescriptorSets()
 
 	m_renderer->AllocateDescriptorSets(m_DescriptorPool, layouts, m_DescriptorSets);
 
+	// Skybox
 	/*std::vector<VkDescriptorSetLayout> skyboxLayouts(m_renderer->m_swapChainDescription.m_SwapChainImages.size(), m_descriptorSetLayout);
 
 	m_renderer->AllocateDescriptorSets(skyboxDescriptorPool, skyboxLayouts, skyboxDescriptorSets);*/
@@ -370,11 +403,23 @@ void ModelViewer::CreateDescriptorSets()
 
 		// TODO: Add other maps here such as IrradianceMap, PreFilterMap & BRDFLUT Map
 
-		/*VkDescriptorImageInfo IBLCubeMapImageInfo = {};
+		VkDescriptorImageInfo IBLIrradianceImageInfo = {};
 
-		IBLCubeMapImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		IBLCubeMapImageInfo.sampler = m_PbrIbl->GetPBRIBLMaps().at(0).Sampler;
-		IBLCubeMapImageInfo.imageView = m_PbrIbl->GetPBRIBLMaps().at(0).ImageView;*/
+		IBLIrradianceImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		IBLIrradianceImageInfo.sampler = m_PbrIbl->GetPBRIBLMaps().at(0).Sampler;
+		IBLIrradianceImageInfo.imageView = m_PbrIbl->GetPBRIBLMaps().at(0).ImageView;
+
+		VkDescriptorImageInfo IBLPreFilterMapImageInfo = {};
+
+		IBLPreFilterMapImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		IBLPreFilterMapImageInfo.sampler = m_PbrIbl->GetPBRIBLMaps().at(1).Sampler;
+		IBLPreFilterMapImageInfo.imageView = m_PbrIbl->GetPBRIBLMaps().at(1).ImageView;
+
+		VkDescriptorImageInfo IBLBRDFLUTMapImageInfo = {};
+
+		IBLBRDFLUTMapImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		IBLBRDFLUTMapImageInfo.sampler = m_PbrIbl->GetPBRIBLMaps().at(2).Sampler;
+		IBLBRDFLUTMapImageInfo.imageView = m_PbrIbl->GetPBRIBLMaps().at(2).ImageView;
 
 
 		/*VkDescriptorImageInfo skyboxImageInfo = {};
@@ -385,7 +430,7 @@ void ModelViewer::CreateDescriptorSets()
 
 		std::vector< VkWriteDescriptorSet> descriptorWriteInfo = {};
 
-		descriptorWriteInfo.resize(5);
+		descriptorWriteInfo.resize(8);
 
 		descriptorWriteInfo[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWriteInfo[0].dstSet = m_DescriptorSets[i];
@@ -437,19 +482,39 @@ void ModelViewer::CreateDescriptorSets()
 		descriptorWriteInfo[4].pBufferInfo = nullptr; //TODO: Check this
 		descriptorWriteInfo[4].pTexelBufferView = nullptr;
 
-		/*descriptorWriteInfo[5].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWriteInfo[5].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWriteInfo[5].dstSet = m_DescriptorSets[i];
 		descriptorWriteInfo[5].dstBinding = 5;
 		descriptorWriteInfo[5].dstArrayElement = 0;
 		descriptorWriteInfo[5].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		descriptorWriteInfo[5].descriptorCount = 1;
-		descriptorWriteInfo[5].pImageInfo = &IBLCubeMapImageInfo;
+		descriptorWriteInfo[5].pImageInfo = &IBLIrradianceImageInfo;
 		descriptorWriteInfo[5].pBufferInfo = nullptr; //TODO: Check this
-		descriptorWriteInfo[5].pTexelBufferView = nullptr;*/
+		descriptorWriteInfo[5].pTexelBufferView = nullptr;
+
+		descriptorWriteInfo[6].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWriteInfo[6].dstSet = m_DescriptorSets[i];
+		descriptorWriteInfo[6].dstBinding = 6;
+		descriptorWriteInfo[6].dstArrayElement = 0;
+		descriptorWriteInfo[6].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWriteInfo[6].descriptorCount = 1;
+		descriptorWriteInfo[6].pImageInfo = &IBLPreFilterMapImageInfo;
+		descriptorWriteInfo[6].pBufferInfo = nullptr; //TODO: Check this
+		descriptorWriteInfo[6].pTexelBufferView = nullptr;
+
+		descriptorWriteInfo[7].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWriteInfo[7].dstSet = m_DescriptorSets[i];
+		descriptorWriteInfo[7].dstBinding = 7;
+		descriptorWriteInfo[7].dstArrayElement = 0;
+		descriptorWriteInfo[7].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWriteInfo[7].descriptorCount = 1;
+		descriptorWriteInfo[7].pImageInfo = &IBLBRDFLUTMapImageInfo;
+		descriptorWriteInfo[7].pBufferInfo = nullptr; //TODO: Check this
+		descriptorWriteInfo[7].pTexelBufferView = nullptr;
 
 		m_renderer->UpdateDescriptorSets(descriptorWriteInfo);
 
-		// Model Descriptor Set
+		// skybox Descriptor Set
 		//====================================
 
 		/*descriptorWriteInfo.clear();

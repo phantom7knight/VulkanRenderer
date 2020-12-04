@@ -26,6 +26,12 @@ layout(binding = 3) uniform sampler2D metallicTexture;
 
 layout(binding = 4) uniform sampler2D roughnessTexture;
 
+layout(binding = 5) uniform samplerCube irradianceTexture;
+
+layout(binding = 6) uniform samplerCube preFilterTexture;
+
+layout(binding = 7) uniform sampler2D BRDFLUTTexture;
+
 void CalculatePhong(inout vec4 result)
 {
 	
@@ -132,6 +138,17 @@ vec3 FresnelSchlickApproximation(float LH, vec3 Ks)
 	return (Ks + (1 - Ks) * (pow(1-LH, 5)));
 }
 
+vec3 prefilteredReflection(vec3 R, float roughness)
+{
+	const float MAX_REFLECTION_LOD = 9.0; // todo: param/const
+	float lod = roughness * MAX_REFLECTION_LOD;
+	float lodf = floor(lod);
+	float lodc = ceil(lod);
+	vec3 a = textureLod(preFilterTexture, R, lodf).rgb;
+	vec3 b = textureLod(preFilterTexture, R, lodc).rgb;
+	return mix(a, b, lod - lodf);
+}
+
 //Source : https://cdn2.unrealengine.com/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
 void CalculateBRDF(inout vec4 result)
 {
@@ -195,7 +212,11 @@ void CalculateBRDF(inout vec4 result)
 	vec3 kS = F;
 	vec3 kD = 1.0f - kS;
 	
-	Lo = (kD * AlbedoSamplerOutput / PI + specular) * radiance * NL;
+	vec3 irradiance = texture(irradianceTexture, normalize(Normals)).rgb;
+	//vec2 brdf = texture(BRDFLUTTexture, vec2(max(dot(normalize(Normals), ViewDir), 0.0), roughness)).rg;
+	vec3 reflection = prefilteredReflection(reflect(-ViewDir, normalize(Normals)), roughness).rgb;	
+	
+	Lo = (kD * AlbedoSamplerOutput * irradiance/ PI + specular) * radiance * NL;
 	
 	vec3 ambient = vec3(0.03) * AlbedoSamplerOutput;
 	
