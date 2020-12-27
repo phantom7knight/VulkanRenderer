@@ -493,6 +493,7 @@ void vkRenderer::CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo)
 	colorBlending.blendConstants[2] = 0.0f;
 	colorBlending.blendConstants[3] = 0.0f;
 
+	// Dynamic States
 	VkPipelineDynamicStateCreateInfo pipelineDynamicState = {};
 
 	pipelineDynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
@@ -939,7 +940,7 @@ void vkRenderer::FlushCommandBuffer(VkCommandBuffer a_CmdBuffer, VkCommandPool a
 {
 	if (a_CmdBuffer == VK_NULL_HANDLE)
 	{
-		throw std::runtime_error("Failed to record Command Buffer");
+		throw std::runtime_error("Command Buffer is NULL");
 	}
 
 	vkEndCommandBuffer(a_CmdBuffer);
@@ -968,7 +969,7 @@ void vkRenderer::FlushCommandBuffer(VkCommandBuffer a_CmdBuffer, VkCommandPool a
 
 	vkDestroyFence(m_device, fence, nullptr);
 
-	//vkFreeCommandBuffers(m_device, a_cmdPool, 1, &a_CmdBuffer);
+	vkFreeCommandBuffers(m_device, a_cmdPool, 1, &a_CmdBuffer);
 
 	if (wait)
 	{

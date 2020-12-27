@@ -78,8 +78,13 @@ public:
 	//Command Buffer
 	VkCommandBuffer BeginSingleTimeCommands(VkCommandPool a_commandPool);
 	void EndSingleTimeCommands(VkCommandBuffer* a_commandBuffer, VkCommandPool a_commandPool);
-	void TransitionImageLayouts(VkCommandPool a_commandPool, VkCommandBuffer* a_commandBuffer,
-		VkImage a_image, VkFormat a_format, VkImageLayout a_oldLayout, VkImageLayout a_newLayout, 
+	void TransitionImageLayouts(
+		VkCommandPool a_commandPool,
+		VkCommandBuffer* a_commandBuffer,
+		VkImage a_image,
+		VkFormat a_format,
+		VkImageLayout a_oldLayout,
+		VkImageLayout a_newLayout, 
 		VkPipelineStageFlags a_sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
 		VkPipelineStageFlags a_destinationStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT);
 

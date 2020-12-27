@@ -14,7 +14,14 @@ void PBRIBL::LoadHDRImageData(std::string a_textureName, VkCommandPool a_cmdPool
 	m_renderer->LoadImageTexture(a_textureName, &HDRtexture, a_cmdPool, a_cmdBuffer);
 	
 	// Setup Texture's Image View
-	m_renderer->CreateImageView(HDRtexture.BufferImage, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_ASPECT_COLOR_BIT, &HDRtexture.ImageView, VK_IMAGE_VIEW_TYPE_CUBE);
+	m_renderer->CreateImageView(
+		HDRtexture.BufferImage, 
+		VK_FORMAT_R32G32B32A32_SFLOAT,
+		VK_IMAGE_ASPECT_COLOR_BIT,
+		&HDRtexture.ImageView,
+		VK_IMAGE_VIEW_TYPE_CUBE,
+		1,
+		6);
 
 	// Setup Texture Sampler
 	SamplerCreationDesc samplerDesc = {};
@@ -52,8 +59,14 @@ void PBRIBL::ImageDataIrradianceCubeMap()
 	irradianceMap.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
 	m_renderer->CreateImage(&irradianceMap);
 
-	m_renderer->CreateImageView(irradianceMap.BufferImage, irradianceCubeMapFormat, VK_IMAGE_ASPECT_COLOR_BIT, &irradianceMap.ImageView
-		, VK_IMAGE_VIEW_TYPE_CUBE, numMips, 6);
+	m_renderer->CreateImageView(
+		irradianceMap.BufferImage,
+		irradianceCubeMapFormat,
+		VK_IMAGE_ASPECT_COLOR_BIT,
+		&irradianceMap.ImageView
+		, VK_IMAGE_VIEW_TYPE_CUBE,
+		numMips,
+		6);
 
 	SamplerCreationDesc samplerDesc = {};
 
@@ -98,29 +111,29 @@ void PBRIBL::RenderPassIrradianceCubeMap()
 	subpassInfo.colorAttachmentCount = 1;	//layout(location = 0) out vec4 outColor this is where it will be referenced
 	subpassInfo.pColorAttachments = &colorAttachmentRef;
 
-	std::vector< VkSubpassDependency> subPassDependency = {};
+	std::vector<VkSubpassDependency> subPassDependency = {};
 
 	subPassDependency.resize(2);
 
 	subPassDependency[0].srcSubpass = VK_SUBPASS_EXTERNAL;
 	subPassDependency[0].dstSubpass = 0;
 	subPassDependency[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-	subPassDependency[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
 	subPassDependency[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subPassDependency[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
 	subPassDependency[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 	subPassDependency[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 	subPassDependency[1].srcSubpass = 0;
 	subPassDependency[1].dstSubpass = VK_SUBPASS_EXTERNAL;
 	subPassDependency[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	subPassDependency[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 	subPassDependency[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+	subPassDependency[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 	subPassDependency[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
 	subPassDependency[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 
 	//array of attachments for this render pass
-	std::vector< VkAttachmentDescription> attachments = { colorAttachment };
+	std::vector<VkAttachmentDescription> attachments = { colorAttachment };
 
 	std::vector<VkAttachmentReference> attachmentReferences;
 
@@ -145,9 +158,6 @@ void PBRIBL::OffScreenIrradianceCubeMapSetup(VkCommandPool a_cmdPool)
 	// off screen image creation
 	OffScreenImage.textureType = TEXTURE_TYPE::eTEXTURETYPE_OFFSCREEN;
 
-	const int32_t dimensions = 64;
-	const uint32_t numMips = static_cast<uint32_t>(floor(log2(dimensions))) + 1;
-
 	OffScreenImage.ImageHeight = dimensions;
 	OffScreenImage.ImageWidth = dimensions;
 	OffScreenImage.mipLevels = 1;
@@ -158,13 +168,17 @@ void PBRIBL::OffScreenIrradianceCubeMapSetup(VkCommandPool a_cmdPool)
 	m_renderer->CreateImage(&OffScreenImage);
 
 	// off screen image view creation
-	m_renderer->CreateImageView(OffScreenImage.BufferImage, irradianceCubeMapFormat, VK_IMAGE_ASPECT_COLOR_BIT, &OffScreenImage.ImageView);
+	m_renderer->CreateImageView(
+		OffScreenImage.BufferImage,
+		irradianceCubeMapFormat,
+		VK_IMAGE_ASPECT_COLOR_BIT,
+		&OffScreenImage.ImageView);
 
 	// frame buffer creation
 
-	std::vector< VkImageView> attachments = { OffScreenImage.ImageView };
+	std::vector<VkImageView> attachments = { OffScreenImage.ImageView };
 
-	m_OffscreenFBO.attachmentCount = 1;
+	m_OffscreenFBO.attachmentCount = static_cast<uint32_t>(attachments.size());
 	m_OffscreenFBO.Attachments = attachments;
 	m_OffscreenFBO.FBOHeight = dimensions;
 	m_OffscreenFBO.FBOWidth = dimensions;
@@ -175,8 +189,29 @@ void PBRIBL::OffScreenIrradianceCubeMapSetup(VkCommandPool a_cmdPool)
 	std::vector<VkCommandBuffer>	cmdBuffer;
 	cmdBuffer.resize(1);
 
-	m_renderer->TransitionImageLayouts(a_cmdPool, &cmdBuffer[0], OffScreenImage.BufferImage,
-		irradianceCubeMapFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	m_renderer->AllocateCommandBuffers(cmdBuffer, a_cmdPool);
+
+	VkCommandBufferBeginInfo beginInfo = {};
+
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+	beginInfo.pInheritanceInfo = nullptr;
+
+	//Start Recording
+	if (vkBeginCommandBuffer(cmdBuffer[0], &beginInfo) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Unable to begin recording Command Buffer");
+	}
+
+	m_renderer->SetImageLayout(
+		cmdBuffer[0],
+		OffScreenImage.BufferImage,
+		VK_IMAGE_ASPECT_COLOR_BIT,
+		VK_IMAGE_LAYOUT_UNDEFINED,
+		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+	//End Recording
+	m_renderer->FlushCommandBuffer(cmdBuffer[0], a_cmdPool);
 
 	return;
 }
@@ -204,7 +239,11 @@ void PBRIBL::DescriptorSetupIrradianceCubeMap()
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	poolSizes[0].descriptorCount = 1;
 
-	m_renderer->CreateDescriptorPool(poolSizes, 2, static_cast<uint32_t>(poolSizes.size()), &m_DescriptorPool);
+	m_renderer->CreateDescriptorPool(
+		poolSizes,
+		2,
+		static_cast<uint32_t>(poolSizes.size()),
+		&m_DescriptorPool);
 
 	// Descriptor Sets
 	std::vector<VkDescriptorSetLayout> layouts(1, m_descriptorSetLayout);
@@ -277,6 +316,12 @@ void PBRIBL::PipelineSetupIrradianceCubeMap()
 	IBLPipelines.IrradianceEnvMapGraphicsPipeline.depthCompareOperation = VK_COMPARE_OP_LESS;
 	IBLPipelines.IrradianceEnvMapGraphicsPipeline.stencilTestEnable = VK_FALSE;
 
+	// dynamic states
+	std::vector<VkDynamicState> dynamicStateEnables = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.pDynamicStates = dynamicStateEnables.data();
+	IBLPipelines.IrradianceEnvMapGraphicsPipeline.dynamicStatesCount = dynamicStateEnables.size();
+
+
 	//Create Pipeline Layout b4 creating Graphics Pipeline
 	IBLPipelines.IrradianceEnvMapGraphicsPipeline.a_descriptorSetLayout = m_descriptorSetLayout;
 
@@ -295,7 +340,7 @@ void PBRIBL::RenderIrradianceCubeMap(VkCommandPool a_cmdPool)
 	renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderpassBeginInfo.renderPass = m_renderPass;
 	renderpassBeginInfo.framebuffer = m_OffscreenFBO.FrameBuffer;
-	renderpassBeginInfo.renderArea.offset = { 0,0 };
+	//renderpassBeginInfo.renderArea.offset = { 0,0 };
 	renderpassBeginInfo.renderArea.extent.width = dimensions;
 	renderpassBeginInfo.renderArea.extent.height = dimensions;
 
@@ -369,9 +414,9 @@ void PBRIBL::RenderIrradianceCubeMap(VkCommandPool a_cmdPool)
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		subResourceRange);
 
-	for (uint32_t m = 0; m < numMips; ++m)
+	for (uint32_t m = 0; m < numMips; m++)
 	{
-		for (uint32_t f = 0; f < 6; ++f)
+		for (uint32_t f = 0; f < 6; f++)
 		{
 			viewPort.width = static_cast<float>(dimensions * std::pow(0.5f, m));
 			viewPort.height = static_cast<float>(dimensions * std::pow(0.5f, m));
@@ -381,12 +426,28 @@ void PBRIBL::RenderIrradianceCubeMap(VkCommandPool a_cmdPool)
 
 				pushBlock.mvp = glm::perspective((float)(PI / 2.0), 1.0f, 0.1f, 512.0f) * matrices[f];
 
-				vkCmdPushConstants(m_commandBuffers[0], IBLPipelines.IrradianceEnvMapGraphicsPipeline.a_pipelineLayout,
-					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(PushBlock), &pushBlock);
+				vkCmdPushConstants(
+					m_commandBuffers[0],
+					IBLPipelines.IrradianceEnvMapGraphicsPipeline.a_pipelineLayout,
+					VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+					0,
+					sizeof(PushBlock),
+					&pushBlock);
 
-				vkCmdBindPipeline(m_commandBuffers[0], VK_PIPELINE_BIND_POINT_GRAPHICS, IBLPipelines.IrradianceEnvMapGraphicsPipeline.a_Pipeline);
-				vkCmdBindDescriptorSets(m_commandBuffers[0], VK_PIPELINE_BIND_POINT_GRAPHICS, IBLPipelines.IrradianceEnvMapGraphicsPipeline.a_pipelineLayout, 
-					0, 1, &m_DescriptorSets[0], 0, NULL);
+				vkCmdBindPipeline(
+					m_commandBuffers[0],
+					VK_PIPELINE_BIND_POINT_GRAPHICS,
+					IBLPipelines.IrradianceEnvMapGraphicsPipeline.a_Pipeline);
+
+				vkCmdBindDescriptorSets(
+					m_commandBuffers[0],
+					VK_PIPELINE_BIND_POINT_GRAPHICS,
+					IBLPipelines.IrradianceEnvMapGraphicsPipeline.a_pipelineLayout, 
+					0,
+					1,
+					&m_DescriptorSets[0],
+					0,
+					NULL);
 
 				VkDeviceSize offset = { 0 };
 
@@ -455,6 +516,12 @@ void PBRIBL::RenderIrradianceCubeMap(VkCommandPool a_cmdPool)
 
 	//End Recording
 	m_renderer->FlushCommandBuffer(m_commandBuffers[0], a_cmdPool);
+
+	//End Recording
+	/*if (vkEndCommandBuffer(m_commandBuffers[0]) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to record Command Buffer");
+	}*/
 
 	return;
 }
@@ -945,7 +1012,13 @@ void PBRIBL::RenderPreFilteredCubeMap(VkCommandPool a_cmdPool)
 		subResourceRange);
 
 	//End Recording
-	m_renderer->FlushCommandBuffer(m_commandBuffers[0], a_cmdPool);
+	//m_renderer->FlushCommandBuffer(m_commandBuffers[0], a_cmdPool);
+
+	//End Recording
+	if (vkEndCommandBuffer(m_commandBuffers[0]) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to record Command Buffer");
+	}
 
 	return;
 }
@@ -1279,7 +1352,13 @@ void PBRIBL::RenderBRDFLUTMap(VkCommandPool a_cmdPool)
 
 	vkCmdEndRenderPass(m_commandBuffers[0]);
 
-	m_renderer->FlushCommandBuffer(m_commandBuffers[0], a_cmdPool, true);
+	//m_renderer->FlushCommandBuffer(m_commandBuffers[0], a_cmdPool, true);
+
+	//End Recording
+	if (vkEndCommandBuffer(m_commandBuffers[0]) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to record Command Buffer");
+	}
 }
 
 void PBRIBL::DestroyBRDFLUTMap(VkCommandPool a_cmdPool)

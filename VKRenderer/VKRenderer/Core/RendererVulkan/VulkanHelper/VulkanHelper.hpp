@@ -866,6 +866,7 @@ namespace VulkanHelper
 		subresourceRange.baseMipLevel = 0;
 		subresourceRange.levelCount = 1;
 		subresourceRange.layerCount = 1;
+
 		TransitionImageLayouts(cmdbuffer, image, oldImageLayout, newImageLayout, subresourceRange, srcStageMask, dstStageMask);
 	}
 
