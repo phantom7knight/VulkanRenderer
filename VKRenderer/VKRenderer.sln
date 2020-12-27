@@ -10,7 +10,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Triangle", "Applications\Tr
 		{96E093C3-40EE-4A75-AFE5-DA0403352DF9} = {96E093C3-40EE-4A75-AFE5-DA0403352DF9}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelViewer", "Applications\ModelViewer\ModelViewer.vcxproj", "{F0B859DD-760E-403F-8786-785864CA0494}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelLoading", "Applications\ModelViewer\ModelViewer.vcxproj", "{F0B859DD-760E-403F-8786-785864CA0494}"
 	ProjectSection(ProjectDependencies) = postProject
 		{6BF32566-D366-4175-B5B2-781F5CD74B6A} = {6BF32566-D366-4175-B5B2-781F5CD74B6A}
 		{96E093C3-40EE-4A75-AFE5-DA0403352DF9} = {96E093C3-40EE-4A75-AFE5-DA0403352DF9}
@@ -19,6 +19,12 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IMGUI", "Dependencies\Imgui\IMGUI\IMGUI.vcxproj", "{6BF32566-D366-4175-B5B2-781F5CD74B6A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ShadowMapping", "Applications\ShadowMapping\ShadowMapping.vcxproj", "{129B4BAE-AD52-48EC-9D9E-A63CDEAE9780}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ComputeCull", "Applications\ComputeCull\ComputeCull.vcxproj", "{85D76753-86EF-4079-B1F9-E0CBB8912B11}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6BF32566-D366-4175-B5B2-781F5CD74B6A} = {6BF32566-D366-4175-B5B2-781F5CD74B6A}
+		{96E093C3-40EE-4A75-AFE5-DA0403352DF9} = {96E093C3-40EE-4A75-AFE5-DA0403352DF9}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -68,6 +74,14 @@ Global
 		{129B4BAE-AD52-48EC-9D9E-A63CDEAE9780}.Release|x64.Build.0 = Release|x64
 		{129B4BAE-AD52-48EC-9D9E-A63CDEAE9780}.Release|x86.ActiveCfg = Release|Win32
 		{129B4BAE-AD52-48EC-9D9E-A63CDEAE9780}.Release|x86.Build.0 = Release|Win32
+		{85D76753-86EF-4079-B1F9-E0CBB8912B11}.Debug|x64.ActiveCfg = Debug|x64
+		{85D76753-86EF-4079-B1F9-E0CBB8912B11}.Debug|x64.Build.0 = Debug|x64
+		{85D76753-86EF-4079-B1F9-E0CBB8912B11}.Debug|x86.ActiveCfg = Debug|Win32
+		{85D76753-86EF-4079-B1F9-E0CBB8912B11}.Debug|x86.Build.0 = Debug|Win32
+		{85D76753-86EF-4079-B1F9-E0CBB8912B11}.Release|x64.ActiveCfg = Release|x64
+		{85D76753-86EF-4079-B1F9-E0CBB8912B11}.Release|x64.Build.0 = Release|x64
+		{85D76753-86EF-4079-B1F9-E0CBB8912B11}.Release|x86.ActiveCfg = Release|Win32
+		{85D76753-86EF-4079-B1F9-E0CBB8912B11}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
