@@ -17,12 +17,10 @@ struct LightInfoUBO
 	glm::vec3	lightPosition;
 	int			lightModel;
 	glm::vec3	camPosition;
-	float		ObjRoughness;
 
 	LightInfoUBO() : lightColor(glm::vec3(1.0, 1.0, 1.0)), specularIntensity(4)
-		, lightPosition(glm::vec3(0.0, 0.0, 0.0)), camPosition(glm::vec3(0.0, 0.0, 0.0)), lightModel(0), ObjRoughness(0.3f)
+		, lightPosition(glm::vec3(0.0, 0.0, 0.0)), camPosition(glm::vec3(0.0, 0.0, 0.0)), lightModel(0)
 	{
-
 	}
 
 };
@@ -66,10 +64,6 @@ private:
 
 	void ReCreateSwapChain();
 
-	void CreateImageTextureView();
-
-	void CreateTextureSampler();
-
 	void CreateDepthResources();
 
 	void setGuiVariables();
@@ -82,20 +76,13 @@ private:
 private:
 
 	void LoadAModel(std::string fileName);
-	void LoadTexture(std::string fileName);
-	//void CreateImage(TextureBufferDesc *a_texBufferDesc);
 
 	BufferDesc IndexBUffer;
 	BufferDesc VertexBUffer;
 
 	int m_indexBufferCount = 0;
 
-	TextureBufferDesc image1 = {};
-	VkImageView textureImageView;
-	VkSampler textureSampler;
 	CameraMatrices cam_matrices;
-	//glm::vec3 getCamProperties
-
 
 	//Depth Related variables
 	TextureBufferDesc depthImageInfo;
@@ -148,6 +135,4 @@ public:
 	virtual void Draw(float deltaTime);
 
 	virtual void Destroy() override;
-
 };
-

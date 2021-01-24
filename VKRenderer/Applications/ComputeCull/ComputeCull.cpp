@@ -124,20 +124,9 @@ void ComputeCull::CreateDescriptorSetLayout()
 	layoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	layoutBinding.pImmutableSamplers = nullptr;
 
-	//create binding for sampler
-	//used in pixel shader
-	VkDescriptorSetLayoutBinding samplerBinding = {};
-
-	samplerBinding.binding = 1;
-	samplerBinding.descriptorCount = 1;
-	samplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	samplerBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	samplerBinding.pImmutableSamplers = nullptr;
-
-	//TODO: check the binding for the layout
 	VkDescriptorSetLayoutBinding LightlayoutBinding = {};
 
-	LightlayoutBinding.binding = 2;
+	LightlayoutBinding.binding = 1;
 	LightlayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	LightlayoutBinding.descriptorCount = 1;
 	LightlayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -146,7 +135,7 @@ void ComputeCull::CreateDescriptorSetLayout()
 
 
 	//create an vector of descriptors
-	std::vector< VkDescriptorSetLayoutBinding> descriptorsVector = { layoutBinding ,samplerBinding, LightlayoutBinding };
+	std::vector< VkDescriptorSetLayoutBinding> descriptorsVector = { layoutBinding , LightlayoutBinding };
 
 	m_renderer->CreateDescriptorSetLayout(descriptorsVector, &m_descriptorSetLayout);
 }
@@ -201,8 +190,8 @@ void ComputeCull::CreateFrameBuffers()
 
 		m_FBO.attachmentCount = static_cast<uint32_t>(attachments.size());
 		m_FBO.Attachments = attachments;
-		m_FBO.FBOWidth = m_renderer->m_swapChainDescription.m_swapChainExtent.width;
-		m_FBO.FBOHeight = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
+		m_FBO.FBOWidth  = static_cast<float>(m_renderer->m_swapChainDescription.m_swapChainExtent.width);
+		m_FBO.FBOHeight = static_cast<float>(m_renderer->m_swapChainDescription.m_swapChainExtent.height);
 
 		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFrameBuffer[i].FrameBuffer);
 	}
@@ -240,17 +229,13 @@ void ComputeCull::CreateDescriptorPool()
 {
 	std::vector<VkDescriptorPoolSize> poolSizes = {};
 
-	poolSizes.resize(3);
+	poolSizes.resize(2);
 
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
 
-	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[1].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[1].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
-
-	poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[2].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
-
 
 	m_renderer->CreateDescriptorPool(poolSizes, static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size()),
 		static_cast<uint32_t>(poolSizes.size()), &m_DescriptorPool);
@@ -277,15 +262,9 @@ void ComputeCull::CreateDescriptorSets()
 		lightBufferInfo.offset = 0;
 		lightBufferInfo.range = sizeof(LightInfoUBO);
 
-		VkDescriptorImageInfo imageInfo = {};
-
-		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo.sampler = textureSampler;
-		imageInfo.imageView = textureImageView;
-
 		std::vector< VkWriteDescriptorSet> descriptorWriteInfo = {};
 
-		descriptorWriteInfo.resize(3);
+		descriptorWriteInfo.resize(2);
 
 		descriptorWriteInfo[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWriteInfo[0].dstSet = m_DescriptorSets[i];
@@ -301,21 +280,11 @@ void ComputeCull::CreateDescriptorSets()
 		descriptorWriteInfo[1].dstSet = m_DescriptorSets[i];
 		descriptorWriteInfo[1].dstBinding = 1;
 		descriptorWriteInfo[1].dstArrayElement = 0;
-		descriptorWriteInfo[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWriteInfo[1].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 		descriptorWriteInfo[1].descriptorCount = 1;
-		descriptorWriteInfo[1].pImageInfo = &imageInfo;
-		descriptorWriteInfo[1].pBufferInfo = nullptr; //TODO: Check this
+		descriptorWriteInfo[1].pBufferInfo = &lightBufferInfo;
+		descriptorWriteInfo[1].pImageInfo = nullptr;
 		descriptorWriteInfo[1].pTexelBufferView = nullptr;
-
-		descriptorWriteInfo[2].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWriteInfo[2].dstSet = m_DescriptorSets[i];
-		descriptorWriteInfo[2].dstBinding = 2;
-		descriptorWriteInfo[2].dstArrayElement = 0;
-		descriptorWriteInfo[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWriteInfo[2].descriptorCount = 1;
-		descriptorWriteInfo[2].pBufferInfo = &lightBufferInfo;
-		descriptorWriteInfo[2].pImageInfo = nullptr;
-		descriptorWriteInfo[2].pTexelBufferView = nullptr;
 
 		m_renderer->UpdateDescriptorSets(descriptorWriteInfo);
 
@@ -379,8 +348,6 @@ void ComputeCull::UpdateUniformBuffer(uint32_t a_imageIndex, CameraMatrices prop
 
 	lightInfo_UBO.lightModel = m_lightModelGUILight;
 
-	lightInfo_UBO.ObjRoughness = m_roughnessGUILight;
-
 	//Copy the data
 
 	data = NULL;
@@ -401,32 +368,11 @@ void ComputeCull::DrawGui(VkCommandBuffer a_cmdBuffer)
 	{
 		ImGui::Begin("Light Properties", &m_showGUILight);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
 
-		//Lighting Mode
-		{
-			//ImGuiIO& io = ImGui::GetIO();
-			//ImFont* font_current = ImGui::GetFont();
-
-			ImGui::Checkbox("Phong Model", &m_showPhongGUILight);
-			ImGui::Checkbox("BRDF Model", &m_showBRDFGUILight);
-
-			if (m_showPhongGUILight)
-			{
-				m_lightModelGUILight = 0;
-			}
-
-			if (m_showBRDFGUILight)
-			{
-				m_lightModelGUILight = 1;
-			}
-		}
-
 		ImGui::SliderFloat3("Light Position", &m_lightPosGUILight.x, -200.0f, 200.0f);
 
 		ImGui::SliderFloat3("Light Color", &m_lightColorGUILight.x, 0.0f, 1.0f);
 
-		ImGui::SliderInt("Spec Intensity", &m_SpecularIntensityGUILight, 2, 256);
-
-		ImGui::SliderFloat("OBJ Roughness", &m_roughnessGUILight, 0.0f, 2.0f);
+		ImGui::SliderInt("Spec Intensity", &m_SpecularIntensityGUILight, 32, 256);
 
 		ImGui::End();
 	}
@@ -572,29 +518,6 @@ void ComputeCull::LoadAModel(std::string fileName)
 
 }
 
-void ComputeCull::LoadTexture(std::string a_textureName)
-{
-	m_renderer->LoadImageTexture(a_textureName, &image1, m_commandPool, m_commandBuffers.data());
-}
-
-void ComputeCull::CreateImageTextureView()
-{
-	m_renderer->CreateImageView(image1.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &textureImageView);
-}
-
-void ComputeCull::CreateTextureSampler()
-{
-	SamplerCreationDesc samplerDesc = {};
-
-	samplerDesc.anisotropyEnable = VK_TRUE;
-	samplerDesc.magFilter = VK_FILTER_LINEAR;
-	samplerDesc.minFilter = VK_FILTER_LINEAR;
-	samplerDesc.MipMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-
-	m_renderer->CreateTextureSampler(samplerDesc, &textureSampler);
-
-}
-
 void ComputeCull::CreateDepthResources()
 {
 	VkFormat depthFormat = m_renderer->FindDepthFormat();
@@ -617,7 +540,7 @@ void ComputeCull::setGuiVariables()
 {
 	m_lightPosGUILight = glm::vec3(91.30, -73.913, 160.870);
 	m_lightColorGUILight = glm::vec3(1.0, 1.0, 1.0);
-	m_SpecularIntensityGUILight = 4;
+	m_SpecularIntensityGUILight = 32;
 	m_lightModelGUILight = 0;
 	m_roughnessGUILight = 1.058f;
 }
@@ -678,16 +601,6 @@ void ComputeCull::PrepareApp()
 	//LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
 	//LoadAModel("../../Assets/Models/venus/venus.fbx");
 #pragma endregion
-
-
-#pragma region Models_Tex
-	LoadTexture("../../Assets/Textures/Statue.jpg");
-	//LoadTexture("../../Assets/Textures/green.jpg");
-#pragma endregion
-
-	CreateImageTextureView();
-
-	CreateTextureSampler();
 
 	CreateUniformBuffer();
 
@@ -774,14 +687,6 @@ void ComputeCull::Destroy()
 	vkDestroyImageView(m_renderer->m_device, depthImageView, nullptr);
 	vkDestroyImage(m_renderer->m_device, depthImageInfo.BufferImage, nullptr);
 	vkFreeMemory(m_renderer->m_device, depthImageInfo.BufferMemory, nullptr);
-
-
-	vkDestroySampler(m_renderer->m_device, textureSampler, nullptr);
-	vkDestroyImageView(m_renderer->m_device, textureImageView, nullptr);
-
-	//destroy Image
-	vkDestroyImage(m_renderer->m_device, image1.BufferImage, nullptr);
-	vkFreeMemory(m_renderer->m_device, image1.BufferMemory, nullptr);
 
 	Imgui_Impl::getInstance()->DestroyGui(m_renderer->m_device);
 
