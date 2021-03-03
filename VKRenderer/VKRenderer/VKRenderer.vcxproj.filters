@@ -63,9 +63,6 @@
     <ClCompile Include="Core\PCH\stdafx.cpp">
       <Filter>PreCompilerHeader</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Helper\Timer\vkTimer.cpp">
-      <Filter>Helpers\Time</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\RendererVulkan\Renderer\vkRenderer.h">
@@ -92,7 +89,7 @@
     <ClInclude Include="Core\Helper\Constants\Constans.hpp">
       <Filter>Helpers\Constants</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Helper\Timer\vkTimer.h">
+    <ClInclude Include="Core\Helper\Timer\BenchmarkHelper.hpp">
       <Filter>Helpers\Time</Filter>
     </ClInclude>
   </ItemGroup>

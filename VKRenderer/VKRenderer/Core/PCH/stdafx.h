@@ -36,4 +36,5 @@
 
 //File Includes
 #include "../Helper/Constants/Constans.hpp"
+#include "../Helper/Timer/BenchmarkHelper.hpp"
 #include "../ResourceLoading/ResourceLoader.h"

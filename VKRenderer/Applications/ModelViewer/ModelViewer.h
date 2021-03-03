@@ -22,9 +22,9 @@ struct LightInfoUBO
 	float		ObjRoughness;
 
 	LightInfoUBO() : lightColor(glm::vec3(1.0, 1.0, 1.0)), specularIntensity(4)
-		, lightPosition(glm::vec3(0.0, 0.0, 0.0)), camPosition(glm::vec3(0.0, 0.0, 0.0)), lightModel(0), ObjRoughness(0.3f)
+		, lightPosition(glm::vec3(0.0, 0.0, 0.0)), camPosition(glm::vec3(0.0, 0.0, 0.0)),
+		lightModel(0), ObjRoughness(0.3f)
 	{
-		
 	}
 
 };
@@ -150,6 +150,4 @@ public:
 	virtual void Draw(float deltaTime);
 
 	virtual void Destroy() override;
-
 };
-

@@ -3,16 +3,12 @@
 #include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
 #include "../../VKRenderer/Core/Camera/Camera.h"
 
-// TODO: add Camera class include if need be
-
-
 ModelViewer::ModelViewer() : m_showGUILight(true), m_showPhongGUILight(false), m_showBRDFGUILight(true)
 {
 	//Initialize Renderer
 	m_renderer = new vkRenderer();
 
 }
-
 
 ModelViewer::~ModelViewer()
 {
