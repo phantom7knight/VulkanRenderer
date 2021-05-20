@@ -396,47 +396,47 @@ void ComputeCull::UpdateCommandBuffers(uint32_t a_imageIndex)
 		throw std::runtime_error("Unable to begin recording Command Buffer");
 	}
 
-	VkRenderPassBeginInfo renderpassBeginInfo = {};
+		VkRenderPassBeginInfo renderpassBeginInfo = {};
 
-	renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	renderpassBeginInfo.renderPass = m_renderPass;
-	renderpassBeginInfo.framebuffer = m_renderer->m_swapChainFrameBuffer[i].FrameBuffer;
-	renderpassBeginInfo.renderArea.offset = { 0,0 };
-	renderpassBeginInfo.renderArea.extent = m_renderer->m_swapChainDescription.m_swapChainExtent;
-
-
-	//Clear Color//
-	VkClearValue clearColor[2];
-	clearColor[0] = { 0.0,0.0,0.0,1.0 };
-	clearColor[1] = { 1.0f, 0.0f };
-	renderpassBeginInfo.clearValueCount = 2;
-	renderpassBeginInfo.pClearValues = clearColor;
+		renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderpassBeginInfo.renderPass = m_renderPass;
+		renderpassBeginInfo.framebuffer = m_renderer->m_swapChainFrameBuffer[i].FrameBuffer;
+		renderpassBeginInfo.renderArea.offset = { 0,0 };
+		renderpassBeginInfo.renderArea.extent = m_renderer->m_swapChainDescription.m_swapChainExtent;
 
 
-	vkCmdBeginRenderPass(m_commandBuffers[i], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+		//Clear Color//
+		VkClearValue clearColor[2];
+		clearColor[0] = { 0.0,0.0,0.0,1.0 };
+		clearColor[1] = { 1.0f, 0.0f };
+		renderpassBeginInfo.clearValueCount = 2;
+		renderpassBeginInfo.pClearValues = clearColor;
 
-	vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, ModelGraphicsPipeline.a_pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
 
-	vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, ModelGraphicsPipeline.a_Pipeline);
+		vkCmdBeginRenderPass(m_commandBuffers[i], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	VkDeviceSize offset = { 0 };
+		vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, ModelGraphicsPipeline.a_pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
 
-	//Bind Vertex Buffer
-	vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &VertexBUffer.Buffer, &offset);
+		vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, ModelGraphicsPipeline.a_Pipeline);
 
-	//Bind Index Buffer
-	vkCmdBindIndexBuffer(m_commandBuffers[i], IndexBUffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
+		VkDeviceSize offset = { 0 };
 
-	//Call Draw Indexed for the model
-	vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_indexBufferCount), 1, 0, 0, 0);
+		//Bind Vertex Buffer
+		vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &VertexBUffer.Buffer, &offset);
 
-	//==================================================
-	//Draw UI
-	DrawGui(m_commandBuffers[i]);
+		//Bind Index Buffer
+		vkCmdBindIndexBuffer(m_commandBuffers[i], IndexBUffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
 
-	//==================================================
+		//Call Draw Indexed for the model
+		vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_indexBufferCount), 1, 0, 0, 0);
 
-	vkCmdEndRenderPass(m_commandBuffers[i]);
+		//==================================================
+		//Draw UI
+		DrawGui(m_commandBuffers[i]);
+
+		//==================================================
+
+		vkCmdEndRenderPass(m_commandBuffers[i]);
 
 	//End Recording
 	if (vkEndCommandBuffer(m_commandBuffers[i]) != VK_SUCCESS)
@@ -677,8 +677,6 @@ void ComputeCull::Draw(float deltaTime)
 	m_renderer->SubmissionAndPresentation(submissionDesc);
 
 	m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-
-	//m_MainCamera->update(deltaTime);
 }
 
 void ComputeCull::Destroy()

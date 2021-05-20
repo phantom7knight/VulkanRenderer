@@ -823,6 +823,7 @@ void vkRenderer::SubmissionAndPresentation(FrameSubmissionDesc a_frameSubmission
 	submitInfo.waitSemaphoreCount = 1;
 	submitInfo.pWaitSemaphores = waitSemaphores;
 	submitInfo.pWaitDstStageMask = waitStages;
+
 	submitInfo.commandBufferCount = a_frameSubmissionDesc.commandBufferCount;
 	submitInfo.pCommandBuffers = a_frameSubmissionDesc.commandBuffer;
 
@@ -832,8 +833,6 @@ void vkRenderer::SubmissionAndPresentation(FrameSubmissionDesc a_frameSubmission
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
 	VulkanHelper::ResetFence(m_device, 1, &m_inflightFences[a_frameSubmissionDesc.currentFrameNumber]);
-
-	vkResetFences(m_device, 1, &m_inflightFences[a_frameSubmissionDesc.currentFrameNumber]);
 
 	if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inflightFences[a_frameSubmissionDesc.currentFrameNumber]) != VK_SUCCESS)
 	{
@@ -968,7 +967,7 @@ void vkRenderer::Destroy()
 		vkDestroyFence(m_device, m_inflightFences[i], nullptr);
 	}
 
-	vkDestroyDevice(m_device,nullptr);
+	vkDestroyDevice(m_device, nullptr);
 
 	if (enableValidationLayer)
 	{

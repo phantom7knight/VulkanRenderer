@@ -57,8 +57,20 @@ B. Tentative Project Plans
 
 
 
+----------------------------------------------
+C. Project Autmn
+----------------------------------------------
+
+1. Implement Terrain rendering
+2. Implment water simulation
+3. Object Instancing
+4. GPU Particles
+5. Rendering Pipeline
+6. Understand Multi-threading on GPU for rendering flow
 
 
 
 
-
+----------------------------------------------
+D. Node Based Particle Editor
+----------------------------------------------
