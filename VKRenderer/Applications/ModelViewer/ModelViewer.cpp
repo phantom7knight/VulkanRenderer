@@ -3,16 +3,15 @@
 #include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
 #include "../../VKRenderer/Core/Camera/Camera.h"
 
-// TODO: add Camera class include if need be
-
-
-ModelViewer::ModelViewer() : m_showGUILight(true), m_showPhongGUILight(false), m_showBRDFGUILight(true)
+ModelViewer::ModelViewer() :
+	m_showGUILight(true),
+	m_showPhongGUILight(false),
+	m_showBRDFGUILight(true)
 {
 	//Initialize Renderer
 	m_renderer = new vkRenderer();
 
 }
-
 
 ModelViewer::~ModelViewer()
 {
@@ -126,13 +125,13 @@ void ModelViewer::CreateDescriptorSetLayout()
 
 	//create binding for sampler
 	//used in pixel shader
-	VkDescriptorSetLayoutBinding samplerBinding = {};
+	VkDescriptorSetLayoutBinding samplerAlbedoBinding = {};
 
-	samplerBinding.binding = 1;
-	samplerBinding.descriptorCount = 1;
-	samplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	samplerBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-	samplerBinding.pImmutableSamplers = nullptr;
+	samplerAlbedoBinding.binding = 1;
+	samplerAlbedoBinding.descriptorCount = 1;
+	samplerAlbedoBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerAlbedoBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerAlbedoBinding.pImmutableSamplers = nullptr;
 
 	//TODO: check the binding for the layout
 	VkDescriptorSetLayoutBinding LightlayoutBinding = {};
@@ -143,10 +142,30 @@ void ModelViewer::CreateDescriptorSetLayout()
 	LightlayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	LightlayoutBinding.pImmutableSamplers = nullptr;
 
+	//create binding for sampler
+	//used in pixel shader
+	VkDescriptorSetLayoutBinding samplerMetallicBinding = {};
+
+	samplerMetallicBinding.binding = 3;
+	samplerMetallicBinding.descriptorCount = 1;
+	samplerMetallicBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerMetallicBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerMetallicBinding.pImmutableSamplers = nullptr;
+
+	//create binding for sampler
+	//used in pixel shader
+	VkDescriptorSetLayoutBinding samplerRoughnessBinding = {};
+
+	samplerRoughnessBinding.binding = 4;
+	samplerRoughnessBinding.descriptorCount = 1;
+	samplerRoughnessBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerRoughnessBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerRoughnessBinding.pImmutableSamplers = nullptr;
+
 
 
 	//create an vector of descriptors
-	std::vector< VkDescriptorSetLayoutBinding> descriptorsVector = { layoutBinding ,samplerBinding, LightlayoutBinding };
+	std::vector< VkDescriptorSetLayoutBinding> descriptorsVector = { layoutBinding ,samplerAlbedoBinding, LightlayoutBinding, samplerMetallicBinding, samplerRoughnessBinding };
 
 	m_renderer->CreateDescriptorSetLayout(descriptorsVector, &m_descriptorSetLayout);
 }
@@ -197,12 +216,12 @@ void ModelViewer::CreateFrameBuffers()
 	for (uint32_t i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImageViews.size(); ++i)
 	{
 		std::vector< VkImageView> attachments = { m_renderer->m_swapChainDescription.m_SwapChainImageViews[i],
-													depthImageView };
+													depthImageInfo.ImageView };
 
 		m_FBO.attachmentCount = static_cast<uint32_t>(attachments.size());
 		m_FBO.Attachments = attachments;
-		m_FBO.FBOWidth = m_renderer->m_swapChainDescription.m_swapChainExtent.width;
-		m_FBO.FBOHeight = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
+		m_FBO.FBOWidth = (float)m_renderer->m_swapChainDescription.m_swapChainExtent.width;
+		m_FBO.FBOHeight = (float)m_renderer->m_swapChainDescription.m_swapChainExtent.height;
 
 		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFrameBuffer[i].FrameBuffer);
 	}
@@ -240,7 +259,7 @@ void ModelViewer::CreateDescriptorPool()
 {
 	std::vector<VkDescriptorPoolSize> poolSizes = {};
 
-	poolSizes.resize(3);
+	poolSizes.resize(5);
 
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
@@ -251,6 +270,11 @@ void ModelViewer::CreateDescriptorPool()
 	poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[2].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
 
+	poolSizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[3].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+
+	poolSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[4].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
 
 	m_renderer->CreateDescriptorPool(poolSizes, static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size()),
 		static_cast<uint32_t>(poolSizes.size()), &m_DescriptorPool);
@@ -277,15 +301,27 @@ void ModelViewer::CreateDescriptorSets()
 		lightBufferInfo.offset = 0;
 		lightBufferInfo.range = sizeof(LightInfoUBO);
 
-		VkDescriptorImageInfo imageInfo = {};
+		VkDescriptorImageInfo albedoImageInfo = {};
 
-		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo.sampler = textureSampler;
-		imageInfo.imageView = textureImageView;
+		albedoImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		albedoImageInfo.sampler = PBRMaterial.albedoMap.Sampler;
+		albedoImageInfo.imageView = PBRMaterial.albedoMap.ImageView;
+
+		VkDescriptorImageInfo metallicImageInfo = {};
+
+		metallicImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		metallicImageInfo.sampler = PBRMaterial.metallicMap.Sampler;
+		metallicImageInfo.imageView = PBRMaterial.metallicMap.ImageView;
+
+		VkDescriptorImageInfo roughnessImageInfo = {};
+
+		roughnessImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		roughnessImageInfo.sampler = PBRMaterial.roughnessMap.Sampler;
+		roughnessImageInfo.imageView = PBRMaterial.roughnessMap.ImageView;
 
 		std::vector< VkWriteDescriptorSet> descriptorWriteInfo = {};
 
-		descriptorWriteInfo.resize(3);
+		descriptorWriteInfo.resize(5);
 
 		descriptorWriteInfo[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWriteInfo[0].dstSet = m_DescriptorSets[i];
@@ -303,7 +339,7 @@ void ModelViewer::CreateDescriptorSets()
 		descriptorWriteInfo[1].dstArrayElement = 0;
 		descriptorWriteInfo[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		descriptorWriteInfo[1].descriptorCount = 1;
-		descriptorWriteInfo[1].pImageInfo = &imageInfo;
+		descriptorWriteInfo[1].pImageInfo = &albedoImageInfo;
 		descriptorWriteInfo[1].pBufferInfo = nullptr; //TODO: Check this
 		descriptorWriteInfo[1].pTexelBufferView = nullptr;
 
@@ -316,6 +352,26 @@ void ModelViewer::CreateDescriptorSets()
 		descriptorWriteInfo[2].pBufferInfo = &lightBufferInfo;
 		descriptorWriteInfo[2].pImageInfo = nullptr;
 		descriptorWriteInfo[2].pTexelBufferView = nullptr;
+
+		descriptorWriteInfo[3].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWriteInfo[3].dstSet = m_DescriptorSets[i];
+		descriptorWriteInfo[3].dstBinding = 3;
+		descriptorWriteInfo[3].dstArrayElement = 0;
+		descriptorWriteInfo[3].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWriteInfo[3].descriptorCount = 1;
+		descriptorWriteInfo[3].pImageInfo = &metallicImageInfo;
+		descriptorWriteInfo[3].pBufferInfo = nullptr; //TODO: Check this
+		descriptorWriteInfo[3].pTexelBufferView = nullptr;
+
+		descriptorWriteInfo[4].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWriteInfo[4].dstSet = m_DescriptorSets[i];
+		descriptorWriteInfo[4].dstBinding = 4;
+		descriptorWriteInfo[4].dstArrayElement = 0;
+		descriptorWriteInfo[4].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWriteInfo[4].descriptorCount = 1;
+		descriptorWriteInfo[4].pImageInfo = &roughnessImageInfo;
+		descriptorWriteInfo[4].pBufferInfo = nullptr; //TODO: Check this
+		descriptorWriteInfo[4].pTexelBufferView = nullptr;
 
 		m_renderer->UpdateDescriptorSets(descriptorWriteInfo);
 		
@@ -335,7 +391,7 @@ void ModelViewer::CreateSemaphoresandFences()
 	m_renderer->CreateSemaphoresandFences();
 }
 
-void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices properties_Cam)
+void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices a_propertiesCam, float a_deltaTime)
 {
 
 #pragma region MVP_Update
@@ -379,7 +435,7 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices pro
 
 	lightInfo_UBO.lightModel = m_lightModelGUILight;
 
-	lightInfo_UBO.ObjRoughness = m_roughnessGUILight;
+	lightInfo_UBO.lightIntensity = m_lightIntensityGUILight;
 		
 	//Copy the data
 
@@ -420,13 +476,13 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 			}
 		}
 		
-		ImGui::SliderFloat3("Light Position", &m_lightPosGUILight.x, -200.0f, 200.0f);
+		ImGui::SliderFloat3("Light Position", &m_lightPosGUILight.x, -400.0f, 400.0f);
 
 		ImGui::SliderFloat3("Light Color", &m_lightColorGUILight.x, 0.0f, 1.0f);
 
-		ImGui::SliderInt("Spec Intensity", &m_SpecularIntensityGUILight, 2, 256);
+		ImGui::SliderInt("Spec Intensity[Phong]", &m_SpecularIntensityGUILight, 2, 256);
 
-		ImGui::SliderFloat("OBJ Roughness", &m_roughnessGUILight, 0.0f, 2.0f);
+		ImGui::SliderInt("Light Intensity", &m_lightIntensityGUILight, 2, 15);
 		
 		ImGui::End();
 	}
@@ -461,7 +517,7 @@ void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 
 	//Clear Color//
 	VkClearValue clearColor[2];
-	clearColor[0] = { 0.0,0.0,0.0,1.0 };
+	clearColor[0] = { 0.,0.,0.,1.0 };
 	clearColor[1] = { 1.0f, 0.0f };
 	renderpassBeginInfo.clearValueCount = 2;
 	renderpassBeginInfo.pClearValues = clearColor;
@@ -572,14 +628,26 @@ void ModelViewer::LoadAModel(std::string fileName)
 	
 }
 
-void ModelViewer::LoadTexture(std::string a_textureName)
+void ModelViewer::LoadTexture(std::string a_textureName, TextureBufferDesc * a_imageTex)
 {
-	m_renderer->LoadImageTexture(a_textureName, &image1, m_commandPool, m_commandBuffers.data());
+	m_renderer->LoadImageTexture(a_textureName, a_imageTex, m_commandPool, m_commandBuffers.data());
 }
 
 void ModelViewer::CreateImageTextureView()
 {
-	m_renderer->CreateImageView(image1.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &textureImageView);
+	m_renderer->CreateImageView(PBRMaterial.albedoMap.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &PBRMaterial.albedoMap.ImageView);
+	m_renderer->CreateImageView(PBRMaterial.metallicMap.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &PBRMaterial.metallicMap.ImageView);
+	m_renderer->CreateImageView(PBRMaterial.roughnessMap.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &PBRMaterial.roughnessMap.ImageView);
+}
+
+void ModelViewer::LoadAllTextures()
+{
+	//LoadTexture("../../Assets/Textures/Statue.jpg");
+	LoadTexture("../../Assets/Textures/Sphere/Albedo.png", &PBRMaterial.albedoMap);
+	LoadTexture("../../Assets/Textures/Sphere/Metallic.png", &PBRMaterial.metallicMap);
+	LoadTexture("../../Assets/Textures/Sphere/Roughness.png", &PBRMaterial.roughnessMap);
+	//LoadTexture("../../Assets/Textures/Kabuto/Albedo.png");
+	//LoadTexture("../../Assets/Textures/green.jpg");
 }
 
 void ModelViewer::CreateTextureSampler()
@@ -591,12 +659,16 @@ void ModelViewer::CreateTextureSampler()
 	samplerDesc.minFilter = VK_FILTER_LINEAR;
 	samplerDesc.MipMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 
-	m_renderer->CreateTextureSampler(samplerDesc, &textureSampler);
+	m_renderer->CreateTextureSampler(samplerDesc, &PBRMaterial.albedoMap.Sampler);
+	m_renderer->CreateTextureSampler(samplerDesc, &PBRMaterial.metallicMap.Sampler);
+	m_renderer->CreateTextureSampler(samplerDesc, &PBRMaterial.roughnessMap.Sampler);
 
 }
 
 void ModelViewer::CreateDepthResources()
 {
+	depthImageInfo.textureType = TEXTURE_TYPE::eTEXTURETYPE_DEPTH;
+
 	VkFormat depthFormat = m_renderer->FindDepthFormat();
 
 	depthImageInfo.ImageHeight = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
@@ -607,7 +679,7 @@ void ModelViewer::CreateDepthResources()
 	depthImageInfo.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	m_renderer->CreateImage(&depthImageInfo);
 
-	m_renderer->CreateImageView(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &depthImageView);
+	m_renderer->CreateImageView(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &depthImageInfo.ImageView);
 
 	//TransitionImageLayouts(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 	
@@ -618,13 +690,12 @@ void ModelViewer::setGuiVariables()
 	m_lightPosGUILight = glm::vec3(91.30, -73.913, 160.870);
 	m_lightColorGUILight = glm::vec3(1.0, 1.0, 1.0);
 	m_SpecularIntensityGUILight = 4;
-	m_lightModelGUILight = 0;
-	m_roughnessGUILight = 1.058f;
+	m_lightModelGUILight = 1;
+	m_lightIntensityGUILight = 5;
 }
 
 void ModelViewer::InitGui()
 {
-
 	setGuiVariables();
 
 	ImGui_ImplVulkan_InitInfo imguiInfo = {};
@@ -640,11 +711,8 @@ void ModelViewer::InitGui()
 	imguiInfo.QueueFamily = m_renderer->FindQueueFamalies().graphicsFamily.value();
 	imguiInfo.PipelineCache = nullptr;
 
-
 	//Init the GUI for IMGUI
 	Imgui_Impl::getInstance()->Init(m_renderer->m_window, imguiInfo, m_renderPass, m_commandPool);
-	
-	
 }
 
 //==========================================================================================================
@@ -674,15 +742,17 @@ void ModelViewer::PrepareApp()
 
 #pragma region Model_Load
 		LoadAModel("../../Assets/Models/monkey/monkey.obj");
+		//LoadAModel("../../Assets/Models/ShaderBall/shaderBall.obj");
+		//LoadAModel("../../Assets/Models/Sphere/Sphere.fbx");
+		//LoadAModel("../../Assets/Models/LowPoly/1.obj");
+		//LoadAModel("../../Assets/Models/Kabuto/Kabuto.fbx");
 		//LoadAModel("../../Assets/Models/cornell_box/cornell_box.obj");
 		//LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
 		//LoadAModel("../../Assets/Models/venus/venus.fbx");
 #pragma endregion
 
-
 #pragma region Models_Tex
-		LoadTexture("../../Assets/Textures/Statue.jpg");
-		//LoadTexture("../../Assets/Textures/green.jpg");
+		LoadAllTextures();
 #pragma endregion
 
 	CreateImageTextureView();
@@ -751,7 +821,7 @@ void ModelViewer::Draw(float deltaTime)
 	UpdateCommandBuffers(imageIndex);
 
 	//Update Uniform Buffers which needs to be sent to Shader every frames
-	UpdateUniformBuffer(imageIndex, cam_matrices);
+	UpdateUniformBuffer(imageIndex, cam_matrices, deltaTime);
 
 	FrameSubmissionDesc submissionDesc = {};
 
@@ -764,24 +834,30 @@ void ModelViewer::Draw(float deltaTime)
 	m_renderer->SubmissionAndPresentation(submissionDesc);
 
 	m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-
-	//m_MainCamera->update(deltaTime);
 }
 
 void ModelViewer::Destroy()
 {
 	//depth Image
-	vkDestroyImageView(m_renderer->m_device, depthImageView, nullptr);
+	vkDestroyImageView(m_renderer->m_device, depthImageInfo.ImageView, nullptr);
 	vkDestroyImage(m_renderer->m_device, depthImageInfo.BufferImage, nullptr);
 	vkFreeMemory(m_renderer->m_device, depthImageInfo.BufferMemory, nullptr);
 
 
-	vkDestroySampler(m_renderer->m_device, textureSampler, nullptr);
-	vkDestroyImageView(m_renderer->m_device, textureImageView, nullptr);
+	vkDestroySampler(m_renderer->m_device, PBRMaterial.albedoMap.Sampler, nullptr);
+	vkDestroyImageView(m_renderer->m_device, PBRMaterial.albedoMap.ImageView, nullptr);
+	vkDestroySampler(m_renderer->m_device, PBRMaterial.metallicMap.Sampler, nullptr);
+	vkDestroyImageView(m_renderer->m_device, PBRMaterial.metallicMap.ImageView, nullptr);
+	vkDestroySampler(m_renderer->m_device, PBRMaterial.roughnessMap.Sampler, nullptr);
+	vkDestroyImageView(m_renderer->m_device, PBRMaterial.roughnessMap.ImageView, nullptr);
 
 	//destroy Image
-	vkDestroyImage(m_renderer->m_device, image1.BufferImage, nullptr);
-	vkFreeMemory(m_renderer->m_device, image1.BufferMemory, nullptr);
+	vkDestroyImage(m_renderer->m_device, PBRMaterial.albedoMap.BufferImage, nullptr);
+	vkFreeMemory(m_renderer->m_device, PBRMaterial.albedoMap.BufferMemory, nullptr);
+	vkDestroyImage(m_renderer->m_device, PBRMaterial.metallicMap.BufferImage, nullptr);
+	vkFreeMemory(m_renderer->m_device, PBRMaterial.metallicMap.BufferMemory, nullptr);
+	vkDestroyImage(m_renderer->m_device, PBRMaterial.roughnessMap.BufferImage, nullptr);
+	vkFreeMemory(m_renderer->m_device, PBRMaterial.roughnessMap.BufferMemory, nullptr);
 
 	Imgui_Impl::getInstance()->DestroyGui(m_renderer->m_device);
 

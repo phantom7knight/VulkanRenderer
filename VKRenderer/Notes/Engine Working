@@ -9,7 +9,7 @@ holds all the vulkan base functions
 
 ShaderLoader .h & .cpp
 Creates Shader Modules and also generates SPIR-V code
-which will be used my Resource Loader
+which will be use Resource Loader
 
 DebugUtils .h & .cpp
 Used for RenderDoc Captures look at Sascha Willems
