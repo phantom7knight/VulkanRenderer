@@ -93,14 +93,7 @@ private:
 
 	CameraMatrices cam_matrices;
 
-	// Loaded Texture related
-	//TextureBufferDesc image1 = {};
-	//TextureBufferDesc image2 = {};
-	//TextureBufferDesc image3 = {};
-	//TextureBufferDesc image4 = {};
-
 	Material PBRMaterial;
-
 
 	//Depth related variables
 	TextureBufferDesc depthImageInfo;

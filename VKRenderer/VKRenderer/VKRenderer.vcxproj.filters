@@ -52,9 +52,6 @@
     <Filter Include="Common\Graphics">
       <UniqueIdentifier>{75e311f3-812b-44ba-9d79-83ea7200e22d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Common\Graphics\PBR-IBL">
-      <UniqueIdentifier>{f0cd1753-381e-47db-aa55-0c23290f8a16}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\RendererVulkan\Renderer\vkRenderer.cpp">
@@ -74,9 +71,6 @@
     </ClCompile>
     <ClCompile Include="Core\Helper\Timer\vkTimer.cpp">
       <Filter>Helpers\Time</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Common\Graphics\PBR-IBL\PBRIBL.cpp">
-      <Filter>Common\Graphics\PBR-IBL</Filter>
     </ClCompile>
     <ClCompile Include="..\Common\Graphics\Material.cpp">
       <Filter>Common\Graphics</Filter>
@@ -109,9 +103,6 @@
     </ClInclude>
     <ClInclude Include="Core\Helper\Timer\vkTimer.h">
       <Filter>Helpers\Time</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Common\Graphics\PBR-IBL\PBRIBL.h">
-      <Filter>Common\Graphics\PBR-IBL</Filter>
     </ClInclude>
     <ClInclude Include="..\Common\Graphics\Material.h">
       <Filter>Common\Graphics</Filter>

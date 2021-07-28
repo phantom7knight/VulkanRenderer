@@ -3,7 +3,10 @@
 #include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
 #include "../../VKRenderer/Core/Camera/Camera.h"
 
-ModelViewer::ModelViewer() : m_showGUILight(true), m_showPhongGUILight(false), m_showBRDFGUILight(true)
+ModelViewer::ModelViewer() :
+	m_showGUILight(true),
+	m_showPhongGUILight(false),
+	m_showBRDFGUILight(true)
 {
 	//Initialize Renderer
 	m_renderer = new vkRenderer();
@@ -217,8 +220,8 @@ void ModelViewer::CreateFrameBuffers()
 
 		m_FBO.attachmentCount = static_cast<uint32_t>(attachments.size());
 		m_FBO.Attachments = attachments;
-		m_FBO.FBOWidth = m_renderer->m_swapChainDescription.m_swapChainExtent.width;
-		m_FBO.FBOHeight = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
+		m_FBO.FBOWidth = (float)m_renderer->m_swapChainDescription.m_swapChainExtent.width;
+		m_FBO.FBOHeight = (float)m_renderer->m_swapChainDescription.m_swapChainExtent.height;
 
 		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFrameBuffer[i].FrameBuffer);
 	}
@@ -688,12 +691,11 @@ void ModelViewer::setGuiVariables()
 	m_lightColorGUILight = glm::vec3(1.0, 1.0, 1.0);
 	m_SpecularIntensityGUILight = 4;
 	m_lightModelGUILight = 1;
-	m_lightIntensityGUILight = 3;
+	m_lightIntensityGUILight = 5;
 }
 
 void ModelViewer::InitGui()
 {
-
 	setGuiVariables();
 
 	ImGui_ImplVulkan_InitInfo imguiInfo = {};
@@ -709,11 +711,8 @@ void ModelViewer::InitGui()
 	imguiInfo.QueueFamily = m_renderer->FindQueueFamalies().graphicsFamily.value();
 	imguiInfo.PipelineCache = nullptr;
 
-
 	//Init the GUI for IMGUI
 	Imgui_Impl::getInstance()->Init(m_renderer->m_window, imguiInfo, m_renderPass, m_commandPool);
-	
-	
 }
 
 //==========================================================================================================
@@ -742,16 +741,15 @@ void ModelViewer::PrepareApp()
 	CreateGraphicsPipeline();
 
 #pragma region Model_Load
-		//LoadAModel("../../Assets/Models/monkey/monkey.obj");
+		LoadAModel("../../Assets/Models/monkey/monkey.obj");
 		//LoadAModel("../../Assets/Models/ShaderBall/shaderBall.obj");
-		LoadAModel("../../Assets/Models/Sphere/Sphere.fbx");
+		//LoadAModel("../../Assets/Models/Sphere/Sphere.fbx");
 		//LoadAModel("../../Assets/Models/LowPoly/1.obj");
 		//LoadAModel("../../Assets/Models/Kabuto/Kabuto.fbx");
 		//LoadAModel("../../Assets/Models/cornell_box/cornell_box.obj");
 		//LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
 		//LoadAModel("../../Assets/Models/venus/venus.fbx");
 #pragma endregion
-
 
 #pragma region Models_Tex
 		LoadAllTextures();

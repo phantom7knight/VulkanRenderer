@@ -135,8 +135,6 @@ vec3 FresnelSchlickApproximation(float LH, vec3 Ks)
 //Source : https://cdn2.unrealengine.com/Resources/files/2013SiggraphPresentationsNotes-26915738.pdf
 void CalculateBRDF(inout vec4 result)
 {
-	int method = 1;
-	
 	vec3 lightColor = vec3(1000.0,1000.0,1000.0) * vec3(light_ubo.lightIntensity);
 	
 	vec3 Lo = vec3(0.0);
@@ -173,20 +171,11 @@ void CalculateBRDF(inout vec4 result)
 	float N, G;
 	vec3 F;
 
-	if(method == 1)
-	{
-		N = NormalDistributionFunction(roughness,NH);
+	N = NormalDistributionFunction(roughness,NH);
 
-		G = GeometricFunction(roughness,LightDir,ViewDir,normalize(Normals));
+	G = GeometricFunction(roughness,LightDir,ViewDir,normalize(Normals));
 
-		F = FresnelFunction(ViewDir,H,F0);
-	}
-	else
-	{
-		N = NDF(roughness, NH);
-		G = Geometric(LH);
-		F = FresnelSchlickApproximation(LH,F0);		
-	}
+	F = FresnelFunction(ViewDir,H,F0);
 	
 	vec3 numerator = N * G * F;
 	float denominator = 4 * max(NV, 0.0) * max(NL, 0.0) + 0.001;
@@ -222,7 +211,4 @@ void main()
 			CalculateBRDF(OutColor);
 			break;
 	}
-
-	//vec4 samplerOutput = texture(albedoTexture, TexCoords);
-	//OutColor = samplerOutput;
 }

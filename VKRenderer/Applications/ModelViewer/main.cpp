@@ -18,7 +18,7 @@ void MainLoop(Application* rendererExample)
 	
 	while (!glfwWindowShouldClose(rendererExample->getRenderer()->getWindow()))
 	{
-		GLfloat currentFrame = glfwGetTime();
+		GLfloat currentFrame = (GLfloat)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
