@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../../VKRenderer/Core/Application/Application.h"
-#include "../../Common/Graphics/Material.h"
+#include "../../Common/Graphics/Material.hpp"
 
 struct ModelUBO
 {
@@ -23,9 +23,7 @@ struct LightInfoUBO
 	LightInfoUBO() : lightColor(glm::vec3(1.0, 1.0, 1.0)), specularIntensity(4)
 		, lightPosition(glm::vec3(0.0, 0.0, 0.0)), camPosition(glm::vec3(0.0, 0.0, 0.0)), lightModel(0), lightIntensity(1)
 	{
-		
 	}
-
 };
 
 class Camera;
@@ -36,35 +34,35 @@ private:
 	//Helper functions for this application
 
 	void SetUpCameraProperties(Camera* a_cam);
-	
-	void SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_IndexBUffer);
-	
-	void SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_VertexBUffer);
+
+	void SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc* a_IndexBUffer);
+
+	void SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc* a_VertexBUffer);
 
 	void CreateRenderPass();
 
 	void CreateDescriptorSetLayout();
-	
+
 	void CreateGraphicsPipeline();
-	
+
 	void CreateFrameBuffers();
-	
+
 	void CreateCommandPool();
-	
+
 	void CreateUniformBuffer();
-	
+
 	void CreateDescriptorPool();
-	
+
 	void CreateDescriptorSets();
-	
+
 	void CreateCommandBuffers();
-	
+
 	void CreateSemaphoresandFences();
 
-	void UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices properties_Cam, float a_deltaTime);
+	void UpdateUniformBuffer(uint32_t a_imageIndex, CameraMatrices properties_Cam, float a_deltaTime);
 
 	void UpdateCommandBuffers(uint32_t a_imageIndex);
-	
+
 	void ReCreateSwapChain();
 
 	void CreateImageTextureView();
@@ -93,23 +91,25 @@ private:
 
 	CameraMatrices cam_matrices;
 
+	// hashmap for materials
+	std::unordered_map<std::string, Material> materials;
+
 	Material PBRMaterial;
 
 	//Depth related variables
 	TextureBufferDesc depthImageInfo;
-	
 
-	bool m_showGUILight;
+	bool		m_showGUILight;
 	glm::vec3	m_lightPosGUILight;
 	glm::vec3	m_lightColorGUILight;
-	int		m_SpecularIntensityGUILight;
-	int		m_lightModelGUILight;
-	bool m_showPhongGUILight;
-	bool m_showBRDFGUILight;
-	int  m_lightIntensityGUILight;
+	int			m_SpecularIntensityGUILight;
+	int			m_lightModelGUILight;
+	bool		m_showPhongGUILight;
+	bool		m_showBRDFGUILight;
+	int			m_lightIntensityGUILight;
 
 	// Application related variables
-	vkRenderer*						m_renderer;
+	vkRenderer* m_renderer;
 	VkRenderPass					m_renderPass;
 	VkCommandPool					m_commandPool;
 	VkDescriptorSetLayout			m_descriptorSetLayout;
@@ -148,4 +148,3 @@ public:
 	virtual void Destroy() override;
 
 };
-
