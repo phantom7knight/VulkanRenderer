@@ -459,8 +459,8 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 		
 		//Lighting Mode
 		{
-			//ImGuiIO& io = ImGui::GetIO();
-			//ImFont* font_current = ImGui::GetFont();
+			ImGuiIO& io = ImGui::GetIO();
+			ImFont* font_current = ImGui::GetFont();
 
 			ImGui::Checkbox("Phong Model", &m_showPhongGUILight);
 			ImGui::Checkbox("BRDF Model", &m_showBRDFGUILight);
@@ -741,9 +741,10 @@ void ModelViewer::PrepareApp()
 	CreateGraphicsPipeline();
 
 #pragma region Model_Load
-		LoadAModel("../../Assets/Models/monkey/monkey.obj");
+		//LoadAModel("../../Assets/Models/monkey/monkey.obj");
+		//LoadAModel("../../Assets/Models/monkey/suzanne.obj");
 		//LoadAModel("../../Assets/Models/ShaderBall/shaderBall.obj");
-		//LoadAModel("../../Assets/Models/Sphere/Sphere.fbx");
+		LoadAModel("../../Assets/Models/Sphere/Sphere.fbx");
 		//LoadAModel("../../Assets/Models/LowPoly/1.obj");
 		//LoadAModel("../../Assets/Models/Kabuto/Kabuto.fbx");
 		//LoadAModel("../../Assets/Models/cornell_box/cornell_box.obj");
