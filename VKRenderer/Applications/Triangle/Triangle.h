@@ -32,7 +32,7 @@ private:
 	
 	void CreateDesciptorSets();
 	
-	void UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime);
+	void UpdateUniformBuffer(uint32_t a_imageIndex, double a_deltaTime);
 
 	void ReCreateSwapChain();
 
@@ -86,10 +86,10 @@ public:
 	virtual void PrepareApp();
 	
 	// Inherited via vkRenderer
-	virtual void Update(float deltaTime) override;
+	virtual void Update(double deltaTime) override;
 
 	// Inherited via vkRenderer
-	virtual void Draw(float deltaTime)  override;
+	virtual void Draw(double deltaTime)  override;
 	
 	virtual void Destroy() override;
 

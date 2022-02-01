@@ -9,7 +9,6 @@ struct ModelUBO
 	glm::mat4 ProjectionMatrix;
 };
 
-
 struct LightInfoUBO
 {
 	glm::vec3	lightColor;
@@ -24,6 +23,18 @@ struct LightInfoUBO
 	}
 
 };
+
+struct ModelInfo
+{
+	ModelUBO				modelUniformBuffer;
+	LightInfoUBO			modelLightUniformBuffer;
+	GraphicsPipelineInfo	modelGraphicsPipeline;
+	BufferDesc				modelVertexBuffer;
+	BufferDesc				modelIndexBuffer;
+};
+
+
+
 
 class Camera;
 class ComputeCull : public Application
@@ -88,14 +99,14 @@ private:
 	TextureBufferDesc depthImageInfo;
 	VkImageView depthImageView;
 
-	bool m_showGUILight;
+	bool		m_showGUILight;
 	glm::vec3	m_lightPosGUILight;
 	glm::vec3	m_lightColorGUILight;
-	int		m_SpecularIntensityGUILight;
-	int		m_lightModelGUILight;
-	bool m_showPhongGUILight;
-	bool m_showBRDFGUILight;
-	float m_roughnessGUILight;
+	int			m_SpecularIntensityGUILight;
+	int			m_lightModelGUILight;
+	bool		m_showPhongGUILight;
+	bool		m_showBRDFGUILight;
+	float		m_roughnessGUILight;
 
 	// Variables
 	vkRenderer* m_renderer;
@@ -117,10 +128,7 @@ public:
 	ComputeCull();
 	~ComputeCull();
 
-	virtual vkRenderer* getRenderer()
-	{
-		return m_renderer;
-	}
+	virtual inline vkRenderer* getRenderer() { return m_renderer; }
 
 	//Init Initialization of the properties here
 	virtual void Init();
@@ -129,10 +137,10 @@ public:
 	virtual void PrepareApp();
 
 	// Inherited via vkRenderer
-	virtual void Update(float deltaTime);
+	virtual void Update(double deltaTime);
 
 	// Inherited via vkRenderer
-	virtual void Draw(float deltaTime);
+	virtual void Draw(double deltaTime);
 
 	virtual void Destroy() override;
 };

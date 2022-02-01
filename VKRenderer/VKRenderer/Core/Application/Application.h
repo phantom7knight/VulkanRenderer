@@ -20,10 +20,10 @@ public:
 	virtual void PrepareApp() = 0;
 	
 	//Draw Function for App
-	virtual void Draw(float deltaTime) = 0;
+	virtual void Draw(double deltaTime) = 0;
 	
 	//Update Function for App
-	virtual void Update(float deltaTime) = 0;
+	virtual void Update(double deltaTime) = 0;
 	
 	//De-Init all the resource allocated
 	virtual void Destroy() = 0;

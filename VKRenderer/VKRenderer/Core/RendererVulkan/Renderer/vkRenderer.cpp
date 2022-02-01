@@ -37,7 +37,7 @@ QueueFamilyIndices vkRenderer::FindQueueFamalies()
 //===================================================================
 //GLFW Input recording
 //===================================================================
-void vkRenderer::ProcessInput(GLFWwindow* window, float deltaTime)
+void vkRenderer::ProcessInput(GLFWwindow* window, double deltaTime)
 {
 	//If Esc button is pressed we close
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)

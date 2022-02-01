@@ -189,8 +189,8 @@ struct FrameBufferDesc
 {
 	uint32_t							attachmentCount;
 	std::vector< VkImageView >			Attachments;
-	float								FBOWidth;
-	float								FBOHeight;
+	uint32_t							FBOWidth;
+	uint32_t							FBOHeight;
 	VkFramebuffer						FrameBuffer;
 };
 

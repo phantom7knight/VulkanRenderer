@@ -778,7 +778,7 @@ void ModelViewer::PrepareApp()
 
 }
 
-void ModelViewer::Update(float deltaTime)
+void ModelViewer::Update(double deltaTime)
 {
 	m_renderer->ProcessInput(m_renderer->m_window, deltaTime);
 	
@@ -790,7 +790,7 @@ void ModelViewer::Update(float deltaTime)
 	return;
 }
 
-void ModelViewer::Draw(float deltaTime)
+void ModelViewer::Draw(double deltaTime)
 {
 	vkWaitForFences(m_renderer->m_device, 1, &m_renderer->m_inflightFences[m_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
 	vkResetFences(m_renderer->m_device, 1, &m_renderer->m_inflightFences[m_currentFrame]);

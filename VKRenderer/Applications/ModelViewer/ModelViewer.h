@@ -140,10 +140,10 @@ public:
 	virtual void PrepareApp();
 
 	// Inherited via vkRenderer
-	virtual void Update(float deltaTime);
+	virtual void Update(double deltaTime);
 
 	// Inherited via vkRenderer
-	virtual void Draw(float deltaTime);
+	virtual void Draw(double deltaTime);
 
 	virtual void Destroy() override;
 

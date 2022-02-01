@@ -3,8 +3,8 @@
 #include "../../VKRenderer/Core/Camera/Camera.h"
 #include "ComputeCull.h"
 
-GLfloat deltaTime = 0.0f;
-GLfloat lastFrame = 0.0f;
+double deltaTime = 0.0f;
+double lastFrame = 0.0f;
 
 void StallTillTargetFPS()
 {
@@ -15,10 +15,9 @@ void StallTillTargetFPS()
 
 void MainLoop(Application* rendererExample)
 {
-
 	while (!glfwWindowShouldClose(rendererExample->getRenderer()->getWindow()))
 	{
-		GLfloat currentFrame = glfwGetTime();
+		double currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
@@ -61,7 +60,7 @@ int main()
 
 	MainLoop(rendererExample);
 
-	//Destroy(rendererExample);
+	Destroy(rendererExample);
 
 	//clean up the pointer
 	delete rendererExample;

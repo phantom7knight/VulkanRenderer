@@ -314,7 +314,7 @@ void Triangle::CreateUniformBuffer()
 	return;
 }
 
-void Triangle::UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime)
+void Triangle::UpdateUniformBuffer(uint32_t a_imageIndex, double a_deltaTime)
 {
 	//TODO: Fix this
 	a_deltaTime = 0.5f;
@@ -322,7 +322,7 @@ void Triangle::UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime)
 	UniformBufferObject mvp_UBO = {};
 
 	//Model Matrix
-	mvp_UBO.ModelMatrix = glm::rotate(glm::mat4(1.0f), a_deltaTime * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	mvp_UBO.ModelMatrix = glm::rotate(glm::mat4(1.0f), (float)a_deltaTime * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 	//View Matrix
 	mvp_UBO.ViewMatrix = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -425,8 +425,13 @@ void Triangle::CreateDesciptorSets()
 	descriptorWriteInfo[0].pImageInfo = nullptr;
 	descriptorWriteInfo[0].pTexelBufferView = nullptr;
 
-	m_renderer->CreateDesciptorSets(m_renderer->m_swapChainDescription.m_SwapChainImages.size(), m_descriptorSetLayout,
-		m_TriangleUniformBuffer, sizeof(UniformBufferObject), descriptorWriteInfo, m_DescriptorPool,
+	m_renderer->CreateDesciptorSets(
+		m_renderer->m_swapChainDescription.m_SwapChainImages.size(),
+		m_descriptorSetLayout,
+		m_TriangleUniformBuffer,
+		sizeof(UniformBufferObject),
+		descriptorWriteInfo,
+		m_DescriptorPool,
 		m_DescriptorSets);
 
 
@@ -517,14 +522,14 @@ void Triangle::PrepareApp()
 
 }
 
-void Triangle::Update(float deltaTime)
+void Triangle::Update(double deltaTime)
 {
 
 
 	return;
 }
 
-void Triangle::Draw(float deltaTime)
+void Triangle::Draw(double deltaTime)
 {
 	vkWaitForFences(m_renderer->m_device, 1, &m_renderer->m_inflightFences[m_currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
 	vkResetFences(m_renderer->m_device, 1, &m_renderer->m_inflightFences[m_currentFrame]);
