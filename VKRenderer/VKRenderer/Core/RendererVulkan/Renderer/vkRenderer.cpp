@@ -52,7 +52,7 @@ void vkRenderer::ProcessInput(GLFWwindow* window, float deltaTime)
 	m_MainCamera->keys.left = glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS ? true : false;
 	m_MainCamera->keys.up = glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS ? true : false;
 	m_MainCamera->keys.down = glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS ? true : false;
-
+	
 	if (m_MainCamera->keys.backward || m_MainCamera->keys.up ||
 		m_MainCamera->keys.down || m_MainCamera->keys.right ||
 		m_MainCamera->keys.left || m_MainCamera->keys.forward)

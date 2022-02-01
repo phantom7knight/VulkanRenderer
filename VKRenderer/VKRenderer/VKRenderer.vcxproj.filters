@@ -46,6 +46,12 @@
     <Filter Include="PreCompilerHeader">
       <UniqueIdentifier>{e8cb735b-b493-48b5-8ad5-5b94e46b45da}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{e086ae53-0962-49f6-b7e8-60037d0a1c6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\Graphics">
+      <UniqueIdentifier>{75e311f3-812b-44ba-9d79-83ea7200e22d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\RendererVulkan\Renderer\vkRenderer.cpp">
@@ -62,6 +68,12 @@
     </ClCompile>
     <ClCompile Include="Core\PCH\stdafx.cpp">
       <Filter>PreCompilerHeader</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Helper\Timer\vkTimer.cpp">
+      <Filter>Helpers\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Common\Graphics\Material.cpp">
+      <Filter>Common\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -89,8 +101,11 @@
     <ClInclude Include="Core\Helper\Constants\Constans.hpp">
       <Filter>Helpers\Constants</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Helper\Timer\BenchmarkHelper.hpp">
+    <ClInclude Include="Core\Helper\Timer\vkTimer.h">
       <Filter>Helpers\Time</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Common\Graphics\Material.h">
+      <Filter>Common\Graphics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
