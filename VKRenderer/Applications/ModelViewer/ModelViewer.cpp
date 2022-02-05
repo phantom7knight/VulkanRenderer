@@ -220,8 +220,8 @@ void ModelViewer::CreateFrameBuffers()
 
 		m_FBO.attachmentCount = static_cast<uint32_t>(attachments.size());
 		m_FBO.Attachments = attachments;
-		m_FBO.FBOWidth = (float)m_renderer->m_swapChainDescription.m_swapChainExtent.width;
-		m_FBO.FBOHeight = (float)m_renderer->m_swapChainDescription.m_swapChainExtent.height;
+		m_FBO.FBOWidth = m_renderer->m_swapChainDescription.m_swapChainExtent.width;
+		m_FBO.FBOHeight = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
 
 		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFrameBuffer[i].FrameBuffer);
 	}
@@ -234,7 +234,7 @@ void ModelViewer::CreateCommandPool()
 
 void ModelViewer::CreateUniformBuffer()
 {
-	VkDeviceSize bufferSize = sizeof(ModelUBO);
+	VkDeviceSize bufferSize = sizeof(MVPUBO);
 	VkDeviceSize lightBufferSize = sizeof(LightInfoUBO);
 
 	m_ModelUniformBuffer.resize(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
@@ -293,7 +293,7 @@ void ModelViewer::CreateDescriptorSets()
 
 		bufferInfo.buffer = m_ModelUniformBuffer[i].Buffer;
 		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(ModelUBO);
+		bufferInfo.range = sizeof(MVPUBO);
 
 		VkDescriptorBufferInfo lightBufferInfo = {};
 
@@ -391,11 +391,11 @@ void ModelViewer::CreateSemaphoresandFences()
 	m_renderer->CreateSemaphoresandFences();
 }
 
-void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices a_propertiesCam, float a_deltaTime)
+void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices a_propertiesCam, double a_deltaTime)
 {
 
 #pragma region MVP_Update
-	ModelUBO mvp_UBO = {};
+	MVPUBO mvp_UBO = {};
 
 	//Model Matrix
 	mvp_UBO.ModelMatrix = glm::mat4(1);
@@ -598,7 +598,7 @@ void ModelViewer::ReCreateSwapChain()
 	*/
 }
 
-void ModelViewer::SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_VertexBUffer)
+void ModelViewer::SetUpVertexBuffer(const ModelInfoData a_modelDesc, BufferDesc *a_VertexBUffer)
 {
 	VkDeviceSize bufferSize = a_modelDesc.vertexBufferSize;
 
@@ -606,7 +606,7 @@ void ModelViewer::SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_V
 		m_commandPool);
 }
 
-void ModelViewer::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_IndexBUffer)
+void ModelViewer::SetUpIndexBuffer(const ModelInfoData a_modelDesc, BufferDesc *a_IndexBUffer)
 {
 	VkDeviceSize bufferSize = a_modelDesc.indexBufferSize;
 
@@ -618,7 +618,7 @@ void ModelViewer::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_In
 
 void ModelViewer::LoadAModel(std::string fileName)
 {
-	ModelInfo modelinfor = 	m_renderer->rsrcLdr.LoadModelResource(fileName);
+	ModelInfoData modelinfor = 	m_renderer->rsrcLdr.LoadModelResource(fileName);
 
 	//Load Index and Vertex Buffer
 	SetUpVertexBuffer(modelinfor, &VertexBUffer);

@@ -204,7 +204,7 @@ void ComputeCull::CreateCommandPool()
 
 void ComputeCull::CreateUniformBuffer()
 {
-	VkDeviceSize bufferSize = sizeof(ModelUBO);
+	VkDeviceSize bufferSize = sizeof(MVPUBO);
 	VkDeviceSize lightBufferSize = sizeof(LightInfoUBO);
 
 	m_ModelUniformBuffer.resize(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
@@ -254,7 +254,7 @@ void ComputeCull::CreateDescriptorSets()
 
 		bufferInfo.buffer = m_ModelUniformBuffer[i].Buffer;
 		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(ModelUBO);
+		bufferInfo.range = sizeof(MVPUBO);
 
 		VkDescriptorBufferInfo lightBufferInfo = {};
 
@@ -308,7 +308,7 @@ void ComputeCull::UpdateUniformBuffer(uint32_t a_imageIndex, CameraMatrices prop
 {
 
 #pragma region MVP_Update
-	ModelUBO mvp_UBO = {};
+	MVPUBO mvp_UBO = {};
 
 	//Model Matrix
 	mvp_UBO.ModelMatrix = glm::mat4(1);
@@ -488,7 +488,7 @@ void ComputeCull::ReCreateSwapChain()
 		*/
 }
 
-void ComputeCull::SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc* a_VertexBUffer)
+void ComputeCull::SetUpVertexBuffer(const ModelInfoData a_modelDesc, BufferDesc* a_VertexBUffer)
 {
 	VkDeviceSize bufferSize = a_modelDesc.vertexBufferSize;
 
@@ -496,7 +496,7 @@ void ComputeCull::SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc* a_V
 		m_commandPool);
 }
 
-void ComputeCull::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc* a_IndexBUffer)
+void ComputeCull::SetUpIndexBuffer(const ModelInfoData a_modelDesc, BufferDesc* a_IndexBUffer)
 {
 	VkDeviceSize bufferSize = a_modelDesc.indexBufferSize;
 
@@ -508,7 +508,7 @@ void ComputeCull::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc* a_In
 
 void ComputeCull::LoadAModel(std::string fileName)
 {
-	ModelInfo modelinfor = m_renderer->rsrcLdr.LoadModelResource(fileName);
+	ModelInfoData modelinfor = m_renderer->rsrcLdr.LoadModelResource(fileName);
 
 	//Load Index and Vertex Buffer
 	SetUpVertexBuffer(modelinfor, &VertexBUffer);

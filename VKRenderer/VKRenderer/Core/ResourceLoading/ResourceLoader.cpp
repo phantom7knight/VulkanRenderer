@@ -250,13 +250,13 @@ std::vector<VkVertexInputAttributeDescription> MeshLoader::getAttributeDescripti
 	return VertexInfo::getAttributeDescriptionsofVertex();
 }
 
-ModelInfo MeshLoader::LoadModel(std::string fileName)
+ModelInfoData MeshLoader::LoadModel(std::string fileName)
 {
 	
 	Assimp::Importer m_Importer;
 	const aiScene *m_pScene = nullptr;
 
-	ModelInfo modelDesc;
+	ModelInfoData modelDesc;
 
 	// Flags for loading the mesh
 	static const int assimpFlags = aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_PreTransformVertices;
@@ -266,7 +266,7 @@ ModelInfo MeshLoader::LoadModel(std::string fileName)
 	if (m_pScene == NULL)
 	{
 		std::cout << "Failed to load the scene \n";
-		return ModelInfo{};
+		return ModelInfoData{};
 	}
 
 	//Vertex Loading
@@ -347,9 +347,9 @@ ModelInfo MeshLoader::LoadModel(std::string fileName)
 
 }
 
-ModelInfo ResourceLoader::LoadModelResource(std::string fileName)
+ModelInfoData ResourceLoader::LoadModelResource(std::string fileName)
 {
-	ModelInfo modeldesc = m_MeshLoaderObj.LoadModel(fileName);
+	ModelInfoData modeldesc = m_MeshLoaderObj.LoadModel(fileName);
 
 	return modeldesc;
 }

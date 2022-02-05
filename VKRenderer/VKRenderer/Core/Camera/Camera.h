@@ -24,7 +24,7 @@ public:
 	float m_MouseSensitivity;
 	float m_Zoom;
 	
-	CameraKeys keys;
+	InputKeys keys;
 
 	void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch = true);
 

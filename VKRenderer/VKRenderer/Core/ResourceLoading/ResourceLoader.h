@@ -99,7 +99,7 @@ struct VertexInfo
 	}
 };
 
-struct ModelInfo
+struct ModelInfoData
 {
 	uint32_t vertexBufferSize = 0;
 	std::vector<VertexInfo> vertexbufferData;
@@ -118,7 +118,7 @@ public:
 	static VkVertexInputBindingDescription getBindingDescription();
 	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptionsofVertex();
 
-	ModelInfo LoadModel(std::string fileName);
+	ModelInfoData LoadModel(std::string fileName);
 
 
 };
@@ -145,7 +145,7 @@ public:
 	//--------------------------------------------------------------------------
 	//Model Loading related
 
-	ModelInfo			LoadModelResource(std::string fileName);
+	ModelInfoData			LoadModelResource(std::string fileName);
 
 	//--------------------------------------------------------------------------
 	inline FileOperations getFileOperationobj()
