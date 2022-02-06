@@ -1,9 +1,8 @@
 #include"../PCH/stdafx.h"
 #include "Camera.h"
 
-Camera::Camera()
+Camera::Camera(): m_updateDirty(true)
 {
-
 	Camera_Pos_ = glm::vec3(0.0f, 0.0f, 50.0f);
 	Camera_Up_ = glm::vec3(0.0f, 1.0f, 0.0f);
 	Camera_Front_ = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -60,7 +59,7 @@ void Camera::SetPosition(const glm::vec3& position)
 	Camera_Pos_ = position;
 }
 
-void Camera::ProcessKeyBoardMovement(float a_fDeltaTime)
+void Camera::ProcessKeyBoardMovement(double a_fDeltaTime)
 {
 	float fVelocity = camera_move_speed_ * a_fDeltaTime;
 
@@ -68,27 +67,22 @@ void Camera::ProcessKeyBoardMovement(float a_fDeltaTime)
 	{
 		Camera_Pos_ += Camera_Front_ * fVelocity;
 	}
-
 	else if (keys.backward)
 	{
 		Camera_Pos_ -= Camera_Front_ * fVelocity;
 	}
-
 	else if (keys.left)
 	{
 		Camera_Pos_ -= Camera_Right_ * fVelocity;
 	}
-
 	else if (keys.right)
 	{
 		Camera_Pos_ += Camera_Right_ * fVelocity;
 	}
-
 	else if (keys.up)
 	{
 		Camera_Pos_ -= Camera_Up_ * fVelocity;
 	}
-
 	else if (keys.down)
 	{
 		Camera_Pos_ += Camera_Up_ * fVelocity;
@@ -133,7 +127,6 @@ void Camera::CameraUpdate()
 
 	Camera_Right_ = glm::normalize(glm::cross(Camera_Front_, Camera_WorldUp_));
 	Camera_Up_ = glm::normalize(glm::cross(Camera_Right_, Camera_Front_));
-
 
 	matrices.view = glm::lookAt(Camera_Pos_, Camera_Pos_ + Camera_Front_, Camera_Up_);
 }

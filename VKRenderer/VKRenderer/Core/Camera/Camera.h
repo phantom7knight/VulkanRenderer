@@ -28,7 +28,7 @@ public:
 
 	void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch = true);
 
-	void ProcessKeyBoardMovement(float a_fDeltaTime);
+	void ProcessKeyBoardMovement(double a_fDeltaTime);
 
 	void CameraUpdate();
 
@@ -55,5 +55,7 @@ public:
 	{
 		return matrices.orthographic;
 	}
+
+	bool m_updateDirty;
 };
 

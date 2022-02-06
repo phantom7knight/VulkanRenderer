@@ -58,6 +58,7 @@ void vkRenderer::ProcessInput(GLFWwindow* window, double deltaTime)
 		m_MainCamera->keys.left || m_MainCamera->keys.forward)
 	{
 		m_MainCamera->ProcessKeyBoardMovement(deltaTime);
+		m_MainCamera->m_updateDirty = true;
 	}
 }
 
@@ -91,8 +92,10 @@ static void MousePosCallBack(GLFWwindow* window, double xpos, double ypos)
 	lastY = (float)ypos;
 
 	if (mouseState)
+	{
 		app->m_MainCamera->ProcessMouseMovement(xoffset, yoffset);
-
+		app->m_MainCamera->m_updateDirty = true;
+	}
 }
 
 bool vkRenderer::InitGLFW()
@@ -113,7 +116,6 @@ bool vkRenderer::InitGLFW()
 
 	return true;
 }
-
 
 //===================================================================
 // Creating Image & Image Views[Used to view Images]
@@ -280,6 +282,24 @@ void vkRenderer::CreateRenderPass(RenderPassInfo a_renderPassDesc, VkRenderPass*
 //===================================================================
 //Shader Related Functions
 //===================================================================
+VkShaderModule vkRenderer::CreateShaderModule(ShaderDesc desc)
+{
+	VkShaderModuleCreateInfo createInfo = {};
+
+	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	createInfo.codeSize = desc.shaderCode->size();
+	createInfo.pCode = reinterpret_cast<const uint32_t*>(desc.shaderCode->data());
+
+	VkShaderModule shaderModule;
+
+	if (vkCreateShaderModule(desc.a_device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create Shader Module");
+	}
+
+	return shaderModule;
+}
+
 std::vector<VkPipelineShaderStageCreateInfo> vkRenderer::ShaderStageInfoGeneration(std::vector<std::string> ShaderNames)
 {
 	std::vector<VkPipelineShaderStageCreateInfo>	shaderStages;
@@ -301,7 +321,7 @@ std::vector<VkPipelineShaderStageCreateInfo> vkRenderer::ShaderStageInfoGenerati
 		shader_info.a_device = m_device;
 		shader_info.shaderCode = &(ShaderCode);
 
-		shadermodules[i] = rsrcLdr.createShaderModule(shader_info);
+		shadermodules[i] = CreateShaderModule(shader_info);
 
 		VkPipelineShaderStageCreateInfo  shaderCreateInfo = {};
 
@@ -338,13 +358,60 @@ std::vector<VkPipelineShaderStageCreateInfo> vkRenderer::ShaderStageInfoGenerati
 }
 
 //===================================================================
+//Model Loading Related Functions
+//===================================================================
+BufferDesc vkRenderer::SetupVertexBuffer(VkCommandPool a_cmdPool, ModelInfoData a_modelDesc)
+{
+	BufferDesc resultBuffer;
+	VkDeviceSize bufferSize = a_modelDesc.vertexBufferSize;
+
+	this->CreateBuffer(
+		a_modelDesc.vertexbufferData.data(),
+		bufferSize,
+		&resultBuffer,
+		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+		a_cmdPool);
+
+	return resultBuffer;
+}
+
+BufferDesc vkRenderer::SetupIndexBuffer(VkCommandPool a_cmdPool, ModelInfoData a_modelDesc)
+{
+	BufferDesc resultBuffer;
+	VkDeviceSize bufferSize = a_modelDesc.indexBufferSize;
+
+	this->CreateBuffer(
+		a_modelDesc.indexbufferData.data(),
+		bufferSize,
+		&resultBuffer,
+		VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+		a_cmdPool);
+
+	return resultBuffer;
+}
+
+void vkRenderer::LoadModelResources(VkCommandPool a_cmdPool, ModelInfo& a_modelInfo, const std::string a_FileName)
+{
+	ModelInfoData modelDesc = rsrcLdr.LoadModelResource(a_FileName);
+
+	// Load VB
+	a_modelInfo.modelVB = SetupVertexBuffer(a_cmdPool, modelDesc);
+
+	// Load IB
+	a_modelInfo.modelIB = SetupIndexBuffer(a_cmdPool, modelDesc);
+
+	a_modelInfo.modelIBCount = static_cast<uint32_t>(modelDesc.indexbufferData.size());
+
+	return;
+}
+
+//===================================================================
 //Pipeline Creation
 //===================================================================
 void vkRenderer::CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo)
 {
 	//Get Shader Info
 	std::vector<VkPipelineShaderStageCreateInfo> shaderInfo = ShaderStageInfoGeneration(a_pipelineInfo->ShaderFileNames);
-
 
 	// Vertex Input
 	VkPipelineVertexInputStateCreateInfo VertexInputInfo = {};
@@ -583,7 +650,6 @@ void vkRenderer::CreateCommandPool(VkCommandPool* a_commandPool)
 	return;
 }
 
-
 void vkRenderer::AllocateCommandBuffers(std::vector<VkCommandBuffer> &a_cmdBuffer, VkCommandPool a_cmdPool)
 {
 	VkCommandBufferAllocateInfo createInfo = {};
@@ -597,11 +663,10 @@ void vkRenderer::AllocateCommandBuffers(std::vector<VkCommandBuffer> &a_cmdBuffe
 	
 }
 
-
 //===================================================================
 //Buffer Creation
 //===================================================================
-//, const ModelInfo a_modelDesc
+
 void vkRenderer::CreateBuffer(void const* databuffer, VkDeviceSize a_bufferSize, BufferDesc* a_BufferToCreate, VkBufferUsageFlags a_usage,
 	VkCommandPool a_commandPool)
 {
@@ -643,7 +708,6 @@ void vkRenderer::CreateBufferWithoutStaging(VkDeviceSize a_size, VkBufferUsageFl
 	return;
 }
 
-
 //===================================================================
 // Create and Set Descriptor Layouts
 
@@ -669,7 +733,6 @@ void vkRenderer::CreateDescriptorSetLayout(std::vector<VkDescriptorSetLayoutBind
 //=====================================================================================================================
 // Descriptor Pool & Set Creation
 //=====================================================================================================================
-
 
 void vkRenderer::CreateDescriptorPool(std::vector< VkDescriptorPoolSize > a_poolSize, uint32_t a_maxSets, uint32_t a_poolSizeCount,
 	VkDescriptorPool* a_descriptorPool)
@@ -810,7 +873,6 @@ VkResult vkRenderer::AcquireNextImage(uint32_t *a_imageIndex, size_t a_currentFr
 
 }
 
-
 void vkRenderer::SubmissionAndPresentation(FrameSubmissionDesc a_frameSubmissionDesc)
 {
 	VkSubmitInfo submitInfo = {};
@@ -885,7 +947,6 @@ void vkRenderer::InitializeVulkan()
 	VulkanHelper::PickPhysicalDevice(m_VulkanInstance, m_physicalDevice, m_surface);
 
 	m_device = VulkanHelper::CreateLogicalDevice(m_physicalDevice, m_surface, &m_graphicsQueue, &m_PresentQueue);
-
 }
 
 //===================================================================
@@ -917,7 +978,6 @@ void vkRenderer::PrepareApp()
 	SetUpSwapChain();
 	m_swapChainDescription.m_SwapChainImageViews = VulkanHelper::CreateSwapChainImageView(m_swapChainDescription, m_device);
 }
-
 
 //===================================================================
 //Deinitializers
@@ -987,6 +1047,4 @@ void vkRenderer::Destroy()
 	{
 		delete m_MainCamera;
 	}
-	
 }
-

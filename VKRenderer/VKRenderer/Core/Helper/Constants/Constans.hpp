@@ -247,11 +247,12 @@ struct MVPUBO
 
 struct ModelInfo
 {
-	MVPUBO					modelMVPUniformBuffer;
-	LightInfoUBO			modelLightUniformBuffer;
+	std::vector<BufferDesc>	modelMVPUniformBuffer;
+	std::vector<BufferDesc>	modelLightUniformBuffer;
 	GraphicsPipelineInfo	modelGraphicsPipeline;
 	ComputePipelineInfo		modelComputePipeline;
 	BufferDesc				modelVB;
 	BufferDesc				modelIB;
+	int						modelIBCount = 0;
 };
 #pragma endregion

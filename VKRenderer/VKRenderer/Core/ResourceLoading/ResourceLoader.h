@@ -3,6 +3,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+//#include "../RendererVulkan/Renderer/vkRenderer.h"
 
 
 //==================================
@@ -12,7 +13,6 @@
 class FileOperations
 {
 public:
-
 	FileOperations() {}
 	~FileOperations() {}
 
@@ -118,24 +118,18 @@ public:
 	static VkVertexInputBindingDescription getBindingDescription();
 	static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptionsofVertex();
 
-	ModelInfoData LoadModel(std::string fileName);
-
-
+	ModelInfoData LoadModel(const std::string fileName);
 };
 
 class ResourceLoader
 {
 
 public:
-	ResourceLoader()
-	{
-
-	}
-	~ResourceLoader() {}
+	ResourceLoader() { }
+	~ResourceLoader() { }
 	
 	//--------------------------------------------------------------------------
 	//Shader Related
-	VkShaderModule	createShaderModule(ShaderDesc desc);
 	void			GenerateBatchFile(std::vector<std::string> fileNames);
 	void			RunShaderBatchFile();
 	void			GenerateSPIRVShaders(std::vector<std::string> a_filenames);
@@ -145,7 +139,7 @@ public:
 	//--------------------------------------------------------------------------
 	//Model Loading related
 
-	ModelInfoData			LoadModelResource(std::string fileName);
+	ModelInfoData LoadModelResource(std::string a_FileName);
 
 	//--------------------------------------------------------------------------
 	inline FileOperations getFileOperationobj()

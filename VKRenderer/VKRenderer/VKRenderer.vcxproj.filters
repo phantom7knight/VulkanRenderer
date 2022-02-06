@@ -22,15 +22,6 @@
     <Filter Include="ResourceLoading">
       <UniqueIdentifier>{4b1dc045-84d6-4028-866a-ada5fe7c1563}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ResourceLoading\ModelLoading">
-      <UniqueIdentifier>{b0643f02-edef-4436-a7bb-866f78bbb1cc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ResourceLoading\TextureLoading">
-      <UniqueIdentifier>{9f03fa62-8f20-4dac-a874-27290f32c3cb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ResourceLoading\ShaderLoading">
-      <UniqueIdentifier>{93e00df5-09bf-4093-8865-e79d441b5065}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Helpers">
       <UniqueIdentifier>{87483c31-c3dd-4646-81ac-3cdbbfa75842}</UniqueIdentifier>
     </Filter>
@@ -69,9 +60,6 @@
     <ClCompile Include="Core\PCH\stdafx.cpp">
       <Filter>PreCompilerHeader</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Helper\Timer\vkTimer.cpp">
-      <Filter>Helpers\Time</Filter>
-    </ClCompile>
     <ClCompile Include="..\Common\Graphics\Material.cpp">
       <Filter>Common\Graphics</Filter>
     </ClCompile>
@@ -101,11 +89,11 @@
     <ClInclude Include="Core\Helper\Constants\Constans.hpp">
       <Filter>Helpers\Constants</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Helper\Timer\vkTimer.h">
-      <Filter>Helpers\Time</Filter>
-    </ClInclude>
     <ClInclude Include="..\Common\Graphics\Material.h">
       <Filter>Common\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Helper\Timer\BenchmarkHelper.hpp">
+      <Filter>Helpers\Random</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

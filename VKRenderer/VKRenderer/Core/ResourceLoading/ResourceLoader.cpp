@@ -62,13 +62,11 @@ std::string FileOperations::ReplaceCharacter(const std::string a_str, char a_toR
 	return res;
 }
 
-
 bool FileOperations::IfFileExists(const char* filename)
 {
 	std::ifstream ifile(filename);
 	return (bool)ifile;
 }
-
 
 FILE* FileOperations::OpenFile(std::string a_FileName,const char* flags)
 {
@@ -112,25 +110,6 @@ std::string FileOperations::get_current_dir()
 #pragma endregion
 
 #pragma region Shader-Loading
-
-VkShaderModule ResourceLoader::createShaderModule(ShaderDesc desc)
-{
-	VkShaderModuleCreateInfo createInfo = {};
-
-	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	createInfo.codeSize = desc.shaderCode->size();
-	createInfo.pCode = reinterpret_cast<const uint32_t*>(desc.shaderCode->data());
-
-	VkShaderModule shaderModule;
-
-	if (vkCreateShaderModule(desc.a_device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
-	{
-		throw std::runtime_error("Failed to create Shader Module");
-	}
-
-	return shaderModule;
-
-}
 
 bool ResourceLoader::CheckifSPIRVGenerated(std::vector<std::string> a_fileNames)
 {
@@ -219,12 +198,10 @@ void ResourceLoader::RunShaderBatchFile()
 	system((shaderBatchFile).c_str());
 
 	std::cout << "================================================ \n";
-	
 }
 
 void ResourceLoader::GenerateSPIRVShaders(std::vector<std::string> ShaderFileNames)
 {
-
 	//Generate a batch file with the glslvalidator
 	GenerateBatchFile(ShaderFileNames);
 
@@ -233,7 +210,6 @@ void ResourceLoader::GenerateSPIRVShaders(std::vector<std::string> ShaderFileNam
 
 	//Run the Batch File to generate shader code
 	RunShaderBatchFile();
-	
 }
 
 #pragma endregion
@@ -250,9 +226,8 @@ std::vector<VkVertexInputAttributeDescription> MeshLoader::getAttributeDescripti
 	return VertexInfo::getAttributeDescriptionsofVertex();
 }
 
-ModelInfoData MeshLoader::LoadModel(std::string fileName)
+ModelInfoData MeshLoader::LoadModel(const std::string fileName)
 {
-	
 	Assimp::Importer m_Importer;
 	const aiScene *m_pScene = nullptr;
 
@@ -344,14 +319,11 @@ ModelInfoData MeshLoader::LoadModel(std::string fileName)
 	modelDesc.indexbufferData = indexBuffer;
 
 	return modelDesc;
-
 }
 
-ModelInfoData ResourceLoader::LoadModelResource(std::string fileName)
+ModelInfoData ResourceLoader::LoadModelResource(std::string a_FileName)
 {
-	ModelInfoData modeldesc = m_MeshLoaderObj.LoadModel(fileName);
-
-	return modeldesc;
+	return m_MeshLoaderObj.LoadModel(a_FileName);
 }
 
 #pragma endregion
