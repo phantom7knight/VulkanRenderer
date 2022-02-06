@@ -58,13 +58,8 @@ private:
 
 private:
 
-	void LoadAModel(std::string fileName);
+	void LoadModel(ModelInfo& a_modelInfo, std::string a_fileName);
 	void LoadTexture(std::string fileName, TextureBufferDesc* a_imageTex);
-
-	// Model's buffer related
-	BufferDesc VertexBUffer;
-	BufferDesc IndexBUffer;
-	int m_indexBufferCount = 0;
 
 	CameraMatrices cam_matrices;
 
@@ -72,7 +67,6 @@ private:
 
 	//Depth related variables
 	TextureBufferDesc depthImageInfo;
-	
 
 	bool m_showGUILight;
 	glm::vec3	m_lightPosGUILight;
@@ -90,14 +84,12 @@ private:
 	VkDescriptorSetLayout			m_descriptorSetLayout;
 	VkDescriptorPool				m_DescriptorPool;
 	FrameBufferDesc					m_FBO;
-	GraphicsPipelineInfo			ModelGraphicsPipeline;
-	BufferDesc						m_ModelVertexBuffer;
-	BufferDesc						m_ModelIndexBuffer;
 	std::vector<VkCommandBuffer>	m_commandBuffers;
-	std::vector<BufferDesc>			m_ModelUniformBuffer;
-	std::vector<BufferDesc>			m_LightInfoUniformBuffer;
 	std::vector<VkDescriptorSet>	m_DescriptorSets;
 	size_t							m_currentFrame = 0;
+
+	// Models
+	ModelInfo						m_modelInfo;
 
 public:
 	ModelViewer();

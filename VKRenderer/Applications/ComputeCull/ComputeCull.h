@@ -6,7 +6,6 @@ class Camera;
 class ComputeCull : public Application
 {
 private:
-
 	//Helper functions for this application
 
 	void SetUpCameraProperties(Camera* a_cam);
@@ -50,11 +49,6 @@ private:
 
 	void LoadModel(ModelInfo& a_modelInfo, std::string a_fileName);
 
-	//BufferDesc IndexBUffer;
-	//BufferDesc VertexBUffer;
-	//
-	//int m_indexBufferCount = 0;
-
 	CameraMatrices cam_matrices;
 
 	//Depth Related variables
@@ -77,12 +71,7 @@ private:
 	VkDescriptorSetLayout			m_descriptorSetLayout;
 	VkDescriptorPool				m_DescriptorPool;
 	FrameBufferDesc					m_FBO;
-	//GraphicsPipelineInfo			ModelGraphicsPipeline;
-	//BufferDesc						m_ModelVertexBuffer;
-	//BufferDesc						m_ModelIndexBuffer;
 	std::vector<VkCommandBuffer>	m_commandBuffers;
-	//std::vector<BufferDesc>			m_ModelUniformBuffer;
-	//std::vector<BufferDesc>			m_LightInfoUniformBuffer;
 	std::vector<VkDescriptorSet>	m_DescriptorSets;
 	size_t							m_currentFrame = 0;
 

@@ -61,7 +61,7 @@ void Camera::SetPosition(const glm::vec3& position)
 
 void Camera::ProcessKeyBoardMovement(double a_fDeltaTime)
 {
-	float fVelocity = camera_move_speed_ * a_fDeltaTime;
+	float fVelocity = camera_move_speed_ * (float)a_fDeltaTime;
 
 	if (keys.forward)
 	{
