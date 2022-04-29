@@ -3,10 +3,7 @@
 #include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
 #include "../../VKRenderer/Core/Camera/Camera.h"
 
-ModelViewer::ModelViewer() :
-	m_showGUILight(true),
-	m_showPhongGUILight(false),
-	m_showBRDFGUILight(true)
+ModelViewer::ModelViewer() : m_showGUILight(true)
 {
 	//Initialize Renderer
 	m_renderer = new vkRenderer();
@@ -462,25 +459,16 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 			ImGuiIO& io = ImGui::GetIO();
 			ImFont* font_current = ImGui::GetFont();
 
-			ImGui::Checkbox("Phong Model", &m_showPhongGUILight);
-			ImGui::Checkbox("BRDF Model", &m_showBRDFGUILight);
-
-			if (m_showPhongGUILight)
-			{
-				m_lightModelGUILight = 0;
-			}
-						
-			if (m_showBRDFGUILight)
-			{
-				m_lightModelGUILight = 1;
-			}
+			ImGui::RadioButton("Phong", &m_lightModelGUILight, 0); ImGui::SameLine();
+			ImGui::RadioButton("BRDF", &m_lightModelGUILight, 1);
 		}
 		
 		ImGui::SliderFloat3("Light Position", &m_lightPosGUILight.x, -400.0f, 400.0f);
 
 		ImGui::SliderFloat3("Light Color", &m_lightColorGUILight.x, 0.0f, 1.0f);
 
-		ImGui::SliderInt("Spec Intensity[Phong]", &m_SpecularIntensityGUILight, 2, 256);
+		if(!m_lightModelGUILight)
+			ImGui::SliderInt("Spec Intensity", &m_SpecularIntensityGUILight, 2, 256);
 
 		ImGui::SliderInt("Light Intensity", &m_lightIntensityGUILight, 2, 15);
 		

@@ -103,9 +103,7 @@ private:
 	glm::vec3	m_lightPosGUILight;
 	glm::vec3	m_lightColorGUILight;
 	int		m_SpecularIntensityGUILight;
-	int		m_lightModelGUILight;
-	bool m_showPhongGUILight;
-	bool m_showBRDFGUILight;
+	int		m_lightModelGUILight; // current lighting model
 	int  m_lightIntensityGUILight;
 
 	// Application related variables
