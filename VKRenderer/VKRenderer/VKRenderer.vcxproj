@@ -183,7 +183,6 @@
     <ClCompile Include="..\Common\Graphics\Material.cpp" />
     <ClCompile Include="Core\Application\Application.cpp" />
     <ClCompile Include="Core\Camera\Camera.cpp" />
-    <ClCompile Include="Core\Helper\Timer\vkTimer.cpp" />
     <ClCompile Include="Core\PCH\stdafx.cpp" />
     <ClCompile Include="Core\RendererVulkan\Renderer\vkRenderer.cpp" />
     <ClCompile Include="Core\ResourceLoading\ResourceLoader.cpp" />
@@ -217,7 +216,7 @@
     <ClInclude Include="Core\EventCallbacks\utilities\orderedqueuelist.h" />
     <ClInclude Include="Core\EventCallbacks\utilities\scopedremover.h" />
     <ClInclude Include="Core\Helper\Constants\Constans.hpp" />
-    <ClInclude Include="Core\Helper\Timer\vkTimer.h" />
+    <ClInclude Include="Core\Helper\Timer\BenchmarkHelper.hpp" />
     <ClInclude Include="Core\Helper\Validation Layer\ValidationLayer.hpp" />
     <ClInclude Include="Core\PCH\stdafx.h" />
     <ClInclude Include="Core\RendererVulkan\Renderer\vkRenderer.h" />
