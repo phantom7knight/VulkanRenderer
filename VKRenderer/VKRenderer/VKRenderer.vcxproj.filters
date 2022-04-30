@@ -52,6 +52,21 @@
     <Filter Include="Common\Graphics">
       <UniqueIdentifier>{75e311f3-812b-44ba-9d79-83ea7200e22d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Threading">
+      <UniqueIdentifier>{305de3d5-07b5-46b1-a349-81e43b2c0429}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EventCallbacks">
+      <UniqueIdentifier>{95656acb-941f-4cad-ad44-cb2f3d4d0a2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EventCallbacks\internal">
+      <UniqueIdentifier>{0efe70dd-3fea-4029-b894-c47f583b6179}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EventCallbacks\mixins">
+      <UniqueIdentifier>{703f6f03-a3dd-471c-a1a0-79a5fcc65a12}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EventCallbacks\utilities">
+      <UniqueIdentifier>{9daa76f6-bc87-4369-a0c8-c584122ee9d5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\RendererVulkan\Renderer\vkRenderer.cpp">
@@ -74,6 +89,9 @@
     </ClCompile>
     <ClCompile Include="..\Common\Graphics\Material.cpp">
       <Filter>Common\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Threading\thread_pool_test.cpp">
+      <Filter>Threading</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -106,6 +124,78 @@
     </ClInclude>
     <ClInclude Include="..\Common\Graphics\Material.h">
       <Filter>Common\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Threading\thread_pool.hpp">
+      <Filter>Threading</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\callbacklist.h">
+      <Filter>EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\eventdispatcher.h">
+      <Filter>EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\eventpolicies.h">
+      <Filter>EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\eventqueue.h">
+      <Filter>EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\hetercallbacklist.h">
+      <Filter>EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\hetereventdispatcher.h">
+      <Filter>EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\hetereventqueue.h">
+      <Filter>EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\internal\eventpolicies_i.h">
+      <Filter>EventCallbacks\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\internal\eventqueue_i.h">
+      <Filter>EventCallbacks\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\internal\hetercallbacklist_i.h">
+      <Filter>EventCallbacks\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\internal\typeutil_i.h">
+      <Filter>EventCallbacks\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\mixins\mixinfilter.h">
+      <Filter>EventCallbacks\mixins</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\mixins\mixinheterfilter.h">
+      <Filter>EventCallbacks\mixins</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\utilities\anyid.h">
+      <Filter>EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\utilities\argumentadapter.h">
+      <Filter>EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\utilities\conditionalfunctor.h">
+      <Filter>EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\utilities\conditionalremover.h">
+      <Filter>EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\utilities\counterremover.h">
+      <Filter>EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\utilities\eventmaker.h">
+      <Filter>EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\utilities\eventutil.h">
+      <Filter>EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\utilities\orderedqueuelist.h">
+      <Filter>EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\utilities\scopedremover.h">
+      <Filter>EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EventCallbacks\EventCPPIncludes.hpp">
+      <Filter>EventCallbacks</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -2,6 +2,7 @@
 
 #include "../../VKRenderer/Core/Application/Application.h"
 #include "../../Common/Graphics/Material.h"
+#include "../../VKRenderer/Core/Threading/thread_pool.hpp"
 
 struct ModelUBO
 {
@@ -26,6 +27,14 @@ struct LightInfoUBO
 		
 	}
 
+};
+
+// Model's buffer related
+struct ModelBuffersInfo
+{
+	BufferDesc VertexBUffer;
+	BufferDesc IndexBUffer;
+	int indexBufferCount = 0;
 };
 
 class Camera;
@@ -81,15 +90,15 @@ private:
 
 	void LoadAllTextures();
 
-private:
-
 	void LoadAModel(std::string fileName);
+
+	void LoadModelsResources();
+
 	void LoadTexture(std::string fileName, TextureBufferDesc* a_imageTex);
 
-	// Model's buffer related
-	BufferDesc VertexBUffer;
-	BufferDesc IndexBUffer;
-	int m_indexBufferCount = 0;
+private:
+
+	
 
 	CameraMatrices cam_matrices;
 
@@ -99,28 +108,33 @@ private:
 	TextureBufferDesc depthImageInfo;
 	
 
-	bool m_showGUILight;
+	// light related
+	bool		m_showGUILight;
 	glm::vec3	m_lightPosGUILight;
 	glm::vec3	m_lightColorGUILight;
-	int		m_SpecularIntensityGUILight;
-	int		m_lightModelGUILight; // current lighting model
-	int  m_lightIntensityGUILight;
+	int			m_SpecularIntensityGUILight;
+	int			m_lightModelGUILight; // current lighting model
+	int			m_lightIntensityGUILight;
 
 	// Application related variables
-	vkRenderer*						m_renderer;
-	VkRenderPass					m_renderPass;
-	VkCommandPool					m_commandPool;
-	VkDescriptorSetLayout			m_descriptorSetLayout;
-	VkDescriptorPool				m_DescriptorPool;
-	FrameBufferDesc					m_FBO;
-	GraphicsPipelineInfo			ModelGraphicsPipeline;
-	BufferDesc						m_ModelVertexBuffer;
-	BufferDesc						m_ModelIndexBuffer;
-	std::vector<VkCommandBuffer>	m_commandBuffers;
-	std::vector<BufferDesc>			m_ModelUniformBuffer;
-	std::vector<BufferDesc>			m_LightInfoUniformBuffer;
-	std::vector<VkDescriptorSet>	m_DescriptorSets;
-	size_t							m_currentFrame = 0;
+	vkRenderer* m_renderer;
+	VkRenderPass										m_renderPass;
+	VkCommandPool										m_commandPool;
+	VkDescriptorSetLayout								m_descriptorSetLayout;
+	VkDescriptorPool									m_DescriptorPool;
+	FrameBufferDesc										m_FBO;
+	GraphicsPipelineInfo								ModelGraphicsPipeline;
+	BufferDesc											m_ModelVertexBuffer;
+	BufferDesc											m_ModelIndexBuffer;
+	std::vector<VkCommandBuffer>						m_commandBuffers;
+	std::vector<BufferDesc>								m_ModelUniformBuffer;
+	std::vector<BufferDesc>								m_LightInfoUniformBuffer;
+	std::vector<VkDescriptorSet>						m_DescriptorSets;
+	size_t												m_currentFrame = 0;
+	std::unordered_map<std::string, ModelInfo>			m_modelInfos;
+	std::unordered_map<std::string, ModelBuffersInfo>	m_modelBufferInfos;
+
+	Threading::thread_pool pool;
 
 public:
 	ModelViewer();

@@ -3,6 +3,7 @@
 #include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
 #include "../../VKRenderer/Core/Camera/Camera.h"
 
+
 ModelViewer::ModelViewer() : m_showGUILight(true)
 {
 	//Initialize Renderer
@@ -475,7 +476,6 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 		ImGui::End();
 	}
 
-
 	Imgui_Impl::getInstance()->Gui_Render(a_cmdBuffer);
 }
 
@@ -520,13 +520,13 @@ void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 		VkDeviceSize offset = { 0 };
 
 		//Bind Vertex Buffer
-		vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &VertexBUffer.Buffer, &offset);
+		vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_modelBufferInfos["../../Assets/Models/Sphere/Sphere.fbx"].VertexBUffer.Buffer, &offset);
 
 		//Bind Index Buffer
-		vkCmdBindIndexBuffer(m_commandBuffers[i], IndexBUffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(m_commandBuffers[i], m_modelBufferInfos["../../Assets/Models/Sphere/Sphere.fbx"].IndexBUffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
 
 		//Call Draw Indexed for the model
-		vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_indexBufferCount), 1, 0, 0, 0);
+		vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_modelBufferInfos["../../Assets/Models/Sphere/Sphere.fbx"].indexBufferCount), 1, 0, 0, 0);
 		
 		//==================================================
 		//Draw UI
@@ -606,14 +606,27 @@ void ModelViewer::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_In
 
 void ModelViewer::LoadAModel(std::string fileName)
 {
-	ModelInfo modelinfor = 	m_renderer->rsrcLdr.LoadModelResource(fileName);
+	pool.push_task([this, fileName] () {
+		m_modelInfos[fileName] = m_renderer->rsrcLdr.LoadModelResource(fileName);
+		}
+	);
+}
 
-	//Load Index and Vertex Buffer
-	SetUpVertexBuffer(modelinfor, &VertexBUffer);
-	SetUpIndexBuffer(modelinfor	, &IndexBUffer);
+void ModelViewer::LoadModelsResources()
+{
+	for (const auto& [key, value] : m_modelInfos)
+	{
+		ModelBuffersInfo bufferInfo;
 
-	m_indexBufferCount = static_cast<uint32_t>(modelinfor.indexbufferData.size());
-	
+		//Load Index and Vertex Buffer
+		SetUpVertexBuffer(m_modelInfos[key], &bufferInfo.VertexBUffer);
+		SetUpIndexBuffer(m_modelInfos[key], &bufferInfo.IndexBUffer);
+
+		bufferInfo.indexBufferCount = static_cast<uint32_t>(m_modelInfos[key].indexbufferData.size());
+		std::string name = key;
+		m_modelBufferInfos[key] = bufferInfo;
+	}
+	return;
 }
 
 void ModelViewer::LoadTexture(std::string a_textureName, TextureBufferDesc * a_imageTex)
@@ -630,10 +643,19 @@ void ModelViewer::CreateImageTextureView()
 
 void ModelViewer::LoadAllTextures()
 {
-	//LoadTexture("../../Assets/Textures/Statue.jpg");
-	LoadTexture("../../Assets/Textures/Sphere/Albedo.png", &PBRMaterial.albedoMap);
-	LoadTexture("../../Assets/Textures/Sphere/Metallic.png", &PBRMaterial.metallicMap);
-	LoadTexture("../../Assets/Textures/Sphere/Roughness.png", &PBRMaterial.roughnessMap);
+	pool.push_task([this]() {
+		LoadTexture("../../Assets/Textures/Sphere/Albedo.png", &PBRMaterial.albedoMap);
+		});
+	
+		//LoadTexture("../../Assets/Textures/Statue.jpg");
+	pool.push_task([this]() {
+		LoadTexture("../../Assets/Textures/Sphere/Metallic.png", &PBRMaterial.metallicMap);
+		});
+
+	pool.push_task([this]() {
+		LoadTexture("../../Assets/Textures/Sphere/Roughness.png", &PBRMaterial.roughnessMap);
+		});
+	
 	//LoadTexture("../../Assets/Textures/Kabuto/Albedo.png");
 	//LoadTexture("../../Assets/Textures/green.jpg");
 }
@@ -729,20 +751,38 @@ void ModelViewer::PrepareApp()
 	CreateGraphicsPipeline();
 
 #pragma region Model_Load
-		//LoadAModel("../../Assets/Models/monkey/monkey.obj");
-		//LoadAModel("../../Assets/Models/monkey/suzanne.obj");
-		//LoadAModel("../../Assets/Models/ShaderBall/shaderBall.obj");
-		LoadAModel("../../Assets/Models/Sphere/Sphere.fbx");
-		//LoadAModel("../../Assets/Models/LowPoly/1.obj");
-		//LoadAModel("../../Assets/Models/Kabuto/Kabuto.fbx");
-		//LoadAModel("../../Assets/Models/cornell_box/cornell_box.obj");
-		//LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
-		//LoadAModel("../../Assets/Models/venus/venus.fbx");
+	LoadAModel("../../Assets/Models/monkey/monkey.obj");
+	LoadAModel("../../Assets/Models/monkey/suzanne.obj");
+	//LoadAModel("../../Assets/Models/ShaderBall/shaderBall.obj");
+	LoadAModel("../../Assets/Models/Sphere/Sphere.fbx");
+	//LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
+	LoadAModel("../../Assets/Models/venus/venus.fbx");
+
+	pool.wait_for_tasks();
+
+	// load each model's buffer info
+
+	pool.push_task([this]() {
+		LoadModelsResources();
+		});
+	pool.wait_for_tasks();
 #pragma endregion
 
 #pragma region Models_Tex
-		LoadAllTextures();
+	LoadAllTextures();
 #pragma endregion
+
+#if _DEBUG
+	auto completitionTask = []()
+	{
+		std::cout << "loading model and textures Task executed" << std::endl;
+	};
+
+	pool.submit(completitionTask);
+#endif
+
+	// wait for the tasks to finish
+	pool.wait_for_tasks();
 
 	CreateImageTextureView();
 	

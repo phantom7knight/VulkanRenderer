@@ -187,11 +187,35 @@
     <ClCompile Include="Core\PCH\stdafx.cpp" />
     <ClCompile Include="Core\RendererVulkan\Renderer\vkRenderer.cpp" />
     <ClCompile Include="Core\ResourceLoading\ResourceLoader.cpp" />
+    <ClCompile Include="Core\Threading\thread_pool_test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Common\Graphics\Material.h" />
     <ClInclude Include="Core\Application\Application.h" />
     <ClInclude Include="Core\Camera\Camera.h" />
+    <ClInclude Include="Core\EventCallbacks\callbacklist.h" />
+    <ClInclude Include="Core\EventCallbacks\EventCPPIncludes.hpp" />
+    <ClInclude Include="Core\EventCallbacks\eventdispatcher.h" />
+    <ClInclude Include="Core\EventCallbacks\eventpolicies.h" />
+    <ClInclude Include="Core\EventCallbacks\eventqueue.h" />
+    <ClInclude Include="Core\EventCallbacks\hetercallbacklist.h" />
+    <ClInclude Include="Core\EventCallbacks\hetereventdispatcher.h" />
+    <ClInclude Include="Core\EventCallbacks\hetereventqueue.h" />
+    <ClInclude Include="Core\EventCallbacks\internal\eventpolicies_i.h" />
+    <ClInclude Include="Core\EventCallbacks\internal\eventqueue_i.h" />
+    <ClInclude Include="Core\EventCallbacks\internal\hetercallbacklist_i.h" />
+    <ClInclude Include="Core\EventCallbacks\internal\typeutil_i.h" />
+    <ClInclude Include="Core\EventCallbacks\mixins\mixinfilter.h" />
+    <ClInclude Include="Core\EventCallbacks\mixins\mixinheterfilter.h" />
+    <ClInclude Include="Core\EventCallbacks\utilities\anyid.h" />
+    <ClInclude Include="Core\EventCallbacks\utilities\argumentadapter.h" />
+    <ClInclude Include="Core\EventCallbacks\utilities\conditionalfunctor.h" />
+    <ClInclude Include="Core\EventCallbacks\utilities\conditionalremover.h" />
+    <ClInclude Include="Core\EventCallbacks\utilities\counterremover.h" />
+    <ClInclude Include="Core\EventCallbacks\utilities\eventmaker.h" />
+    <ClInclude Include="Core\EventCallbacks\utilities\eventutil.h" />
+    <ClInclude Include="Core\EventCallbacks\utilities\orderedqueuelist.h" />
+    <ClInclude Include="Core\EventCallbacks\utilities\scopedremover.h" />
     <ClInclude Include="Core\Helper\Constants\Constans.hpp" />
     <ClInclude Include="Core\Helper\Timer\vkTimer.h" />
     <ClInclude Include="Core\Helper\Validation Layer\ValidationLayer.hpp" />
@@ -199,6 +223,7 @@
     <ClInclude Include="Core\RendererVulkan\Renderer\vkRenderer.h" />
     <ClInclude Include="Core\RendererVulkan\VulkanHelper\VulkanHelper.hpp" />
     <ClInclude Include="Core\ResourceLoading\ResourceLoader.h" />
+    <ClInclude Include="Core\Threading\thread_pool.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
