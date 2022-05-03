@@ -3,6 +3,8 @@
 #include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
 #include "../../VKRenderer/Core/Camera/Camera.h"
 
+#define Is_MT_Enabled 0
+
 
 ModelViewer::ModelViewer() : m_showGUILight(true)
 {
@@ -228,6 +230,7 @@ void ModelViewer::CreateFrameBuffers()
 void ModelViewer::CreateCommandPool()
 {
 	m_renderer->CreateCommandPool(&m_commandPool);
+	m_commandPoolList.push_back(m_commandPool);
 }
 
 void ModelViewer::CreateUniformBuffer()
@@ -590,29 +593,45 @@ void ModelViewer::SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_V
 {
 	VkDeviceSize bufferSize = a_modelDesc.vertexBufferSize;
 
+	VkCommandPool vertBuffcommandPool;
+
+	//create cmdpool
+	m_renderer->CreateCommandPool(&vertBuffcommandPool);
+	m_commandPoolList.push_back(vertBuffcommandPool);
+
 	m_renderer->CreateBuffer(a_modelDesc.vertexbufferData.data(), bufferSize, a_VertexBUffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-		m_commandPool);
+		vertBuffcommandPool);
 }
 
 void ModelViewer::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_IndexBUffer)
 {
 	VkDeviceSize bufferSize = a_modelDesc.indexBufferSize;
 
+	VkCommandPool indxBuffcommandPool;
+
+	//create cmdpool
+	m_renderer->CreateCommandPool(&indxBuffcommandPool);
+	m_commandPoolList.push_back(indxBuffcommandPool);
+
 	m_renderer->CreateBuffer(a_modelDesc.indexbufferData.data(), bufferSize, a_IndexBUffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-		m_commandPool);
+		indxBuffcommandPool);
 
 	return;
 }
 
 void ModelViewer::LoadAModel(std::string fileName)
 {
+#if Is_MT_Enabled 1
 	pool.push_task([this, fileName] () {
 		m_modelInfos[fileName] = m_renderer->rsrcLdr.LoadModelResource(fileName);
 		}
 	);
+#else
+	m_modelInfos[fileName] = m_renderer->rsrcLdr.LoadModelResource(fileName);
+#endif
 }
 
-void ModelViewer::LoadModelsResources()
+void ModelViewer::LoadModelsBufferResources()
 {
 	for (const auto& [key, value] : m_modelInfos)
 	{
@@ -631,7 +650,14 @@ void ModelViewer::LoadModelsResources()
 
 void ModelViewer::LoadTexture(std::string a_textureName, TextureBufferDesc * a_imageTex)
 {
-	m_renderer->LoadImageTexture(a_textureName, a_imageTex, m_commandPool, m_commandBuffers.data());
+	// todo_rt: create a new cmd pool
+	VkCommandPool imageBuffcommandPool;
+
+	//create cmdpool
+	m_renderer->CreateCommandPool(&imageBuffcommandPool);
+	m_commandPoolList.push_back(imageBuffcommandPool);
+
+	m_renderer->LoadImageTexture(a_textureName, a_imageTex, imageBuffcommandPool, m_commandBuffers.data());
 }
 
 void ModelViewer::CreateImageTextureView()
@@ -643,11 +669,15 @@ void ModelViewer::CreateImageTextureView()
 
 void ModelViewer::LoadAllTextures()
 {
+
+	
+
+#if Is_MT_Enabled 1
 	pool.push_task([this]() {
 		LoadTexture("../../Assets/Textures/Sphere/Albedo.png", &PBRMaterial.albedoMap);
 		});
-	
-		//LoadTexture("../../Assets/Textures/Statue.jpg");
+
+	//LoadTexture("../../Assets/Textures/Statue.jpg");
 	pool.push_task([this]() {
 		LoadTexture("../../Assets/Textures/Sphere/Metallic.png", &PBRMaterial.metallicMap);
 		});
@@ -655,9 +685,16 @@ void ModelViewer::LoadAllTextures()
 	pool.push_task([this]() {
 		LoadTexture("../../Assets/Textures/Sphere/Roughness.png", &PBRMaterial.roughnessMap);
 		});
-	
+#else
+	LoadTexture("../../Assets/Textures/Sphere/Albedo.png", &PBRMaterial.albedoMap);
+	LoadTexture("../../Assets/Textures/Sphere/Metallic.png", &PBRMaterial.metallicMap);
+	LoadTexture("../../Assets/Textures/Sphere/Roughness.png", &PBRMaterial.roughnessMap);
 	//LoadTexture("../../Assets/Textures/Kabuto/Albedo.png");
 	//LoadTexture("../../Assets/Textures/green.jpg");
+#endif
+	
+	
+	
 }
 
 void ModelViewer::CreateTextureSampler()
@@ -693,6 +730,41 @@ void ModelViewer::CreateDepthResources()
 
 	//TransitionImageLayouts(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 	
+}
+
+void ModelViewer::ResourcesLoading()
+{
+
+#pragma region Model_Load
+	LoadAModel("../../Assets/Models/monkey/monkey.obj");
+	LoadAModel("../../Assets/Models/monkey/suzanne.obj");
+	//LoadAModel("../../Assets/Models/ShaderBall/shaderBall.obj");
+	LoadAModel("../../Assets/Models/Sphere/Sphere.fbx");
+	//LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
+	LoadAModel("../../Assets/Models/venus/venus.fbx");
+
+	pool.wait_for_tasks();
+
+	// load each model's buffer info
+	LoadModelsBufferResources();
+	
+#pragma endregion
+
+#pragma region Models_Tex
+	LoadAllTextures();
+#pragma endregion
+
+#if _DEBUG
+	auto completitionTask = []()
+	{
+		std::cout << "loading model and textures Task executed" << std::endl;
+	};
+
+	pool.submit(completitionTask);
+#endif
+
+	// wait for the tasks to finish
+	pool.wait_for_tasks();
 }
 
 void ModelViewer::setGuiVariables()
@@ -750,39 +822,7 @@ void ModelViewer::PrepareApp()
 	
 	CreateGraphicsPipeline();
 
-#pragma region Model_Load
-	LoadAModel("../../Assets/Models/monkey/monkey.obj");
-	LoadAModel("../../Assets/Models/monkey/suzanne.obj");
-	//LoadAModel("../../Assets/Models/ShaderBall/shaderBall.obj");
-	LoadAModel("../../Assets/Models/Sphere/Sphere.fbx");
-	//LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
-	LoadAModel("../../Assets/Models/venus/venus.fbx");
-
-	pool.wait_for_tasks();
-
-	// load each model's buffer info
-
-	pool.push_task([this]() {
-		LoadModelsResources();
-		});
-	pool.wait_for_tasks();
-#pragma endregion
-
-#pragma region Models_Tex
-	LoadAllTextures();
-#pragma endregion
-
-#if _DEBUG
-	auto completitionTask = []()
-	{
-		std::cout << "loading model and textures Task executed" << std::endl;
-	};
-
-	pool.submit(completitionTask);
-#endif
-
-	// wait for the tasks to finish
-	pool.wait_for_tasks();
+	ResourcesLoading();
 
 	CreateImageTextureView();
 	
@@ -803,7 +843,6 @@ void ModelViewer::PrepareApp()
 	
 	//Initialize Dear ImGui
 	InitGui();
-
 }
 
 void ModelViewer::Update(float deltaTime)
@@ -872,7 +911,6 @@ void ModelViewer::Destroy()
 	vkDestroyImage(m_renderer->m_device, depthImageInfo.BufferImage, nullptr);
 	vkFreeMemory(m_renderer->m_device, depthImageInfo.BufferMemory, nullptr);
 
-
 	vkDestroySampler(m_renderer->m_device, PBRMaterial.albedoMap.Sampler, nullptr);
 	vkDestroyImageView(m_renderer->m_device, PBRMaterial.albedoMap.ImageView, nullptr);
 	vkDestroySampler(m_renderer->m_device, PBRMaterial.metallicMap.Sampler, nullptr);
@@ -921,7 +959,9 @@ void ModelViewer::Destroy()
 	vkDestroyBuffer(m_renderer->m_device, m_ModelVertexBuffer.Buffer, nullptr);
 	vkFreeMemory(m_renderer->m_device, m_ModelVertexBuffer.BufferMemory, nullptr);
 
-	vkDestroyCommandPool(m_renderer->m_device, m_commandPool, nullptr);
+	// clear all the allocated CommandPools
+	for(auto cmdPool: m_commandPoolList)
+		vkDestroyCommandPool(m_renderer->m_device, cmdPool, nullptr);
 
 	// Remove all the Vulkan related intialized values
 	m_renderer->Destroy();

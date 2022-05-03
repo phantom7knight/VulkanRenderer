@@ -5,7 +5,6 @@
 
 #include "../VulkanHelper/VulkanHelper.hpp"
 
-
 VkInstance vkRenderer::getVulkanInstance()
 {
 	return m_VulkanInstance;
@@ -835,11 +834,14 @@ void vkRenderer::SubmissionAndPresentation(FrameSubmissionDesc a_frameSubmission
 
 	vkResetFences(m_device, 1, &m_inflightFences[a_frameSubmissionDesc.currentFrameNumber]);
 
-	if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inflightFences[a_frameSubmissionDesc.currentFrameNumber]) != VK_SUCCESS)
 	{
-		throw std::runtime_error("Failed to submit Draw Command Buffers");
-	}
+		std::unique_lock<std::mutex> lock(m_submitMutex);
 
+		if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inflightFences[a_frameSubmissionDesc.currentFrameNumber]) != VK_SUCCESS)
+		{
+			throw std::runtime_error("Failed to submit Draw Command Buffers");
+		}
+	}
 
 	VkPresentInfoKHR presentInfo = {};
 

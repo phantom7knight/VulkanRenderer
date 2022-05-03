@@ -6,19 +6,25 @@
 #include <fstream>
 #include <stdlib.h>
 #include <memory.h>
-#include <vector>
 #include <cstring>
 #include <string>
 #include <string.h>
 #include <optional>
-#include <map>
-#include <set>
 #include <algorithm>
-#include <array>
 #include <direct.h>
 #include <chrono>
+
+// structures
+#include <set>
+#include <vector>
+#include <array>
 #include <map>
 #include <unordered_map>
+
+// Threading
+#include <mutex>
+#include <thread>
+#include <condition_variable>
 
 #define GLFW_INCLUDE_VULKAN
 #include "../../../Dependencies/GLFW/include/GLFW/glfw3.h"

@@ -92,9 +92,11 @@ private:
 
 	void LoadAModel(std::string fileName);
 
-	void LoadModelsResources();
+	void LoadModelsBufferResources();
 
 	void LoadTexture(std::string fileName, TextureBufferDesc* a_imageTex);
+
+	void ResourcesLoading();
 
 private:
 
@@ -120,6 +122,7 @@ private:
 	vkRenderer* m_renderer;
 	VkRenderPass										m_renderPass;
 	VkCommandPool										m_commandPool;
+	std::vector<VkCommandPool>							m_commandPoolList;
 	VkDescriptorSetLayout								m_descriptorSetLayout;
 	VkDescriptorPool									m_DescriptorPool;
 	FrameBufferDesc										m_FBO;

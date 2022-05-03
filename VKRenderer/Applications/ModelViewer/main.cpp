@@ -1,6 +1,7 @@
 #include "../../VKRenderer/Core/PCH/stdafx.h"
 #include "../../VKRenderer/Core/Application/Application.h"
 #include "../../VKRenderer/Core/Camera/Camera.h"
+#include "../../VKRenderer/Core/Helper/Timer/BenchmarkHelper.hpp"
 #include "ModelViewer.h"
 
 GLfloat deltaTime = 0.0f;
@@ -57,7 +58,10 @@ int main()
 	//Initalize Vulkan and GLFW for window.
 	rendererExample->Init(); 
 
-	rendererExample->PrepareApp();
+	{
+		Timer time("Model Viewer App Preparation");
+		rendererExample->PrepareApp();
+	}
 
 	MainLoop(rendererExample);
 	

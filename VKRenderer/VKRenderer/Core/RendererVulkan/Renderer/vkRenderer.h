@@ -160,6 +160,8 @@ public:
 	std::vector<VkSemaphore>			m_renderFinishedSemaphore;
 
 	std::vector<VkFence>				m_inflightFences;
+
+	std::mutex							m_submitMutex;
 #pragma endregion
 };
 
