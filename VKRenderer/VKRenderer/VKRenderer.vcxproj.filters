@@ -58,14 +58,26 @@
     <Filter Include="EventCallbacks">
       <UniqueIdentifier>{95656acb-941f-4cad-ad44-cb2f3d4d0a2a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="EventCallbacks\internal">
-      <UniqueIdentifier>{0efe70dd-3fea-4029-b894-c47f583b6179}</UniqueIdentifier>
+    <Filter Include="ObserverModel">
+      <UniqueIdentifier>{3516aa55-9381-4196-8c09-e32cddc9cd60}</UniqueIdentifier>
     </Filter>
-    <Filter Include="EventCallbacks\mixins">
-      <UniqueIdentifier>{703f6f03-a3dd-471c-a1a0-79a5fcc65a12}</UniqueIdentifier>
+    <Filter Include="ObserverModel\EventCallbacks">
+      <UniqueIdentifier>{47abe272-25d7-4a54-a27f-7bb33b18a87b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="EventCallbacks\utilities">
-      <UniqueIdentifier>{9daa76f6-bc87-4369-a0c8-c584122ee9d5}</UniqueIdentifier>
+    <Filter Include="ObserverModel\SignalSlot">
+      <UniqueIdentifier>{22681a4f-2c0c-48a6-b562-4b593b786891}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ObserverModel\SignalSlot\adapter">
+      <UniqueIdentifier>{386746ec-c4b9-4731-a7f8-15cd901ffa89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ObserverModel\EventCallbacks\internal">
+      <UniqueIdentifier>{45a4b9b5-12a3-4f62-b559-06510f4f8821}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ObserverModel\EventCallbacks\minxins">
+      <UniqueIdentifier>{49cd0c78-4bad-4e08-82df-93f76f8a9b73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ObserverModel\EventCallbacks\utilities">
+      <UniqueIdentifier>{3452ef3e-a149-4dce-9dbd-0ef78754a1d3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -122,77 +134,86 @@
     <ClInclude Include="Core\Threading\thread_pool.hpp">
       <Filter>Threading</Filter>
     </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\callbacklist.h">
-      <Filter>EventCallbacks</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\eventdispatcher.h">
-      <Filter>EventCallbacks</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\eventpolicies.h">
-      <Filter>EventCallbacks</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\eventqueue.h">
-      <Filter>EventCallbacks</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\hetercallbacklist.h">
-      <Filter>EventCallbacks</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\hetereventdispatcher.h">
-      <Filter>EventCallbacks</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\hetereventqueue.h">
-      <Filter>EventCallbacks</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\internal\eventpolicies_i.h">
-      <Filter>EventCallbacks\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\internal\eventqueue_i.h">
-      <Filter>EventCallbacks\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\internal\hetercallbacklist_i.h">
-      <Filter>EventCallbacks\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\internal\typeutil_i.h">
-      <Filter>EventCallbacks\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\mixins\mixinfilter.h">
-      <Filter>EventCallbacks\mixins</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\mixins\mixinheterfilter.h">
-      <Filter>EventCallbacks\mixins</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\utilities\anyid.h">
-      <Filter>EventCallbacks\utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\utilities\argumentadapter.h">
-      <Filter>EventCallbacks\utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\utilities\conditionalfunctor.h">
-      <Filter>EventCallbacks\utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\utilities\conditionalremover.h">
-      <Filter>EventCallbacks\utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\utilities\counterremover.h">
-      <Filter>EventCallbacks\utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\utilities\eventmaker.h">
-      <Filter>EventCallbacks\utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\utilities\eventutil.h">
-      <Filter>EventCallbacks\utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\utilities\orderedqueuelist.h">
-      <Filter>EventCallbacks\utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\utilities\scopedremover.h">
-      <Filter>EventCallbacks\utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\EventCallbacks\EventCPPIncludes.hpp">
-      <Filter>EventCallbacks</Filter>
-    </ClInclude>
     <ClInclude Include="Core\Helper\Timer\BenchmarkHelper.hpp">
       <Filter>Helpers\Time</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\SignalSlot\sigslot\signal.hpp">
+      <Filter>ObserverModel\SignalSlot</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\SignalSlot\sigslot\adapter\boost.hpp">
+      <Filter>ObserverModel\SignalSlot\adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\SignalSlot\sigslot\adapter\qt.hpp">
+      <Filter>ObserverModel\SignalSlot\adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\callbacklist.h">
+      <Filter>ObserverModel\EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\EventCPPIncludes.hpp">
+      <Filter>ObserverModel\EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\eventdispatcher.h">
+      <Filter>ObserverModel\EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\eventpolicies.h">
+      <Filter>ObserverModel\EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\eventqueue.h">
+      <Filter>ObserverModel\EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\hetercallbacklist.h">
+      <Filter>ObserverModel\EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\hetereventdispatcher.h">
+      <Filter>ObserverModel\EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\hetereventqueue.h">
+      <Filter>ObserverModel\EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\anyid.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\argumentadapter.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\conditionalfunctor.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\conditionalremover.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\counterremover.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\eventmaker.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\eventutil.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\orderedqueuelist.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\scopedremover.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\mixins\mixinfilter.h">
+      <Filter>ObserverModel\EventCallbacks\minxins</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\mixins\mixinheterfilter.h">
+      <Filter>ObserverModel\EventCallbacks\minxins</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\internal\eventpolicies_i.h">
+      <Filter>ObserverModel\EventCallbacks\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\internal\eventqueue_i.h">
+      <Filter>ObserverModel\EventCallbacks\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\internal\hetercallbacklist_i.h">
+      <Filter>ObserverModel\EventCallbacks\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\internal\typeutil_i.h">
+      <Filter>ObserverModel\EventCallbacks\internal</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
