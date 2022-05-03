@@ -2,6 +2,7 @@
 #include "../../Dependencies/Imgui/IMGUI/Imgui_Impl.h"
 #include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
 #include "../../VKRenderer/Core/Camera/Camera.h"
+#include "../../../Dependencies/Optick/src/optick.h"
 
 #define Is_MT_Enabled 0
 
@@ -669,10 +670,11 @@ void ModelViewer::CreateImageTextureView()
 
 void ModelViewer::LoadAllTextures()
 {
-
+	OPTICK_FRAME("Loading Textures");
 	
 
 #if Is_MT_Enabled 1
+
 	pool.push_task([this]() {
 		LoadTexture("../../Assets/Textures/Sphere/Albedo.png", &PBRMaterial.albedoMap);
 		});

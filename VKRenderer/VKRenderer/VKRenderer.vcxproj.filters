@@ -79,6 +79,9 @@
     <Filter Include="ObserverModel\EventCallbacks\utilities">
       <UniqueIdentifier>{3452ef3e-a149-4dce-9dbd-0ef78754a1d3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Profiler">
+      <UniqueIdentifier>{636b3669-b077-406e-b556-31aa1a876f05}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\RendererVulkan\Renderer\vkRenderer.cpp">
@@ -101,6 +104,33 @@
     </ClCompile>
     <ClCompile Include="Core\Threading\thread_pool_test.cpp">
       <Filter>Threading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_capi.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_core.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_gpu.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_gpu.d3d12.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_gpu.vulkan.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_message.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_miniz.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_serialization.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_server.cpp">
+      <Filter>Profiler</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -214,6 +244,54 @@
     </ClInclude>
     <ClInclude Include="Core\ObserverModels\EventCallbacks\internal\typeutil_i.h">
       <Filter>ObserverModel\EventCallbacks\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick.config.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_capi.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_common.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.freebsd.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.linux.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.macos.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.platform.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.win.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_gpu.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_memory.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_message.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_miniz.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_serialization.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_server.h">
+      <Filter>Profiler</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

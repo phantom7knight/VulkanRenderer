@@ -2,6 +2,8 @@
 #include "../../VKRenderer/Core/Application/Application.h"
 #include "../../VKRenderer/Core/Camera/Camera.h"
 #include "../../VKRenderer/Core/Helper/Timer/BenchmarkHelper.hpp"
+#include "../../../Dependencies/Optick/src/optick.h"
+
 #include "ModelViewer.h"
 
 GLfloat deltaTime = 0.0f;
@@ -19,6 +21,8 @@ void MainLoop(Application* rendererExample)
 	
 	while (!glfwWindowShouldClose(rendererExample->getRenderer()->getWindow()))
 	{
+		OPTICK_FRAME("MainThread Loop");
+
 		GLfloat currentFrame = (GLfloat)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
@@ -56,12 +60,9 @@ int main()
 	Application* rendererExample = new ModelViewer();
 
 	//Initalize Vulkan and GLFW for window.
-	rendererExample->Init(); 
+	rendererExample->Init();
 
-	{
-		Timer time("Model Viewer App Preparation");
-		rendererExample->PrepareApp();
-	}
+	rendererExample->PrepareApp();
 
 	MainLoop(rendererExample);
 	
