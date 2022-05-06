@@ -1,7 +1,7 @@
 #include "Triangle.h"
 
 //===================================================================
-//Vertex Buffer Use
+//Vertex buffer Use
 //===================================================================
 
 struct TriangleVertex
@@ -104,11 +104,11 @@ void Triangle::CreateGraphicsPipeline()
 	ShaderFileNames[0] = "Basic.vert";
 	ShaderFileNames[1] = "Basic.frag";
 
-	TrianglePipeline.ShaderFileNames = ShaderFileNames;
+	TrianglePipeline.shaderFileNames = ShaderFileNames;
 
 	// Vertex Input
 	TrianglePipeline.vertexBindingDesc = TriangleVertex::getBindingDescription();
-	TrianglePipeline.AttributeDescriptionsofVertex = TriangleVertex::getAttributeDescriptionsofVertex();
+	TrianglePipeline.attributeDescriptionsofVertex = TriangleVertex::getAttributeDescriptionsofVertex();
 	
 	// Input Assembly
 	TrianglePipeline.pipelineTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -122,7 +122,7 @@ void Triangle::CreateGraphicsPipeline()
 	
 
 	//Create Pipeline Layout b4 creating Graphics Pipeline
-	TrianglePipeline.a_descriptorSetLayout = m_descriptorSetLayout;
+	TrianglePipeline.descriptorSetLayout = m_descriptorSetLayout;
 
 	TrianglePipeline.renderPass = m_renderPass;
 	TrianglePipeline.subpass = 0;
@@ -142,7 +142,7 @@ void Triangle::CreateRenderPass()
 
 	attachmentDescriptions.resize(1);
 
-	attachmentDescriptions[0].format = m_renderer->m_swapChainDescription.m_swapChainFormat;
+	attachmentDescriptions[0].format = m_renderer->m_swapChainDescription.swapChainFormat;
 	attachmentDescriptions[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;	
 	attachmentDescriptions[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 	attachmentDescriptions[0].samples = VK_SAMPLE_COUNT_1_BIT;
@@ -188,18 +188,18 @@ void Triangle::CreateRenderPass()
 //===================================================================
 void Triangle::CreateFrameBuffers()
 {
-	m_renderer->m_swapChainFrameBuffer.resize(m_renderer->m_swapChainDescription.m_SwapChainImageViews.size());
+	m_renderer->m_swapChainFrameBuffer.resize(m_renderer->m_swapChainDescription.swapChainImageViews.size());
 
-	for (uint32_t i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImageViews.size(); ++i)
+	for (uint32_t i = 0; i < m_renderer->m_swapChainDescription.swapChainImageViews.size(); ++i)
 	{
-		std::vector<VkImageView> attachmentsVector = { m_renderer->m_swapChainDescription.m_SwapChainImageViews[i] };
+		std::vector<VkImageView> attachmentsVector = { m_renderer->m_swapChainDescription.swapChainImageViews[i] };
 
 		m_FBO.attachmentCount = 1;
-		m_FBO.FBOHeight = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
-		m_FBO.FBOWidth	= m_renderer->m_swapChainDescription.m_swapChainExtent.width;
-		m_FBO.Attachments = attachmentsVector;
+		m_FBO.fboHeight = m_renderer->m_swapChainDescription.swapChainExtent.height;
+		m_FBO.fboWidth	= m_renderer->m_swapChainDescription.swapChainExtent.width;
+		m_FBO.attachments = attachmentsVector;
 
-		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFrameBuffer[i].FrameBuffer);
+		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFrameBuffer[i].frameBuffer);
 	}
 
 }
@@ -221,10 +221,10 @@ void Triangle::CreateCommandBuffers()
 {
 	m_commandBuffers.resize(m_renderer->m_swapChainFrameBuffer.size());
 	
-	//Allocate Command Buffer
+	//Allocate Command buffer
 	m_renderer->AllocateCommandBuffers(m_commandBuffers, m_commandPool);
 
-	//Record Command Buffer data
+	//Record Command buffer data
 	for (size_t i = 0; i < m_commandBuffers.size(); ++i)
 	{
 		VkCommandBufferBeginInfo beginInfo = {};
@@ -236,16 +236,16 @@ void Triangle::CreateCommandBuffers()
 		//Start Recording
 		if (vkBeginCommandBuffer(m_commandBuffers[i], &beginInfo) != VK_SUCCESS)
 		{
-			throw std::runtime_error("Unable to begin recording Command Buffer");
+			throw std::runtime_error("Unable to begin recording Command buffer");
 		}
 
 			VkRenderPassBeginInfo renderpassBeginInfo = {};
 
 			renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 			renderpassBeginInfo.renderPass = m_renderPass;
-			renderpassBeginInfo.framebuffer = m_renderer->m_swapChainFrameBuffer[i].FrameBuffer;// m_swapChainFrameBuffer[i];
+			renderpassBeginInfo.framebuffer = m_renderer->m_swapChainFrameBuffer[i].frameBuffer;// m_swapChainFrameBuffer[i];
 			renderpassBeginInfo.renderArea.offset = { 0,0 };
-			renderpassBeginInfo.renderArea.extent = m_renderer->m_swapChainDescription.m_swapChainExtent;
+			renderpassBeginInfo.renderArea.extent = m_renderer->m_swapChainDescription.swapChainExtent;
 
 
 			//Clear Color//
@@ -256,17 +256,17 @@ void Triangle::CreateCommandBuffers()
 
 			vkCmdBeginRenderPass(m_commandBuffers[i], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-				vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, TrianglePipeline.a_Pipeline);
+				vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, TrianglePipeline.pipeline);
 
-				VkBuffer vertexBuffers[] = { m_TriangleVertexBuffer.Buffer };
+				VkBuffer vertexBuffers[] = { m_TriangleVertexBuffer.buffer };
 				VkDeviceSize offset = { 0 };
-				vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_TriangleVertexBuffer.Buffer, &offset);
+				vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_TriangleVertexBuffer.buffer, &offset);
 
-				vkCmdBindIndexBuffer(m_commandBuffers[i], m_RectangleIndexBuffer.Buffer, 0, VK_INDEX_TYPE_UINT16);
+				vkCmdBindIndexBuffer(m_commandBuffers[i], m_RectangleIndexBuffer.buffer, 0, VK_INDEX_TYPE_UINT16);
 
 				//vkCmdDraw(m_commandBuffers[i], static_cast<uint32_t>(Triangle_vertices.size()), 1, 0, 0);
 
-				vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, TrianglePipeline.a_pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
+				vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, TrianglePipeline.pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
 
 				vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(Rectangle_Indices.size()), 1, 0, 0, 0);
 
@@ -275,7 +275,7 @@ void Triangle::CreateCommandBuffers()
 		//End Recording
 		if (vkEndCommandBuffer(m_commandBuffers[i]) != VK_SUCCESS)
 		{
-			throw std::runtime_error("Failed to record Command Buffer");
+			throw std::runtime_error("Failed to record Command buffer");
 		}
 
 	}
@@ -293,7 +293,7 @@ void Triangle::CreateSemaphoresandFences()
 
 
 //=====================================================================================================================
-//Create & Update Uniform Buffer[Generalize this]
+//Create & Update Uniform buffer[Generalize this]
 //=====================================================================================================================
 
 
@@ -301,14 +301,14 @@ void Triangle::CreateUniformBuffer()
 {
 	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 
-	m_TriangleUniformBuffer.resize(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+	m_TriangleUniformBuffer.resize(m_renderer->m_swapChainDescription.swapChainImages.size());
 	
-	for (int i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImages.size(); ++i)
+	for (int i = 0; i < m_renderer->m_swapChainDescription.swapChainImages.size(); ++i)
 
 	{		
 		m_renderer->CreateBufferWithoutStaging(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-			m_TriangleUniformBuffer[i].Buffer, m_TriangleUniformBuffer[i].BufferMemory);
+			m_TriangleUniformBuffer[i].buffer, m_TriangleUniformBuffer[i].bufferMemory);
 	}
 
 	return;
@@ -328,22 +328,22 @@ void Triangle::UpdateUniformBuffer(uint32_t a_imageIndex, float a_deltaTime)
 	mvp_UBO.ViewMatrix = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 	//Projection Matrix
-	mvp_UBO.ProjectionMatrix = glm::perspective(glm::radians(45.0f), m_renderer->m_swapChainDescription.m_swapChainExtent.width / (float)m_renderer->m_swapChainDescription.m_swapChainExtent.height, 0.1f, 10.0f);
+	mvp_UBO.ProjectionMatrix = glm::perspective(glm::radians(45.0f), m_renderer->m_swapChainDescription.swapChainExtent.width / (float)m_renderer->m_swapChainDescription.swapChainExtent.height, 0.1f, 10.0f);
 	mvp_UBO.ProjectionMatrix[1][1] *= -1;
 
 	//Copy the data
 
 	void* data;
 
-	vkMapMemory(m_renderer->m_device, m_TriangleUniformBuffer[a_imageIndex].BufferMemory, 0, sizeof(mvp_UBO), 0, &data);
+	vkMapMemory(m_renderer->m_device, m_TriangleUniformBuffer[a_imageIndex].bufferMemory, 0, sizeof(mvp_UBO), 0, &data);
 	memcpy(data, &mvp_UBO, sizeof(mvp_UBO));
-	vkUnmapMemory(m_renderer->m_device, m_TriangleUniformBuffer[a_imageIndex].BufferMemory);
+	vkUnmapMemory(m_renderer->m_device, m_TriangleUniformBuffer[a_imageIndex].bufferMemory);
 
 
 }
 
 //===================================================================
-//Create Index Buffer
+//Create Index buffer
 //===================================================================
 
 void Triangle::CreateIndexBuffer()
@@ -356,7 +356,7 @@ void Triangle::CreateIndexBuffer()
 }
 
 //===================================================================
-//Creaate Vertex Buffer
+//Creaate Vertex buffer
 //===================================================================
 
 void Triangle::CreateVertexBuffer()//Make this Generic
@@ -405,9 +405,9 @@ void Triangle::CreateDescriptorPool()
 	poolSize.resize(1);
 
 	poolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSize[0].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+	poolSize[0].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.swapChainImages.size());
 
-	m_renderer->CreateDescriptorPool(poolSize, static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size()),
+	m_renderer->CreateDescriptorPool(poolSize, static_cast<uint32_t>(m_renderer->m_swapChainDescription.swapChainImages.size()),
 		1, &m_DescriptorPool);
 }
 
@@ -425,7 +425,7 @@ void Triangle::CreateDesciptorSets()
 	descriptorWriteInfo[0].pImageInfo = nullptr;
 	descriptorWriteInfo[0].pTexelBufferView = nullptr;
 
-	m_renderer->CreateDesciptorSets(m_renderer->m_swapChainDescription.m_SwapChainImages.size(), m_descriptorSetLayout,
+	m_renderer->CreateDesciptorSets(m_renderer->m_swapChainDescription.swapChainImages.size(), m_descriptorSetLayout,
 		m_TriangleUniformBuffer, sizeof(UniformBufferObject), descriptorWriteInfo, m_DescriptorPool,
 		m_DescriptorSets);
 
@@ -571,30 +571,30 @@ void Triangle::Destroy()
 {
 	vkFreeCommandBuffers(m_renderer->m_device, m_commandPool, static_cast<uint32_t>(m_commandBuffers.size()), m_commandBuffers.data());
 
-	vkDestroyPipeline(m_renderer->m_device, TrianglePipeline.a_Pipeline, nullptr);
+	vkDestroyPipeline(m_renderer->m_device, TrianglePipeline.pipeline, nullptr);
 
-	vkDestroyPipelineLayout(m_renderer->m_device, TrianglePipeline.a_pipelineLayout, nullptr);
+	vkDestroyPipelineLayout(m_renderer->m_device, TrianglePipeline.pipelineLayout, nullptr);
 
 	vkDestroyRenderPass(m_renderer->m_device, m_renderPass, nullptr);
 
-	for (size_t i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImages.size(); ++i)
+	for (size_t i = 0; i < m_renderer->m_swapChainDescription.swapChainImages.size(); ++i)
 	{
 		//Triangle's UBO
-		vkDestroyBuffer(m_renderer->m_device, m_TriangleUniformBuffer[i].Buffer, nullptr);
-		vkFreeMemory(m_renderer->m_device, m_TriangleUniformBuffer[i].BufferMemory, nullptr);
+		vkDestroyBuffer(m_renderer->m_device, m_TriangleUniformBuffer[i].buffer, nullptr);
+		vkFreeMemory(m_renderer->m_device, m_TriangleUniformBuffer[i].bufferMemory, nullptr);
 	}
 
 	vkDestroyDescriptorPool(m_renderer->m_device, m_DescriptorPool, nullptr);
 
 	vkDestroyDescriptorSetLayout(m_renderer->m_device, m_descriptorSetLayout, nullptr);
 
-	//Destroy Rectangle Index Buffer
-	vkDestroyBuffer(m_renderer->m_device, m_RectangleIndexBuffer.Buffer, nullptr);
-	vkFreeMemory(m_renderer->m_device, m_RectangleIndexBuffer.BufferMemory, nullptr);
+	//Destroy Rectangle Index buffer
+	vkDestroyBuffer(m_renderer->m_device, m_RectangleIndexBuffer.buffer, nullptr);
+	vkFreeMemory(m_renderer->m_device, m_RectangleIndexBuffer.bufferMemory, nullptr);
 
-	//Destroy Triangle Index Buffer
-	vkDestroyBuffer(m_renderer->m_device, m_TriangleVertexBuffer.Buffer, nullptr);
-	vkFreeMemory(m_renderer->m_device, m_TriangleVertexBuffer.BufferMemory, nullptr);
+	//Destroy Triangle Index buffer
+	vkDestroyBuffer(m_renderer->m_device, m_TriangleVertexBuffer.buffer, nullptr);
+	vkFreeMemory(m_renderer->m_device, m_TriangleVertexBuffer.bufferMemory, nullptr);
 
 	vkDestroyCommandPool(m_renderer->m_device, m_commandPool, nullptr);
 

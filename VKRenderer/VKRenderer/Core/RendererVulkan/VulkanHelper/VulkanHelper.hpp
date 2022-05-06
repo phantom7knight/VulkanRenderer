@@ -261,18 +261,18 @@ namespace VulkanHelper
 
 		//Create Swap Chain
 
-		if (vkCreateSwapchainKHR(a_device, &createInfo, nullptr, &a_swapChainDescription->m_swapChain) != VK_SUCCESS)
+		if (vkCreateSwapchainKHR(a_device, &createInfo, nullptr, &a_swapChainDescription->swapChain) != VK_SUCCESS)
 		{
 			throw std::runtime_error("Unable/Failed to create Swap Chain");
 		}
 
-		vkGetSwapchainImagesKHR(a_device, a_swapChainDescription->m_swapChain, &imageCount, nullptr);
-		a_swapChainDescription->m_SwapChainImages.resize(imageCount);
-		vkGetSwapchainImagesKHR(a_device, a_swapChainDescription->m_swapChain, &imageCount, a_swapChainDescription->m_SwapChainImages.data());
+		vkGetSwapchainImagesKHR(a_device, a_swapChainDescription->swapChain, &imageCount, nullptr);
+		a_swapChainDescription->swapChainImages.resize(imageCount);
+		vkGetSwapchainImagesKHR(a_device, a_swapChainDescription->swapChain, &imageCount, a_swapChainDescription->swapChainImages.data());
 
 		//store in mem variables
-		a_swapChainDescription->m_swapChainFormat = surfaceFormat.format;
-		a_swapChainDescription->m_swapChainExtent = swapExtent;
+		a_swapChainDescription->swapChainFormat = surfaceFormat.format;
+		a_swapChainDescription->swapChainExtent = swapExtent;
 
 
 	}
@@ -281,17 +281,17 @@ namespace VulkanHelper
 	{
 		std::vector<VkImageView> SwapChainImageViews;
 
-		SwapChainImageViews.resize(a_swapChainDescription.m_SwapChainImages.size());
+		SwapChainImageViews.resize(a_swapChainDescription.swapChainImages.size());
 
-		for (size_t i = 0; i < a_swapChainDescription.m_SwapChainImages.size(); ++i)
+		for (size_t i = 0; i < a_swapChainDescription.swapChainImages.size(); ++i)
 		{
 			VkImageViewCreateInfo createInfo = { };
 
 			createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			createInfo.image = a_swapChainDescription.m_SwapChainImages[i];
+			createInfo.image = a_swapChainDescription.swapChainImages[i];
 
 			createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			createInfo.format = a_swapChainDescription.m_swapChainFormat;
+			createInfo.format = a_swapChainDescription.swapChainFormat;
 
 			createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
 			createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -756,9 +756,9 @@ namespace VulkanHelper
 		region.imageSubresource.layerCount = 1;
 
 		region.imageOffset = { 0,0,0 };
-		region.imageExtent = { static_cast<uint32_t>(desc.ImageWidth), static_cast<uint32_t>(desc.ImageHeight), 1 };
+		region.imageExtent = { static_cast<uint32_t>(desc.imageWidth), static_cast<uint32_t>(desc.imageHeight), 1 };
 
-		vkCmdCopyBufferToImage(cmdBuffer, buffer, desc.BufferImage,
+		vkCmdCopyBufferToImage(cmdBuffer, buffer, desc.bufferImage,
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
 

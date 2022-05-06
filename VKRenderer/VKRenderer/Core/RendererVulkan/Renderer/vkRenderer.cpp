@@ -123,8 +123,8 @@ void vkRenderer::CreateImage(TextureBufferDesc* a_texBuffDesc)
 
 	ImageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	ImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-	ImageCreateInfo.extent.width = a_texBuffDesc->ImageWidth;
-	ImageCreateInfo.extent.height = a_texBuffDesc->ImageHeight;
+	ImageCreateInfo.extent.width = a_texBuffDesc->imageWidth;
+	ImageCreateInfo.extent.height = a_texBuffDesc->imageHeight;
 	ImageCreateInfo.extent.depth = 1;
 	ImageCreateInfo.mipLevels = 1;
 	ImageCreateInfo.arrayLayers = 1;
@@ -137,25 +137,25 @@ void vkRenderer::CreateImage(TextureBufferDesc* a_texBuffDesc)
 	ImageCreateInfo.flags = 0;
 
 
-	if (vkCreateImage(m_device, &ImageCreateInfo, nullptr, &(a_texBuffDesc->BufferImage)) != VK_SUCCESS)
+	if (vkCreateImage(m_device, &ImageCreateInfo, nullptr, &(a_texBuffDesc->bufferImage)) != VK_SUCCESS)
 	{
 		std::cout << " Failed to create Image \n";
 	}
 
 	VkMemoryRequirements memRequirements;
-	vkGetImageMemoryRequirements(m_device, a_texBuffDesc->BufferImage, &memRequirements);
+	vkGetImageMemoryRequirements(m_device, a_texBuffDesc->bufferImage, &memRequirements);
 
 	VkMemoryAllocateInfo allocateInfo = {};
 	allocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	allocateInfo.allocationSize = memRequirements.size;
 	allocateInfo.memoryTypeIndex = VulkanHelper::FindMemoryType(m_physicalDevice,memRequirements.memoryTypeBits, a_texBuffDesc->propertyFlags);
 
-	if (vkAllocateMemory(m_device, &allocateInfo, nullptr, &a_texBuffDesc->BufferMemory) != VK_SUCCESS)
+	if (vkAllocateMemory(m_device, &allocateInfo, nullptr, &a_texBuffDesc->bufferMemory) != VK_SUCCESS)
 	{
 		std::cout << "Failed to allocate memory to the image \n";
 	}
 
-	vkBindImageMemory(m_device, a_texBuffDesc->BufferImage, a_texBuffDesc->BufferMemory, 0);
+	vkBindImageMemory(m_device, a_texBuffDesc->bufferImage, a_texBuffDesc->bufferMemory, 0);
 }
 
 void vkRenderer::CreateImageView(VkImage a_image, VkFormat a_format, VkImageAspectFlags a_aspectFlags, VkImageView *a_imageView)
@@ -189,7 +189,7 @@ void vkRenderer::CreateTextureSampler(SamplerCreationDesc a_createInfo, VkSample
 	createInfo.compareEnable = VK_FALSE;
 	createInfo.compareOp = VK_COMPARE_OP_ALWAYS;
 
-	createInfo.mipmapMode = a_createInfo.MipMode;
+	createInfo.mipmapMode = a_createInfo.mipMode;
 	createInfo.mipLodBias = 0.0f;
 	createInfo.minLod = 0.0f;
 	createInfo.maxLod = 0.0f;
@@ -219,12 +219,12 @@ void vkRenderer::LoadImageTexture(std::string textureName, TextureBufferDesc *a_
 	BufferDesc stagingBuffer;
 		
 	VulkanHelper::CreateBuffer(m_device, m_physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		stagingBuffer.Buffer, stagingBuffer.BufferMemory);
+		stagingBuffer.buffer, stagingBuffer.bufferMemory);
 
 	void* data;
-	vkMapMemory(m_device, stagingBuffer.BufferMemory, 0, imageSize, 0, &data);
+	vkMapMemory(m_device, stagingBuffer.bufferMemory, 0, imageSize, 0, &data);
 	memcpy(data, pixels, static_cast<size_t>(imageSize));
-	vkUnmapMemory(m_device, stagingBuffer.BufferMemory);
+	vkUnmapMemory(m_device, stagingBuffer.bufferMemory);
 
 
 	//free the loaded image
@@ -232,8 +232,8 @@ void vkRenderer::LoadImageTexture(std::string textureName, TextureBufferDesc *a_
 
 	//Set the image Property
 
-	a_imageData->ImageWidth = texWidth;
-	a_imageData->ImageHeight = texHeight;
+	a_imageData->imageWidth = texWidth;
+	a_imageData->imageHeight = texHeight;
 	a_imageData->imageFormat = VK_FORMAT_R8G8B8A8_SRGB;
 	a_imageData->tiling = VK_IMAGE_TILING_OPTIMAL;
 	a_imageData->usageFlags = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
@@ -241,16 +241,16 @@ void vkRenderer::LoadImageTexture(std::string textureName, TextureBufferDesc *a_
 
 	CreateImage(a_imageData);
 
-	VulkanHelper::TransitionImageLayouts(m_device, a_commandPool, m_graphicsQueue, a_imageData->BufferImage, VK_FORMAT_R8G8B8A8_SRGB,
+	VulkanHelper::TransitionImageLayouts(m_device, a_commandPool, m_graphicsQueue, a_imageData->bufferImage, VK_FORMAT_R8G8B8A8_SRGB,
 		VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-	VulkanHelper::CopyBufferToImage(m_device, a_commandPool, m_graphicsQueue, stagingBuffer.Buffer, *a_imageData);
+	VulkanHelper::CopyBufferToImage(m_device, a_commandPool, m_graphicsQueue, stagingBuffer.buffer, *a_imageData);
 
-	VulkanHelper::TransitionImageLayouts(m_device, a_commandPool, m_graphicsQueue, a_imageData->BufferImage, VK_FORMAT_R8G8B8A8_SRGB,
+	VulkanHelper::TransitionImageLayouts(m_device, a_commandPool, m_graphicsQueue, a_imageData->bufferImage, VK_FORMAT_R8G8B8A8_SRGB,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
-	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
+	vkDestroyBuffer(m_device, stagingBuffer.buffer, nullptr);
+	vkFreeMemory(m_device, stagingBuffer.bufferMemory, nullptr);
 }
 
 //===================================================================
@@ -342,7 +342,7 @@ std::vector<VkPipelineShaderStageCreateInfo> vkRenderer::ShaderStageInfoGenerati
 void vkRenderer::CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo)
 {
 	//Get Shader Info
-	std::vector<VkPipelineShaderStageCreateInfo> shaderInfo = ShaderStageInfoGeneration(a_pipelineInfo->ShaderFileNames);
+	std::vector<VkPipelineShaderStageCreateInfo> shaderInfo = ShaderStageInfoGeneration(a_pipelineInfo->shaderFileNames);
 
 
 	// Vertex Input
@@ -351,7 +351,7 @@ void vkRenderer::CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo)
 	VertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
 	auto bindingDesc	= a_pipelineInfo->vertexBindingDesc;
-	auto attributeDesc	= a_pipelineInfo->AttributeDescriptionsofVertex;
+	auto attributeDesc	= a_pipelineInfo->attributeDescriptionsofVertex;
 
 	VertexInputInfo.vertexBindingDescriptionCount = 1;
 	VertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDesc.size());
@@ -370,8 +370,8 @@ void vkRenderer::CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo)
 
 	viewPort.x = 0.0f;
 	viewPort.y = 0.0f;
-	viewPort.width  = static_cast<float>(m_swapChainDescription.m_swapChainExtent.width);	//a_pipelineInfo->viewportWidth;
-	viewPort.height = static_cast<float>(m_swapChainDescription.m_swapChainExtent.height);	//a_pipelineInfo->viewportHeigth;
+	viewPort.width  = static_cast<float>(m_swapChainDescription.swapChainExtent.width);	//a_pipelineInfo->viewportWidth;
+	viewPort.height = static_cast<float>(m_swapChainDescription.swapChainExtent.height);	//a_pipelineInfo->viewportHeigth;
 	viewPort.minDepth = 0.0f;
 	viewPort.maxDepth = 1.0f;
 	
@@ -379,7 +379,7 @@ void vkRenderer::CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo)
 	VkRect2D scissor = {};
 
 	scissor.offset = { 0,0 };
-	scissor.extent = m_swapChainDescription.m_swapChainExtent;
+	scissor.extent = m_swapChainDescription.swapChainExtent;
 
 	VkPipelineViewportStateCreateInfo viewPortState = {};
 
@@ -458,11 +458,11 @@ void vkRenderer::CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo)
 
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 1;
-	pipelineLayoutInfo.pSetLayouts = &a_pipelineInfo->a_descriptorSetLayout;
+	pipelineLayoutInfo.pSetLayouts = &a_pipelineInfo->descriptorSetLayout;
 	//pipelineLayoutInfo.pushConstantRangeCount = 0;
 	//pipelineLayoutInfo.pPushConstantRanges = nullptr;
 
-	VulkanHelper::CreatePipelineLayout(m_device, pipelineLayoutInfo, &a_pipelineInfo->a_pipelineLayout);
+	VulkanHelper::CreatePipelineLayout(m_device, pipelineLayoutInfo, &a_pipelineInfo->pipelineLayout);
 
 	//Finally create the Graphics Pipeline
 	VkGraphicsPipelineCreateInfo createGraphicsPipelineInfo = {};
@@ -478,7 +478,7 @@ void vkRenderer::CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo)
 	createGraphicsPipelineInfo.pDepthStencilState = &depthStencilInfo;
 	createGraphicsPipelineInfo.pColorBlendState = &colorBlending;
 	createGraphicsPipelineInfo.pDynamicState = nullptr;
-	createGraphicsPipelineInfo.layout = a_pipelineInfo->a_pipelineLayout;
+	createGraphicsPipelineInfo.layout = a_pipelineInfo->pipelineLayout;
 	createGraphicsPipelineInfo.renderPass = a_pipelineInfo->renderPass;
 	createGraphicsPipelineInfo.subpass = a_pipelineInfo->subpass;
 
@@ -486,7 +486,7 @@ void vkRenderer::CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo)
 	createGraphicsPipelineInfo.basePipelineIndex = -1;
 
 	VulkanHelper::CreateGraphicsPipeline(m_device, createGraphicsPipelineInfo,
-		&a_pipelineInfo->a_Pipeline);
+		&a_pipelineInfo->pipeline);
 
 	// Destroy Shader Modules which were set
 	for (int i = 0; i < shadermodules.size(); ++i)
@@ -541,7 +541,7 @@ bool vkRenderer::hasStencilComponent(VkFormat format)
 }
 
 //===================================================================
-//Command Buffer Recording Related
+//Command buffer Recording Related
 //===================================================================
 
 VkCommandBuffer vkRenderer::BeginSingleTimeCommands(VkCommandPool a_commandPool)
@@ -598,7 +598,7 @@ void vkRenderer::AllocateCommandBuffers(std::vector<VkCommandBuffer> &a_cmdBuffe
 
 
 //===================================================================
-//Buffer Creation
+//buffer Creation
 //===================================================================
 //, const ModelInfo a_modelDesc
 void vkRenderer::CreateBuffer(void const* databuffer, VkDeviceSize a_bufferSize, BufferDesc* a_BufferToCreate, VkBufferUsageFlags a_usage,
@@ -607,28 +607,28 @@ void vkRenderer::CreateBuffer(void const* databuffer, VkDeviceSize a_bufferSize,
 		
 	VkDeviceSize bufferSize = a_bufferSize;
 	
-	//Create Staging Buffer before transfering
+	//Create Staging buffer before transferring
 	
 	BufferDesc stagingBuffer;
 
 	VulkanHelper::CreateBuffer(m_device, m_physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer.Buffer, stagingBuffer.BufferMemory);
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer.buffer, stagingBuffer.bufferMemory);
 	
 	void* data;
-	vkMapMemory(m_device, stagingBuffer.BufferMemory, 0, bufferSize, 0, &data);
+	vkMapMemory(m_device, stagingBuffer.bufferMemory, 0, bufferSize, 0, &data);
 	
 	memcpy(data, databuffer, (size_t)bufferSize);//a_modelDesc.indexbufferData.data()
 	
-	vkUnmapMemory(m_device, stagingBuffer.BufferMemory);
+	vkUnmapMemory(m_device, stagingBuffer.bufferMemory);
 	
 	VulkanHelper::CreateBuffer(m_device, m_physicalDevice, bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | a_usage, 
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, a_BufferToCreate->Buffer, a_BufferToCreate->BufferMemory);
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, a_BufferToCreate->buffer, a_BufferToCreate->bufferMemory);
 
-	VulkanHelper::CopyBuffer(m_device, a_commandPool, m_graphicsQueue, stagingBuffer.Buffer, a_BufferToCreate->Buffer, bufferSize);
+	VulkanHelper::CopyBuffer(m_device, a_commandPool, m_graphicsQueue, stagingBuffer.buffer, a_BufferToCreate->buffer, bufferSize);
 
 	//Get rid of the staging buffers
-	vkDestroyBuffer(m_device, stagingBuffer.Buffer, nullptr);
-	vkFreeMemory(m_device, stagingBuffer.BufferMemory, nullptr);
+	vkDestroyBuffer(m_device, stagingBuffer.buffer, nullptr);
+	vkFreeMemory(m_device, stagingBuffer.bufferMemory, nullptr);
 	
 	return;
 }
@@ -652,7 +652,7 @@ void vkRenderer::CreateBufferWithoutStaging(VkDeviceSize a_size, VkBufferUsageFl
 //===================================================================
 
 void vkRenderer::CreateDescriptorSetLayout(std::vector<VkDescriptorSetLayoutBinding> layoutBindings,
-	VkDescriptorSetLayout *a_descriptorSetLayout)
+	VkDescriptorSetLayout *descriptorSetLayout)
 {
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 
@@ -660,7 +660,7 @@ void vkRenderer::CreateDescriptorSetLayout(std::vector<VkDescriptorSetLayoutBind
 	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());
 	layoutInfo.pBindings = layoutBindings.data();
 
-	VulkanHelper::CreateDescriptorSetLayout(m_device, layoutInfo, a_descriptorSetLayout);
+	VulkanHelper::CreateDescriptorSetLayout(m_device, layoutInfo, descriptorSetLayout);
 	
 	return;
 }
@@ -687,11 +687,11 @@ void vkRenderer::CreateDescriptorPool(std::vector< VkDescriptorPoolSize > a_pool
 }
 
 
-void vkRenderer::CreateDesciptorSets(uint32_t descriptorSetCount, VkDescriptorSetLayout a_descriptorSetLayout,
+void vkRenderer::CreateDesciptorSets(uint32_t descriptorSetCount, VkDescriptorSetLayout descriptorSetLayout,
 	std::vector <BufferDesc> a_descBuffer, VkDeviceSize    a_rangeSize, std::vector<VkWriteDescriptorSet> descriptorWriteInfo,
 	VkDescriptorPool a_descriptorPool, std::vector<VkDescriptorSet> &a_descriptorSet)
 {
-	std::vector<VkDescriptorSetLayout> layouts(descriptorSetCount, a_descriptorSetLayout);
+	std::vector<VkDescriptorSetLayout> layouts(descriptorSetCount, descriptorSetLayout);
 
 	VkDescriptorSetAllocateInfo allocateInfo = {};
 
@@ -713,7 +713,7 @@ void vkRenderer::CreateDesciptorSets(uint32_t descriptorSetCount, VkDescriptorSe
 		{
 			VkDescriptorBufferInfo bufferInfo = {};
 
-			bufferInfo.buffer = a_descBuffer[i].Buffer;
+			bufferInfo.buffer = a_descBuffer[i].buffer;
 			bufferInfo.offset = 0;
 			bufferInfo.range = a_rangeSize;
 
@@ -734,10 +734,10 @@ void vkRenderer::AllocateDescriptorSets(VkDescriptorPool a_descriptorPool, std::
 
 	allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocateInfo.descriptorPool = a_descriptorPool;
-	allocateInfo.descriptorSetCount = static_cast<uint32_t>(m_swapChainDescription.m_SwapChainImages.size());
+	allocateInfo.descriptorSetCount = static_cast<uint32_t>(m_swapChainDescription.swapChainImages.size());
 	allocateInfo.pSetLayouts = layouts.data();
 
-	a_DescriptorSets.resize(m_swapChainDescription.m_SwapChainImages.size());
+	a_DescriptorSets.resize(m_swapChainDescription.swapChainImages.size());
 
 	VulkanHelper::AllocateDescriptorSets(m_device, allocateInfo, a_DescriptorSets);
 
@@ -761,9 +761,9 @@ void vkRenderer::CreateFrameBuffer(FrameBufferDesc a_fboDesc, VkRenderPass a_ren
 	fbcreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 	fbcreateInfo.renderPass = a_renderPass;
 	fbcreateInfo.attachmentCount = a_fboDesc.attachmentCount;
-	fbcreateInfo.pAttachments = a_fboDesc.Attachments.data();
-	fbcreateInfo.width  = static_cast<uint32_t>(a_fboDesc.FBOWidth);
-	fbcreateInfo.height = static_cast<uint32_t>(a_fboDesc.FBOHeight);
+	fbcreateInfo.pAttachments = a_fboDesc.attachments.data();
+	fbcreateInfo.width  = static_cast<uint32_t>(a_fboDesc.fboWidth);
+	fbcreateInfo.height = static_cast<uint32_t>(a_fboDesc.fboHeight);
 	fbcreateInfo.layers = 1;
 
 	VulkanHelper::CreateFrameBuffer(m_device, &fbcreateInfo, a_frameBuffer);
@@ -804,7 +804,7 @@ void vkRenderer::CreateSemaphoresandFences()
 
 VkResult vkRenderer::AcquireNextImage(uint32_t *a_imageIndex, size_t a_currentFrameNumber)
 {
-	return vkAcquireNextImageKHR(m_device, m_swapChainDescription.m_swapChain,
+	return vkAcquireNextImageKHR(m_device, m_swapChainDescription.swapChain,
 		std::numeric_limits<uint64_t>::max(), m_imageAvailableSemaphore[a_currentFrameNumber], VK_NULL_HANDLE, a_imageIndex);
 
 }
@@ -849,7 +849,7 @@ void vkRenderer::SubmissionAndPresentation(FrameSubmissionDesc a_frameSubmission
 	presentInfo.waitSemaphoreCount = 1;
 	presentInfo.pWaitSemaphores = signalSemaphores;
 
-	VkSwapchainKHR swapChains[] = { m_swapChainDescription.m_swapChain };
+	VkSwapchainKHR swapChains[] = { m_swapChainDescription.swapChain };
 
 	presentInfo.swapchainCount = 1;
 	presentInfo.pSwapchains = swapChains;
@@ -918,7 +918,7 @@ void vkRenderer::SetUpSwapChain()
 void vkRenderer::PrepareApp()
 {
 	SetUpSwapChain();
-	m_swapChainDescription.m_SwapChainImageViews = VulkanHelper::CreateSwapChainImageView(m_swapChainDescription, m_device);
+	m_swapChainDescription.swapChainImageViews = VulkanHelper::CreateSwapChainImageView(m_swapChainDescription, m_device);
 }
 
 
@@ -943,15 +943,15 @@ void vkRenderer::CleanUpSwapChain()
 {
 	for (size_t i = 0; i < m_swapChainFrameBuffer.size(); ++i)
 	{
-		vkDestroyFramebuffer(m_device, m_swapChainFrameBuffer[i].FrameBuffer, nullptr);
+		vkDestroyFramebuffer(m_device, m_swapChainFrameBuffer[i].frameBuffer, nullptr);
 	}
 
-	for (size_t i = 0; i < m_swapChainDescription.m_SwapChainImageViews.size(); ++i)
+	for (size_t i = 0; i < m_swapChainDescription.swapChainImageViews.size(); ++i)
 	{
-		vkDestroyImageView(m_device, m_swapChainDescription.m_SwapChainImageViews[i], nullptr);
+		vkDestroyImageView(m_device, m_swapChainDescription.swapChainImageViews[i], nullptr);
 	}
 
-	vkDestroySwapchainKHR(m_device, m_swapChainDescription.m_swapChain, nullptr);
+	vkDestroySwapchainKHR(m_device, m_swapChainDescription.swapChain, nullptr);
 
 }
 

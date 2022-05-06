@@ -23,24 +23,23 @@ enum TEXTURE_TYPE
 
 typedef struct BufferDesc
 {
-	VkBuffer		Buffer = VK_NULL_HANDLE;
-
-	VkDeviceMemory	BufferMemory = VK_NULL_HANDLE;
+	VkBuffer buffer = VK_NULL_HANDLE;
+	VkDeviceMemory	bufferMemory = VK_NULL_HANDLE;
 
 }Buffer;
 
 struct TextureBufferDesc
 {
-	VkImage					BufferImage = VK_NULL_HANDLE;
-	VkDeviceMemory			BufferMemory = VK_NULL_HANDLE;
+	VkImage					bufferImage = VK_NULL_HANDLE;
+	VkDeviceMemory			bufferMemory = VK_NULL_HANDLE;
 	VkSampler				Sampler;
-	VkImageView				ImageView;
+	VkImageView				imageView;
 	VkFormat				imageFormat;
 	VkImageTiling			tiling;
 	VkImageUsageFlags		usageFlags;
 	VkMemoryPropertyFlags	propertyFlags;
-	int						ImageWidth = 0;
-	int						ImageHeight = 0;
+	int						imageWidth = 0;
+	int						imageHeight = 0;
 	TEXTURE_TYPE			textureType;
 };
 
@@ -58,20 +57,17 @@ struct QueueFamilyIndices
 struct SwapChainSupportDetails
 {
 	VkSurfaceCapabilitiesKHR capabilities;
-
 	std::vector<VkSurfaceFormatKHR> formats;
-
 	std::vector<VkPresentModeKHR> presentModes;
-
 };
 
 struct SwapChainDesc
 {
-	VkSwapchainKHR						m_swapChain;
-	VkFormat							m_swapChainFormat;
-	VkExtent2D							m_swapChainExtent;
-	std::vector<VkImage>				m_SwapChainImages;
-	std::vector<VkImageView>			m_SwapChainImageViews;
+	VkSwapchainKHR						swapChain;
+	VkFormat							swapChainFormat;
+	VkExtent2D							swapChainExtent;
+	std::vector<VkImage>				swapChainImages;
+	std::vector<VkImageView>			swapChainImageViews;
 };
 
 struct CameraMatrices
@@ -80,10 +76,11 @@ struct CameraMatrices
 	glm::mat4 orthographic;
 	glm::mat4 view;
 
-	CameraMatrices() :perspective(glm::mat4()), view(glm::mat4()), orthographic(glm::mat4())
-	{
-
-	}
+	CameraMatrices() :
+		perspective(glm::mat4()),
+		view(glm::mat4()),
+		orthographic(glm::mat4())
+	{}
 };
 
 struct CameraKeys
@@ -142,7 +139,7 @@ enum ShaderStage
 
 struct ShaderPipelineModule
 {
-	std::vector<char, std::allocator<char>> ShaderCode;
+	std::vector<char, std::allocator<char>> shaderCode;
 	VkShaderModule							shaderModule;
 	VkPipelineShaderStageCreateInfo			shaderCreateInfo;
 	ShaderStage								currentShader;
@@ -150,9 +147,9 @@ struct ShaderPipelineModule
 
 struct GraphicsPipelineInfo
 {
-	std::vector<std::string>						ShaderFileNames;
+	std::vector<std::string>						shaderFileNames;
 	VkVertexInputBindingDescription					vertexBindingDesc;
-	std::vector<VkVertexInputAttributeDescription>	AttributeDescriptionsofVertex;
+	std::vector<VkVertexInputAttributeDescription>	attributeDescriptionsofVertex;
 
 	VkPrimitiveTopology								pipelineTopology;
 
@@ -169,30 +166,30 @@ struct GraphicsPipelineInfo
 	bool											stencilTestEnable;
 	VkCompareOp										depthCompareOperation;
 
-	VkDescriptorSetLayout							a_descriptorSetLayout;
+	VkDescriptorSetLayout							descriptorSetLayout;
 	VkRenderPass                                    renderPass;
 	uint32_t                                        subpass;
 	
 	//Final Pipeline Info
-	VkPipelineLayout								a_pipelineLayout;
-	VkPipeline										a_Pipeline;
+	VkPipelineLayout								pipelineLayout;
+	VkPipeline										pipeline;
 	
 };
 
 // TODO: Finish this later
 struct ComputePipelineInfo
 {
-
 };
 
 struct FrameBufferDesc
 {
 	uint32_t							attachmentCount;
 	VkImage								image;
-	std::vector< VkImageView >			Attachments;
-	float								FBOWidth;
-	float								FBOHeight;
-	VkFramebuffer						FrameBuffer;
+	std::vector< VkImageView >			attachments;
+	float								fboWidth;
+	float								fboHeight;
+	VkFramebuffer						frameBuffer;
+	VkRenderPass						renderPass;
 };
 
 struct FrameSubmissionDesc
@@ -209,6 +206,6 @@ struct SamplerCreationDesc
 	VkFilter			minFilter;
 	VkFilter			magFilter;
 	VkBool32			anisotropyEnable;
-	VkSamplerMipmapMode MipMode;
+	VkSamplerMipmapMode mipMode;
 
 };

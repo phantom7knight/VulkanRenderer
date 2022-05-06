@@ -24,9 +24,12 @@ void ModelViewer::SetUpCameraProperties(Camera* a_cam)
 	a_cam->SetPosition(glm::vec3(0.0, 0.0, 5.0f));
 	//a_cam->camProperties.rotation_speed	   = 0.2f;
 	//a_cam->camProperties.translation_speed = 0.002f;
-	
-	//set proj matrix
-	a_cam->SetPerspective(glm::radians(45.0f), (float)m_renderer->m_swapChainDescription.m_swapChainExtent.width / (float)m_renderer->m_swapChainDescription.m_swapChainExtent.height, 0.1f, 1000.0f);
+
+	//set projection matrix
+	a_cam->SetPerspective(glm::radians(45.0f),
+		(float)m_renderer->m_swapChainDescription.swapChainExtent.width / (float)m_renderer->m_swapChainDescription.swapChainExtent.height,
+		0.1f,
+		1000.0f);
 
 }
 
@@ -34,7 +37,7 @@ void ModelViewer::CreateRenderPass()
 {
 	VkAttachmentDescription colorAttachment = {};
 
-	colorAttachment.format = m_renderer->m_swapChainDescription.m_swapChainFormat;
+	colorAttachment.format = m_renderer->m_swapChainDescription.swapChainFormat;
 	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;//TODO : Programmable
 
 	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -43,8 +46,8 @@ void ModelViewer::CreateRenderPass()
 	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
-	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass shud start with
-	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;		//How render pass final image shud translate at end of render pass
+	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass should start with
+	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;		//How render pass final image should translate at end of render pass
 
 	VkAttachmentDescription depthAttachment = {};
 
@@ -57,11 +60,11 @@ void ModelViewer::CreateRenderPass()
 	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
-	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass shud start with
-	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;		//How render pass final image shud translate at end of render pass
+	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;			//How render pass should start with
+	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;		//How render pass final image should translate at end of render pass
 
 
-	//Each renderpass can have multiple sub-passes
+	//Each render pass can have multiple sub-passes
 	//which will help or can be used for the Post-Processing,...etc
 
 	VkAttachmentReference colorAttachmentRef = {};
@@ -109,7 +112,7 @@ void ModelViewer::CreateRenderPass()
 	renderPassdesc.subpassDependecy = subPassDependency;
 	renderPassdesc.subpassInfo = subpassInfo;
 
-	m_renderer->CreateRenderPass(renderPassdesc, &m_renderPass);	
+	m_renderer->CreateRenderPass(renderPassdesc, &m_renderPass);
 }
 
 void ModelViewer::CreateDescriptorSetLayout()
@@ -180,11 +183,11 @@ void ModelViewer::CreateGraphicsPipeline()
 	ShaderFileNames[0] = "Model.vert";
 	ShaderFileNames[1] = "Model.frag";
 
-	ModelGraphicsPipeline.ShaderFileNames = ShaderFileNames;
+	ModelGraphicsPipeline.shaderFileNames = ShaderFileNames;
 
 	// Vertex Input
 	ModelGraphicsPipeline.vertexBindingDesc = m_renderer->rsrcLdr.getModelLoaderobj().getBindingDescription();;
-	ModelGraphicsPipeline.AttributeDescriptionsofVertex = m_renderer->rsrcLdr.getModelLoaderobj().getAttributeDescriptionsofVertex();
+	ModelGraphicsPipeline.attributeDescriptionsofVertex = m_renderer->rsrcLdr.getModelLoaderobj().getAttributeDescriptionsofVertex();
 
 	//Input Assembly
 	ModelGraphicsPipeline.pipelineTopology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -202,7 +205,7 @@ void ModelViewer::CreateGraphicsPipeline()
 	ModelGraphicsPipeline.stencilTestEnable = VK_FALSE;
 
 	//Create Pipeline Layout b4 creating Graphics Pipeline
-	ModelGraphicsPipeline.a_descriptorSetLayout = m_descriptorSetLayout;
+	ModelGraphicsPipeline.descriptorSetLayout = m_descriptorSetLayout;
 
 	ModelGraphicsPipeline.renderPass = m_renderPass;
 	ModelGraphicsPipeline.subpass = 0;
@@ -212,19 +215,19 @@ void ModelViewer::CreateGraphicsPipeline()
 
 void ModelViewer::CreateFrameBuffers()
 {
-	m_renderer->m_swapChainFrameBuffer.resize(m_renderer->m_swapChainDescription.m_SwapChainImageViews.size());
+	m_renderer->m_swapChainFrameBuffer.resize(m_renderer->m_swapChainDescription.swapChainImageViews.size());
 
-	for (uint32_t i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImageViews.size(); ++i)
+	for (uint32_t i = 0; i < m_renderer->m_swapChainDescription.swapChainImageViews.size(); ++i)
 	{
-		std::vector< VkImageView> attachments = { m_renderer->m_swapChainDescription.m_SwapChainImageViews[i],
-													depthImageInfo.ImageView };
+		std::vector< VkImageView> attachments = { m_renderer->m_swapChainDescription.swapChainImageViews[i],
+													depthImageInfo.imageView };
 
 		m_FBO.attachmentCount = static_cast<uint32_t>(attachments.size());
-		m_FBO.Attachments = attachments;
-		m_FBO.FBOWidth = (float)m_renderer->m_swapChainDescription.m_swapChainExtent.width;
-		m_FBO.FBOHeight = (float)m_renderer->m_swapChainDescription.m_swapChainExtent.height;
+		m_FBO.attachments = attachments;
+		m_FBO.fboWidth = (float)m_renderer->m_swapChainDescription.swapChainExtent.width;
+		m_FBO.fboHeight = (float)m_renderer->m_swapChainDescription.swapChainExtent.height;
 
-		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFrameBuffer[i].FrameBuffer);
+		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFrameBuffer[i].frameBuffer);
 	}
 }
 
@@ -239,19 +242,19 @@ void ModelViewer::CreateUniformBuffer()
 	VkDeviceSize bufferSize = sizeof(ModelUBO);
 	VkDeviceSize lightBufferSize = sizeof(LightInfoUBO);
 
-	m_ModelUniformBuffer.resize(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
-	m_LightInfoUniformBuffer.resize(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+	m_ModelUniformBuffer.resize(m_renderer->m_swapChainDescription.swapChainImages.size());
+	m_LightInfoUniformBuffer.resize(m_renderer->m_swapChainDescription.swapChainImages.size());
 
-	for (int i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImages.size(); ++i)
+	for (int i = 0; i < m_renderer->m_swapChainDescription.swapChainImages.size(); ++i)
 
 	{
 		m_renderer->CreateBufferWithoutStaging(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			m_ModelUniformBuffer[i].Buffer, m_ModelUniformBuffer[i].BufferMemory);
+			m_ModelUniformBuffer[i].buffer, m_ModelUniformBuffer[i].bufferMemory);
 
 		m_renderer->CreateBufferWithoutStaging(lightBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-			m_LightInfoUniformBuffer[i].Buffer, m_LightInfoUniformBuffer[i].BufferMemory);
+			m_LightInfoUniformBuffer[i].buffer, m_LightInfoUniformBuffer[i].bufferMemory);
 	}
 
 	return;
@@ -264,42 +267,42 @@ void ModelViewer::CreateDescriptorPool()
 	poolSizes.resize(5);
 
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.swapChainImages.size());
 
 	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[1].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+	poolSizes[1].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.swapChainImages.size());
 
 	poolSizes[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[2].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+	poolSizes[2].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.swapChainImages.size());
 
 	poolSizes[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[3].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+	poolSizes[3].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.swapChainImages.size());
 
 	poolSizes[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[4].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size());
+	poolSizes[4].descriptorCount = static_cast<uint32_t>(m_renderer->m_swapChainDescription.swapChainImages.size());
 
-	m_renderer->CreateDescriptorPool(poolSizes, static_cast<uint32_t>(m_renderer->m_swapChainDescription.m_SwapChainImages.size()),
+	m_renderer->CreateDescriptorPool(poolSizes, static_cast<uint32_t>(m_renderer->m_swapChainDescription.swapChainImages.size()),
 		static_cast<uint32_t>(poolSizes.size()), &m_DescriptorPool);
 
 }
 
 void ModelViewer::CreateDescriptorSets()
 {
-	std::vector<VkDescriptorSetLayout> layouts(m_renderer->m_swapChainDescription.m_SwapChainImages.size(), m_descriptorSetLayout);
+	std::vector<VkDescriptorSetLayout> layouts(m_renderer->m_swapChainDescription.swapChainImages.size(), m_descriptorSetLayout);
 
 	m_renderer->AllocateDescriptorSets(m_DescriptorPool, layouts, m_DescriptorSets);
 
-	for (size_t i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImages.size(); ++i)
+	for (size_t i = 0; i < m_renderer->m_swapChainDescription.swapChainImages.size(); ++i)
 	{
 		VkDescriptorBufferInfo bufferInfo = {};
 
-		bufferInfo.buffer = m_ModelUniformBuffer[i].Buffer;
+		bufferInfo.buffer = m_ModelUniformBuffer[i].buffer;
 		bufferInfo.offset = 0;
 		bufferInfo.range = sizeof(ModelUBO);
 
 		VkDescriptorBufferInfo lightBufferInfo = {};
 
-		lightBufferInfo.buffer = m_LightInfoUniformBuffer[i].Buffer;
+		lightBufferInfo.buffer = m_LightInfoUniformBuffer[i].buffer;
 		lightBufferInfo.offset = 0;
 		lightBufferInfo.range = sizeof(LightInfoUBO);
 
@@ -307,19 +310,19 @@ void ModelViewer::CreateDescriptorSets()
 
 		albedoImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		albedoImageInfo.sampler = PBRMaterial.albedoMap.Sampler;
-		albedoImageInfo.imageView = PBRMaterial.albedoMap.ImageView;
+		albedoImageInfo.imageView = PBRMaterial.albedoMap.imageView;
 
 		VkDescriptorImageInfo metallicImageInfo = {};
 
 		metallicImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		metallicImageInfo.sampler = PBRMaterial.metallicMap.Sampler;
-		metallicImageInfo.imageView = PBRMaterial.metallicMap.ImageView;
+		metallicImageInfo.imageView = PBRMaterial.metallicMap.imageView;
 
 		VkDescriptorImageInfo roughnessImageInfo = {};
 
 		roughnessImageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		roughnessImageInfo.sampler = PBRMaterial.roughnessMap.Sampler;
-		roughnessImageInfo.imageView = PBRMaterial.roughnessMap.ImageView;
+		roughnessImageInfo.imageView = PBRMaterial.roughnessMap.imageView;
 
 		std::vector< VkWriteDescriptorSet> descriptorWriteInfo = {};
 
@@ -376,7 +379,7 @@ void ModelViewer::CreateDescriptorSets()
 		descriptorWriteInfo[4].pTexelBufferView = nullptr;
 
 		m_renderer->UpdateDescriptorSets(descriptorWriteInfo);
-		
+
 	}
 }
 
@@ -393,7 +396,7 @@ void ModelViewer::CreateSemaphoresandFences()
 	m_renderer->CreateSemaphoresandFences();
 }
 
-void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices a_propertiesCam, float a_deltaTime)
+void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex, CameraMatrices a_propertiesCam, float a_deltaTime)
 {
 
 #pragma region MVP_Update
@@ -417,9 +420,9 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices a_p
 
 	void* data;
 
-	vkMapMemory(m_renderer->m_device, m_ModelUniformBuffer[a_imageIndex].BufferMemory, 0, sizeof(mvp_UBO), 0, &data);
+	vkMapMemory(m_renderer->m_device, m_ModelUniformBuffer[a_imageIndex].bufferMemory, 0, sizeof(mvp_UBO), 0, &data);
 	memcpy(data, &mvp_UBO, sizeof(mvp_UBO));
-	vkUnmapMemory(m_renderer->m_device, m_ModelUniformBuffer[a_imageIndex].BufferMemory);
+	vkUnmapMemory(m_renderer->m_device, m_ModelUniformBuffer[a_imageIndex].bufferMemory);
 #pragma endregion
 
 #pragma region LightInfo_Update
@@ -438,17 +441,17 @@ void ModelViewer::UpdateUniformBuffer(uint32_t a_imageIndex , CameraMatrices a_p
 	lightInfo_UBO.lightModel = m_lightModelGUILight;
 
 	lightInfo_UBO.lightIntensity = m_lightIntensityGUILight;
-		
+
 	//Copy the data
 
 	data = NULL;
 
-	vkMapMemory(m_renderer->m_device, m_LightInfoUniformBuffer[a_imageIndex].BufferMemory, 0, sizeof(lightInfo_UBO), 0, &data);
+	vkMapMemory(m_renderer->m_device, m_LightInfoUniformBuffer[a_imageIndex].bufferMemory, 0, sizeof(lightInfo_UBO), 0, &data);
 	memcpy(data, &lightInfo_UBO, sizeof(lightInfo_UBO));
-	vkUnmapMemory(m_renderer->m_device, m_LightInfoUniformBuffer[a_imageIndex].BufferMemory);
+	vkUnmapMemory(m_renderer->m_device, m_LightInfoUniformBuffer[a_imageIndex].bufferMemory);
 
 #pragma endregion
-	
+
 }
 
 void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
@@ -456,9 +459,9 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 	Imgui_Impl::getInstance()->Gui_BeginFrame();
 
 	if (m_showGUILight)
-	{		
+	{
 		ImGui::Begin("Light Properties", &m_showGUILight);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-		
+
 		//Lighting Mode
 		{
 			ImGuiIO& io = ImGui::GetIO();
@@ -467,16 +470,16 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 			ImGui::RadioButton("Phong", &m_lightModelGUILight, 0); ImGui::SameLine();
 			ImGui::RadioButton("BRDF", &m_lightModelGUILight, 1);
 		}
-		
+
 		ImGui::SliderFloat3("Light Position", &m_lightPosGUILight.x, -400.0f, 400.0f);
 
 		ImGui::SliderFloat3("Light Color", &m_lightColorGUILight.x, 0.0f, 1.0f);
 
-		if(!m_lightModelGUILight)
+		if (!m_lightModelGUILight)
 			ImGui::SliderInt("Spec Intensity", &m_SpecularIntensityGUILight, 2, 256);
 		else
 			ImGui::SliderInt("Light Intensity", &m_lightIntensityGUILight, 10, 25);
-		
+
 		ImGui::End();
 	}
 
@@ -502,9 +505,9 @@ void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 
 	renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderpassBeginInfo.renderPass = m_renderPass;
-	renderpassBeginInfo.framebuffer = m_renderer->m_swapChainFrameBuffer[i].FrameBuffer;
+	renderpassBeginInfo.framebuffer = m_renderer->m_swapChainFrameBuffer[i].frameBuffer;
 	renderpassBeginInfo.renderArea.offset = { 0,0 };
-	renderpassBeginInfo.renderArea.extent = m_renderer->m_swapChainDescription.m_swapChainExtent;
+	renderpassBeginInfo.renderArea.extent = m_renderer->m_swapChainDescription.swapChainExtent;
 
 
 	//Clear Color//
@@ -517,27 +520,27 @@ void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 
 	vkCmdBeginRenderPass(m_commandBuffers[i], &renderpassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, ModelGraphicsPipeline.a_pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
+	vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, ModelGraphicsPipeline.pipelineLayout, 0, 1, &m_DescriptorSets[i], 0, nullptr);
 
-		vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, ModelGraphicsPipeline.a_Pipeline);
+	vkCmdBindPipeline(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, ModelGraphicsPipeline.pipeline);
 
-		VkDeviceSize offset = { 0 };
+	VkDeviceSize offset = { 0 };
 
-		//Bind Vertex Buffer
-		vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_modelBufferInfos["../../Assets/Models/Sphere/Sphere.fbx"].VertexBUffer.Buffer, &offset);
+	//Bind Vertex Buffer
+	vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_modelBufferInfos["../../Assets/Models/Sphere/Sphere.fbx"].VertexBUffer.buffer, &offset);
 
-		//Bind Index Buffer
-		vkCmdBindIndexBuffer(m_commandBuffers[i], m_modelBufferInfos["../../Assets/Models/Sphere/Sphere.fbx"].IndexBUffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
+	//Bind Index Buffer
+	vkCmdBindIndexBuffer(m_commandBuffers[i], m_modelBufferInfos["../../Assets/Models/Sphere/Sphere.fbx"].IndexBUffer.buffer, 0, VK_INDEX_TYPE_UINT32);
 
-		//Call Draw Indexed for the model
-		vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_modelBufferInfos["../../Assets/Models/Sphere/Sphere.fbx"].indexBufferCount), 1, 0, 0, 0);
-		
-		//==================================================
-		//Draw UI
-		DrawGui(m_commandBuffers[i]);
-		
-		//==================================================
-	
+	//Call Draw Indexed for the model
+	vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_modelBufferInfos["../../Assets/Models/Sphere/Sphere.fbx"].indexBufferCount), 1, 0, 0, 0);
+
+	//==================================================
+	//Draw UI
+	DrawGui(m_commandBuffers[i]);
+
+	//==================================================
+
 	vkCmdEndRenderPass(m_commandBuffers[i]);
 
 	//End Recording
@@ -545,58 +548,58 @@ void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 	{
 		throw std::runtime_error("Failed to record Command Buffer");
 	}
-	
+
 }
 
 void ModelViewer::ReCreateSwapChain()
 {
-/*
-	int width = 0, height = 0;
-	while (width == 0 || height == 0)
-	{
-		glfwGetFramebufferSize(m_window, &width, &height);
-		glfwWaitEvents();
-	}
+	/*
+		int width = 0, height = 0;
+		while (width == 0 || height == 0)
+		{
+			glfwGetFramebufferSize(m_window, &width, &height);
+			glfwWaitEvents();
+		}
 
 
-	vkDeviceWaitIdle(m_device);
+		vkDeviceWaitIdle(m_device);
 
-	Destroy();
+		Destroy();
 
-	CleanUpSwapChain();
+		CleanUpSwapChain();
 
-	CreateSwapChain();
+		CreateSwapChain();
 
-	CreateSwapChainImageView();
+		CreateSwapChainImageView();
 
-	CreateRenderPass();
+		CreateRenderPass();
 
-	CreateGraphicsPipeline();
+		CreateGraphicsPipeline();
 
-	CreateDepthResources();
+		CreateDepthResources();
 
-	CreateFrameBuffers();
+		CreateFrameBuffers();
 
-	CreateUniformBuffer();
+		CreateUniformBuffer();
 
-	CreateCommandBuffers();
+		CreateCommandBuffers();
 
-	CreateDescriptorPool();
+		CreateDescriptorPool();
 
-	CreateDescriptorSets();
+		CreateDescriptorSets();
 
-	CreateCommandPool();
+		CreateCommandPool();
 
-	*/
+		*/
 }
 
-void ModelViewer::SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_VertexBUffer)
+void ModelViewer::SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc* a_VertexBUffer)
 {
 	VkDeviceSize bufferSize = a_modelDesc.vertexBufferSize;
 
 	VkCommandPool vertBuffcommandPool;
 
-	//create cmdpool
+	//create cmd pool
 	m_renderer->CreateCommandPool(&vertBuffcommandPool);
 	m_commandPoolList.push_back(vertBuffcommandPool);
 
@@ -604,13 +607,13 @@ void ModelViewer::SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_V
 		vertBuffcommandPool);
 }
 
-void ModelViewer::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_IndexBUffer)
+void ModelViewer::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc* a_IndexBUffer)
 {
 	VkDeviceSize bufferSize = a_modelDesc.indexBufferSize;
 
 	VkCommandPool indxBuffcommandPool;
 
-	//create cmdpool
+	//create cmd pool
 	m_renderer->CreateCommandPool(&indxBuffcommandPool);
 	m_commandPoolList.push_back(indxBuffcommandPool);
 
@@ -623,7 +626,7 @@ void ModelViewer::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_In
 void ModelViewer::LoadAModel(std::string fileName)
 {
 #if Is_MT_Enabled 1
-	pool.push_task([this, fileName] () {
+	pool.push_task([this, fileName]() {
 		m_modelInfos[fileName] = m_renderer->rsrcLdr.LoadModelResource(fileName);
 		}
 	);
@@ -649,7 +652,7 @@ void ModelViewer::LoadModelsBufferResources()
 	return;
 }
 
-void ModelViewer::LoadTexture(std::string a_textureName, TextureBufferDesc * a_imageTex)
+void ModelViewer::LoadTexture(std::string a_textureName, TextureBufferDesc* a_imageTex)
 {
 	// todo_rt: create a new cmd pool
 	VkCommandPool imageBuffcommandPool;
@@ -663,15 +666,15 @@ void ModelViewer::LoadTexture(std::string a_textureName, TextureBufferDesc * a_i
 
 void ModelViewer::CreateImageTextureView()
 {
-	m_renderer->CreateImageView(PBRMaterial.albedoMap.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &PBRMaterial.albedoMap.ImageView);
-	m_renderer->CreateImageView(PBRMaterial.metallicMap.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &PBRMaterial.metallicMap.ImageView);
-	m_renderer->CreateImageView(PBRMaterial.roughnessMap.BufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &PBRMaterial.roughnessMap.ImageView);
+	m_renderer->CreateImageView(PBRMaterial.albedoMap.bufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &PBRMaterial.albedoMap.imageView);
+	m_renderer->CreateImageView(PBRMaterial.metallicMap.bufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &PBRMaterial.metallicMap.imageView);
+	m_renderer->CreateImageView(PBRMaterial.roughnessMap.bufferImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, &PBRMaterial.roughnessMap.imageView);
 }
 
 void ModelViewer::LoadAllTextures()
 {
 	OPTICK_FRAME("Loading Textures");
-	
+
 
 #if Is_MT_Enabled 1
 
@@ -694,9 +697,9 @@ void ModelViewer::LoadAllTextures()
 	//LoadTexture("../../Assets/Textures/Kabuto/Albedo.png");
 	//LoadTexture("../../Assets/Textures/green.jpg");
 #endif
-	
-	
-	
+
+
+
 }
 
 void ModelViewer::CreateTextureSampler()
@@ -706,7 +709,7 @@ void ModelViewer::CreateTextureSampler()
 	samplerDesc.anisotropyEnable = VK_TRUE;
 	samplerDesc.magFilter = VK_FILTER_LINEAR;
 	samplerDesc.minFilter = VK_FILTER_LINEAR;
-	samplerDesc.MipMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	samplerDesc.mipMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 
 	m_renderer->CreateTextureSampler(samplerDesc, &PBRMaterial.albedoMap.Sampler);
 	m_renderer->CreateTextureSampler(samplerDesc, &PBRMaterial.metallicMap.Sampler);
@@ -720,18 +723,18 @@ void ModelViewer::CreateDepthResources()
 
 	VkFormat depthFormat = m_renderer->FindDepthFormat();
 
-	depthImageInfo.ImageHeight = m_renderer->m_swapChainDescription.m_swapChainExtent.height;
-	depthImageInfo.ImageWidth = m_renderer->m_swapChainDescription.m_swapChainExtent.width;
+	depthImageInfo.imageHeight = m_renderer->m_swapChainDescription.swapChainExtent.height;
+	depthImageInfo.imageWidth = m_renderer->m_swapChainDescription.swapChainExtent.width;
 	depthImageInfo.imageFormat = depthFormat;
 	depthImageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	depthImageInfo.usageFlags = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	depthImageInfo.propertyFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 	m_renderer->CreateImage(&depthImageInfo);
 
-	m_renderer->CreateImageView(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &depthImageInfo.ImageView);
+	m_renderer->CreateImageView(depthImageInfo.bufferImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, &depthImageInfo.imageView);
 
 	//TransitionImageLayouts(depthImageInfo.BufferImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-	
+
 }
 
 void ModelViewer::ResourcesLoading()
@@ -749,7 +752,7 @@ void ModelViewer::ResourcesLoading()
 
 	// load each model's buffer info
 	LoadModelsBufferResources();
-	
+
 #pragma endregion
 
 #pragma region Models_Tex
@@ -815,34 +818,34 @@ void ModelViewer::PrepareApp()
 	CreateRenderPass();
 
 	CreateDescriptorSetLayout();
-	
+
 	CreateCommandPool();
-	
+
 	CreateDepthResources();
-	
+
 	CreateFrameBuffers();
-	
+
 	CreateGraphicsPipeline();
 
 	ResourcesLoading();
 
 	CreateImageTextureView();
-	
+
 	CreateTextureSampler();
-	
+
 	CreateUniformBuffer();
-	
+
 	CreateDescriptorPool();
-	
+
 	CreateDescriptorSets();
-	
+
 	CreateCommandBuffers();
-	
+
 	CreateSemaphoresandFences();
-	
+
 	//// set up the camera position
 	SetUpCameraProperties(m_renderer->m_MainCamera);
-	
+
 	//Initialize Dear ImGui
 	InitGui();
 }
@@ -850,9 +853,9 @@ void ModelViewer::PrepareApp()
 void ModelViewer::Update(float deltaTime)
 {
 	m_renderer->ProcessInput(m_renderer->m_window, deltaTime);
-	
+
 	cam_matrices.perspective = m_renderer->m_MainCamera->GetpersepectiveMatrix();
-	
+
 	//set view matrix
 	cam_matrices.view = m_renderer->m_MainCamera->GetViewMatrix();
 
@@ -909,44 +912,44 @@ void ModelViewer::Draw(float deltaTime)
 void ModelViewer::Destroy()
 {
 	//depth Image
-	vkDestroyImageView(m_renderer->m_device, depthImageInfo.ImageView, nullptr);
-	vkDestroyImage(m_renderer->m_device, depthImageInfo.BufferImage, nullptr);
-	vkFreeMemory(m_renderer->m_device, depthImageInfo.BufferMemory, nullptr);
+	vkDestroyImageView(m_renderer->m_device, depthImageInfo.imageView, nullptr);
+	vkDestroyImage(m_renderer->m_device, depthImageInfo.bufferImage, nullptr);
+	vkFreeMemory(m_renderer->m_device, depthImageInfo.bufferMemory, nullptr);
 
 	vkDestroySampler(m_renderer->m_device, PBRMaterial.albedoMap.Sampler, nullptr);
-	vkDestroyImageView(m_renderer->m_device, PBRMaterial.albedoMap.ImageView, nullptr);
+	vkDestroyImageView(m_renderer->m_device, PBRMaterial.albedoMap.imageView, nullptr);
 	vkDestroySampler(m_renderer->m_device, PBRMaterial.metallicMap.Sampler, nullptr);
-	vkDestroyImageView(m_renderer->m_device, PBRMaterial.metallicMap.ImageView, nullptr);
+	vkDestroyImageView(m_renderer->m_device, PBRMaterial.metallicMap.imageView, nullptr);
 	vkDestroySampler(m_renderer->m_device, PBRMaterial.roughnessMap.Sampler, nullptr);
-	vkDestroyImageView(m_renderer->m_device, PBRMaterial.roughnessMap.ImageView, nullptr);
+	vkDestroyImageView(m_renderer->m_device, PBRMaterial.roughnessMap.imageView, nullptr);
 
 	//destroy Image
-	vkDestroyImage(m_renderer->m_device, PBRMaterial.albedoMap.BufferImage, nullptr);
-	vkFreeMemory(m_renderer->m_device, PBRMaterial.albedoMap.BufferMemory, nullptr);
-	vkDestroyImage(m_renderer->m_device, PBRMaterial.metallicMap.BufferImage, nullptr);
-	vkFreeMemory(m_renderer->m_device, PBRMaterial.metallicMap.BufferMemory, nullptr);
-	vkDestroyImage(m_renderer->m_device, PBRMaterial.roughnessMap.BufferImage, nullptr);
-	vkFreeMemory(m_renderer->m_device, PBRMaterial.roughnessMap.BufferMemory, nullptr);
+	vkDestroyImage(m_renderer->m_device, PBRMaterial.albedoMap.bufferImage, nullptr);
+	vkFreeMemory(m_renderer->m_device, PBRMaterial.albedoMap.bufferMemory, nullptr);
+	vkDestroyImage(m_renderer->m_device, PBRMaterial.metallicMap.bufferImage, nullptr);
+	vkFreeMemory(m_renderer->m_device, PBRMaterial.metallicMap.bufferMemory, nullptr);
+	vkDestroyImage(m_renderer->m_device, PBRMaterial.roughnessMap.bufferImage, nullptr);
+	vkFreeMemory(m_renderer->m_device, PBRMaterial.roughnessMap.bufferMemory, nullptr);
 
 	Imgui_Impl::getInstance()->DestroyGui(m_renderer->m_device);
 
 	vkFreeCommandBuffers(m_renderer->m_device, m_commandPool, static_cast<uint32_t>(m_commandBuffers.size()), m_commandBuffers.data());
 
-	vkDestroyPipeline(m_renderer->m_device, ModelGraphicsPipeline.a_Pipeline, nullptr);
+	vkDestroyPipeline(m_renderer->m_device, ModelGraphicsPipeline.pipeline, nullptr);
 
-	vkDestroyPipelineLayout(m_renderer->m_device, ModelGraphicsPipeline.a_pipelineLayout, nullptr);
+	vkDestroyPipelineLayout(m_renderer->m_device, ModelGraphicsPipeline.pipelineLayout, nullptr);
 
 	vkDestroyRenderPass(m_renderer->m_device, m_renderPass, nullptr);
 
-	for (size_t i = 0; i < m_renderer->m_swapChainDescription.m_SwapChainImages.size(); ++i)
+	for (size_t i = 0; i < m_renderer->m_swapChainDescription.swapChainImages.size(); ++i)
 	{
 		//Model's UBO
-		vkDestroyBuffer(m_renderer->m_device, m_ModelUniformBuffer[i].Buffer, nullptr);
-		vkFreeMemory(m_renderer->m_device, m_ModelUniformBuffer[i].BufferMemory, nullptr);
-		
+		vkDestroyBuffer(m_renderer->m_device, m_ModelUniformBuffer[i].buffer, nullptr);
+		vkFreeMemory(m_renderer->m_device, m_ModelUniformBuffer[i].bufferMemory, nullptr);
+
 		//Light's UBO
-		vkDestroyBuffer(m_renderer->m_device, m_LightInfoUniformBuffer[i].Buffer, nullptr);
-		vkFreeMemory(m_renderer->m_device, m_LightInfoUniformBuffer[i].BufferMemory, nullptr);
+		vkDestroyBuffer(m_renderer->m_device, m_LightInfoUniformBuffer[i].buffer, nullptr);
+		vkFreeMemory(m_renderer->m_device, m_LightInfoUniformBuffer[i].bufferMemory, nullptr);
 	}
 
 	vkDestroyDescriptorPool(m_renderer->m_device, m_DescriptorPool, nullptr);
@@ -954,15 +957,15 @@ void ModelViewer::Destroy()
 	vkDestroyDescriptorSetLayout(m_renderer->m_device, m_descriptorSetLayout, nullptr);
 
 	//Destroy Model's Index Buffer
-	vkDestroyBuffer(m_renderer->m_device, m_ModelIndexBuffer.Buffer, nullptr);
-	vkFreeMemory(m_renderer->m_device, m_ModelIndexBuffer.BufferMemory, nullptr);
+	vkDestroyBuffer(m_renderer->m_device, m_ModelIndexBuffer.buffer, nullptr);
+	vkFreeMemory(m_renderer->m_device, m_ModelIndexBuffer.bufferMemory, nullptr);
 
 	//Destroy Model's Vertex Buffer
-	vkDestroyBuffer(m_renderer->m_device, m_ModelVertexBuffer.Buffer, nullptr);
-	vkFreeMemory(m_renderer->m_device, m_ModelVertexBuffer.BufferMemory, nullptr);
+	vkDestroyBuffer(m_renderer->m_device, m_ModelVertexBuffer.buffer, nullptr);
+	vkFreeMemory(m_renderer->m_device, m_ModelVertexBuffer.bufferMemory, nullptr);
 
 	// clear all the allocated CommandPools
-	for(auto cmdPool: m_commandPoolList)
+	for (auto cmdPool : m_commandPoolList)
 		vkDestroyCommandPool(m_renderer->m_device, cmdPool, nullptr);
 
 	// Remove all the Vulkan related intialized values
@@ -971,5 +974,4 @@ void ModelViewer::Destroy()
 	//Destroy the renderer
 	if (m_renderer != NULL)
 		delete m_renderer;
-
 }
