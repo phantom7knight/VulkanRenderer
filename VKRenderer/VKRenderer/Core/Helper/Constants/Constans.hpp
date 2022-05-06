@@ -188,6 +188,7 @@ struct ComputePipelineInfo
 struct FrameBufferDesc
 {
 	uint32_t							attachmentCount;
+	VkImage								image;
 	std::vector< VkImageView >			Attachments;
 	float								FBOWidth;
 	float								FBOHeight;

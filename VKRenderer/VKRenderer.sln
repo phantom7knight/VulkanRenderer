@@ -18,6 +18,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelViewer", "Applications
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IMGUI", "Dependencies\Imgui\IMGUI\IMGUI.vcxproj", "{6BF32566-D366-4175-B5B2-781F5CD74B6A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Deferred", "Applications\Deferred\Deferred.vcxproj", "{38D3B9FF-6ACA-48B5-BFD1-0A9BE94AFA79}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6BF32566-D366-4175-B5B2-781F5CD74B6A} = {6BF32566-D366-4175-B5B2-781F5CD74B6A}
+		{96E093C3-40EE-4A75-AFE5-DA0403352DF9} = {96E093C3-40EE-4A75-AFE5-DA0403352DF9}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -58,6 +64,14 @@ Global
 		{6BF32566-D366-4175-B5B2-781F5CD74B6A}.Release|x64.Build.0 = Release|x64
 		{6BF32566-D366-4175-B5B2-781F5CD74B6A}.Release|x86.ActiveCfg = Release|Win32
 		{6BF32566-D366-4175-B5B2-781F5CD74B6A}.Release|x86.Build.0 = Release|Win32
+		{38D3B9FF-6ACA-48B5-BFD1-0A9BE94AFA79}.Debug|x64.ActiveCfg = Debug|x64
+		{38D3B9FF-6ACA-48B5-BFD1-0A9BE94AFA79}.Debug|x64.Build.0 = Debug|x64
+		{38D3B9FF-6ACA-48B5-BFD1-0A9BE94AFA79}.Debug|x86.ActiveCfg = Debug|Win32
+		{38D3B9FF-6ACA-48B5-BFD1-0A9BE94AFA79}.Debug|x86.Build.0 = Debug|Win32
+		{38D3B9FF-6ACA-48B5-BFD1-0A9BE94AFA79}.Release|x64.ActiveCfg = Release|x64
+		{38D3B9FF-6ACA-48B5-BFD1-0A9BE94AFA79}.Release|x64.Build.0 = Release|x64
+		{38D3B9FF-6ACA-48B5-BFD1-0A9BE94AFA79}.Release|x86.ActiveCfg = Release|Win32
+		{38D3B9FF-6ACA-48B5-BFD1-0A9BE94AFA79}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
