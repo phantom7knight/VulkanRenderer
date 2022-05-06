@@ -200,9 +200,7 @@ void CalculateBRDF(inout vec4 result)
 
 void main()
 {
-	int num = light_ubo.lightModel;
-
-	switch(num)
+	switch(light_ubo.lightModel)
 	{
 		case 0:
 			CalculatePhong(OutColor);

@@ -474,8 +474,8 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 
 		if(!m_lightModelGUILight)
 			ImGui::SliderInt("Spec Intensity", &m_SpecularIntensityGUILight, 2, 256);
-
-		ImGui::SliderInt("Light Intensity", &m_lightIntensityGUILight, 2, 15);
+		else
+			ImGui::SliderInt("Light Intensity", &m_lightIntensityGUILight, 10, 25);
 		
 		ImGui::End();
 	}
@@ -775,7 +775,7 @@ void ModelViewer::setGuiVariables()
 	m_lightColorGUILight = glm::vec3(1.0, 1.0, 1.0);
 	m_SpecularIntensityGUILight = 4;
 	m_lightModelGUILight = 1;
-	m_lightIntensityGUILight = 5;
+	m_lightIntensityGUILight = 12;
 }
 
 void ModelViewer::InitGui()
