@@ -107,7 +107,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <AdditionalIncludeDirectories>$(VULKAN_SDK)\Include;$(SolutionDIr)\Dependencies\GLFW\include;$(SolutionDIr)\Dependencies\GLM\glm\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>
       </DisableSpecificWarnings>
     </ClCompile>
@@ -159,7 +159,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\Vulkan\Include;$(SolutionDIr)\Dependencies\GLFW\include;$(SolutionDIr)\Dependencies\GLM\glm\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_OLD_ALLOCATOR_MEMBERS_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>
       </DisableSpecificWarnings>
     </ClCompile>
@@ -181,24 +181,76 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Common\Graphics\Material.cpp" />
+    <ClCompile Include="..\Dependencies\Optick\src\optick_capi.cpp" />
+    <ClCompile Include="..\Dependencies\Optick\src\optick_core.cpp" />
+    <ClCompile Include="..\Dependencies\Optick\src\optick_gpu.cpp" />
+    <ClCompile Include="..\Dependencies\Optick\src\optick_gpu.d3d12.cpp" />
+    <ClCompile Include="..\Dependencies\Optick\src\optick_gpu.vulkan.cpp" />
+    <ClCompile Include="..\Dependencies\Optick\src\optick_message.cpp" />
+    <ClCompile Include="..\Dependencies\Optick\src\optick_miniz.cpp" />
+    <ClCompile Include="..\Dependencies\Optick\src\optick_serialization.cpp" />
+    <ClCompile Include="..\Dependencies\Optick\src\optick_server.cpp" />
     <ClCompile Include="Core\Application\Application.cpp" />
     <ClCompile Include="Core\Camera\Camera.cpp" />
-    <ClCompile Include="Core\Helper\Timer\vkTimer.cpp" />
     <ClCompile Include="Core\PCH\stdafx.cpp" />
     <ClCompile Include="Core\RendererVulkan\Renderer\vkRenderer.cpp" />
     <ClCompile Include="Core\ResourceLoading\ResourceLoader.cpp" />
+    <ClCompile Include="Core\Threading\thread_pool_test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Common\Graphics\Material.h" />
+    <ClInclude Include="..\Dependencies\Optick\src\optick.config.h" />
+    <ClInclude Include="..\Dependencies\Optick\src\optick.h" />
+    <ClInclude Include="..\Dependencies\Optick\src\optick_capi.h" />
+    <ClInclude Include="..\Dependencies\Optick\src\optick_common.h" />
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.freebsd.h" />
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.h" />
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.linux.h" />
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.macos.h" />
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.platform.h" />
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.win.h" />
+    <ClInclude Include="..\Dependencies\Optick\src\optick_gpu.h" />
+    <ClInclude Include="..\Dependencies\Optick\src\optick_memory.h" />
+    <ClInclude Include="..\Dependencies\Optick\src\optick_message.h" />
+    <ClInclude Include="..\Dependencies\Optick\src\optick_miniz.h" />
+    <ClInclude Include="..\Dependencies\Optick\src\optick_serialization.h" />
+    <ClInclude Include="..\Dependencies\Optick\src\optick_server.h" />
     <ClInclude Include="Core\Application\Application.h" />
     <ClInclude Include="Core\Camera\Camera.h" />
     <ClInclude Include="Core\Helper\Constants\Constans.hpp" />
-    <ClInclude Include="Core\Helper\Timer\vkTimer.h" />
+    <ClInclude Include="Core\Helper\Timer\BenchmarkHelper.hpp" />
     <ClInclude Include="Core\Helper\Validation Layer\ValidationLayer.hpp" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\callbacklist.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\EventCPPIncludes.hpp" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\eventdispatcher.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\eventpolicies.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\eventqueue.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\hetercallbacklist.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\hetereventdispatcher.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\hetereventqueue.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\internal\eventpolicies_i.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\internal\eventqueue_i.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\internal\hetercallbacklist_i.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\internal\typeutil_i.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\mixins\mixinfilter.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\mixins\mixinheterfilter.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\anyid.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\argumentadapter.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\conditionalfunctor.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\conditionalremover.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\counterremover.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\eventmaker.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\eventutil.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\orderedqueuelist.h" />
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\scopedremover.h" />
+    <ClInclude Include="Core\ObserverModels\SignalSlot\sigslot\adapter\boost.hpp" />
+    <ClInclude Include="Core\ObserverModels\SignalSlot\sigslot\adapter\qt.hpp" />
+    <ClInclude Include="Core\ObserverModels\SignalSlot\sigslot\signal.hpp" />
     <ClInclude Include="Core\PCH\stdafx.h" />
     <ClInclude Include="Core\RendererVulkan\Renderer\vkRenderer.h" />
     <ClInclude Include="Core\RendererVulkan\VulkanHelper\VulkanHelper.hpp" />
     <ClInclude Include="Core\ResourceLoading\ResourceLoader.h" />
+    <ClInclude Include="Core\Threading\thread_pool.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

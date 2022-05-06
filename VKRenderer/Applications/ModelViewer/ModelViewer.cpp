@@ -2,11 +2,12 @@
 #include "../../Dependencies/Imgui/IMGUI/Imgui_Impl.h"
 #include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
 #include "../../VKRenderer/Core/Camera/Camera.h"
+#include "../../../Dependencies/Optick/src/optick.h"
 
-ModelViewer::ModelViewer() :
-	m_showGUILight(true),
-	m_showPhongGUILight(false),
-	m_showBRDFGUILight(true)
+#define Is_MT_Enabled 0
+
+
+ModelViewer::ModelViewer() : m_showGUILight(true)
 {
 	//Initialize Renderer
 	m_renderer = new vkRenderer();
@@ -230,6 +231,7 @@ void ModelViewer::CreateFrameBuffers()
 void ModelViewer::CreateCommandPool()
 {
 	m_renderer->CreateCommandPool(&m_commandPool);
+	m_commandPoolList.push_back(m_commandPool);
 }
 
 void ModelViewer::CreateUniformBuffer()
@@ -462,31 +464,21 @@ void ModelViewer::DrawGui(VkCommandBuffer a_cmdBuffer)
 			ImGuiIO& io = ImGui::GetIO();
 			ImFont* font_current = ImGui::GetFont();
 
-			ImGui::Checkbox("Phong Model", &m_showPhongGUILight);
-			ImGui::Checkbox("BRDF Model", &m_showBRDFGUILight);
-
-			if (m_showPhongGUILight)
-			{
-				m_lightModelGUILight = 0;
-			}
-						
-			if (m_showBRDFGUILight)
-			{
-				m_lightModelGUILight = 1;
-			}
+			ImGui::RadioButton("Phong", &m_lightModelGUILight, 0); ImGui::SameLine();
+			ImGui::RadioButton("BRDF", &m_lightModelGUILight, 1);
 		}
 		
 		ImGui::SliderFloat3("Light Position", &m_lightPosGUILight.x, -400.0f, 400.0f);
 
 		ImGui::SliderFloat3("Light Color", &m_lightColorGUILight.x, 0.0f, 1.0f);
 
-		ImGui::SliderInt("Spec Intensity[Phong]", &m_SpecularIntensityGUILight, 2, 256);
-
-		ImGui::SliderInt("Light Intensity", &m_lightIntensityGUILight, 2, 15);
+		if(!m_lightModelGUILight)
+			ImGui::SliderInt("Spec Intensity", &m_SpecularIntensityGUILight, 2, 256);
+		else
+			ImGui::SliderInt("Light Intensity", &m_lightIntensityGUILight, 10, 25);
 		
 		ImGui::End();
 	}
-
 
 	Imgui_Impl::getInstance()->Gui_Render(a_cmdBuffer);
 }
@@ -532,13 +524,13 @@ void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 		VkDeviceSize offset = { 0 };
 
 		//Bind Vertex Buffer
-		vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &VertexBUffer.Buffer, &offset);
+		vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, &m_modelBufferInfos["../../Assets/Models/Sphere/Sphere.fbx"].VertexBUffer.Buffer, &offset);
 
 		//Bind Index Buffer
-		vkCmdBindIndexBuffer(m_commandBuffers[i], IndexBUffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(m_commandBuffers[i], m_modelBufferInfos["../../Assets/Models/Sphere/Sphere.fbx"].IndexBUffer.Buffer, 0, VK_INDEX_TYPE_UINT32);
 
 		//Call Draw Indexed for the model
-		vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_indexBufferCount), 1, 0, 0, 0);
+		vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(m_modelBufferInfos["../../Assets/Models/Sphere/Sphere.fbx"].indexBufferCount), 1, 0, 0, 0);
 		
 		//==================================================
 		//Draw UI
@@ -602,35 +594,71 @@ void ModelViewer::SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_V
 {
 	VkDeviceSize bufferSize = a_modelDesc.vertexBufferSize;
 
+	VkCommandPool vertBuffcommandPool;
+
+	//create cmdpool
+	m_renderer->CreateCommandPool(&vertBuffcommandPool);
+	m_commandPoolList.push_back(vertBuffcommandPool);
+
 	m_renderer->CreateBuffer(a_modelDesc.vertexbufferData.data(), bufferSize, a_VertexBUffer, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-		m_commandPool);
+		vertBuffcommandPool);
 }
 
 void ModelViewer::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_IndexBUffer)
 {
 	VkDeviceSize bufferSize = a_modelDesc.indexBufferSize;
 
+	VkCommandPool indxBuffcommandPool;
+
+	//create cmdpool
+	m_renderer->CreateCommandPool(&indxBuffcommandPool);
+	m_commandPoolList.push_back(indxBuffcommandPool);
+
 	m_renderer->CreateBuffer(a_modelDesc.indexbufferData.data(), bufferSize, a_IndexBUffer, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-		m_commandPool);
+		indxBuffcommandPool);
 
 	return;
 }
 
 void ModelViewer::LoadAModel(std::string fileName)
 {
-	ModelInfo modelinfor = 	m_renderer->rsrcLdr.LoadModelResource(fileName);
+#if Is_MT_Enabled 1
+	pool.push_task([this, fileName] () {
+		m_modelInfos[fileName] = m_renderer->rsrcLdr.LoadModelResource(fileName);
+		}
+	);
+#else
+	m_modelInfos[fileName] = m_renderer->rsrcLdr.LoadModelResource(fileName);
+#endif
+}
 
-	//Load Index and Vertex Buffer
-	SetUpVertexBuffer(modelinfor, &VertexBUffer);
-	SetUpIndexBuffer(modelinfor	, &IndexBUffer);
+void ModelViewer::LoadModelsBufferResources()
+{
+	for (const auto& [key, value] : m_modelInfos)
+	{
+		ModelBuffersInfo bufferInfo;
 
-	m_indexBufferCount = static_cast<uint32_t>(modelinfor.indexbufferData.size());
-	
+		//Load Index and Vertex Buffer
+		SetUpVertexBuffer(m_modelInfos[key], &bufferInfo.VertexBUffer);
+		SetUpIndexBuffer(m_modelInfos[key], &bufferInfo.IndexBUffer);
+
+		bufferInfo.indexBufferCount = static_cast<uint32_t>(m_modelInfos[key].indexbufferData.size());
+		std::string name = key;
+		m_modelBufferInfos[key] = bufferInfo;
+	}
+	return;
 }
 
 void ModelViewer::LoadTexture(std::string a_textureName, TextureBufferDesc * a_imageTex)
 {
-	m_renderer->LoadImageTexture(a_textureName, a_imageTex, m_commandPool, m_commandBuffers.data());
+	// todo_rt: create a new cmd pool
+	VkCommandPool imageBuffcommandPool;
+
+	//create cmdpool
+	m_renderer->CreateCommandPool(&imageBuffcommandPool);
+	m_commandPoolList.push_back(imageBuffcommandPool);
+
+	m_renderer->LoadImageTexture(a_textureName, a_imageTex, imageBuffcommandPool, m_commandBuffers.data());
 }
 
 void ModelViewer::CreateImageTextureView()
@@ -642,12 +670,33 @@ void ModelViewer::CreateImageTextureView()
 
 void ModelViewer::LoadAllTextures()
 {
+	OPTICK_FRAME("Loading Textures");
+	
+
+#if Is_MT_Enabled 1
+
+	pool.push_task([this]() {
+		LoadTexture("../../Assets/Textures/Sphere/Albedo.png", &PBRMaterial.albedoMap);
+		});
+
 	//LoadTexture("../../Assets/Textures/Statue.jpg");
+	pool.push_task([this]() {
+		LoadTexture("../../Assets/Textures/Sphere/Metallic.png", &PBRMaterial.metallicMap);
+		});
+
+	pool.push_task([this]() {
+		LoadTexture("../../Assets/Textures/Sphere/Roughness.png", &PBRMaterial.roughnessMap);
+		});
+#else
 	LoadTexture("../../Assets/Textures/Sphere/Albedo.png", &PBRMaterial.albedoMap);
 	LoadTexture("../../Assets/Textures/Sphere/Metallic.png", &PBRMaterial.metallicMap);
 	LoadTexture("../../Assets/Textures/Sphere/Roughness.png", &PBRMaterial.roughnessMap);
 	//LoadTexture("../../Assets/Textures/Kabuto/Albedo.png");
 	//LoadTexture("../../Assets/Textures/green.jpg");
+#endif
+	
+	
+	
 }
 
 void ModelViewer::CreateTextureSampler()
@@ -685,13 +734,48 @@ void ModelViewer::CreateDepthResources()
 	
 }
 
+void ModelViewer::ResourcesLoading()
+{
+
+#pragma region Model_Load
+	LoadAModel("../../Assets/Models/monkey/monkey.obj");
+	LoadAModel("../../Assets/Models/monkey/suzanne.obj");
+	//LoadAModel("../../Assets/Models/ShaderBall/shaderBall.obj");
+	LoadAModel("../../Assets/Models/Sphere/Sphere.fbx");
+	//LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
+	LoadAModel("../../Assets/Models/venus/venus.fbx");
+
+	pool.wait_for_tasks();
+
+	// load each model's buffer info
+	LoadModelsBufferResources();
+	
+#pragma endregion
+
+#pragma region Models_Tex
+	LoadAllTextures();
+#pragma endregion
+
+#if _DEBUG
+	auto completitionTask = []()
+	{
+		std::cout << "loading model and textures Task executed" << std::endl;
+	};
+
+	pool.submit(completitionTask);
+#endif
+
+	// wait for the tasks to finish
+	pool.wait_for_tasks();
+}
+
 void ModelViewer::setGuiVariables()
 {
 	m_lightPosGUILight = glm::vec3(91.30, -73.913, 160.870);
 	m_lightColorGUILight = glm::vec3(1.0, 1.0, 1.0);
 	m_SpecularIntensityGUILight = 4;
 	m_lightModelGUILight = 1;
-	m_lightIntensityGUILight = 5;
+	m_lightIntensityGUILight = 12;
 }
 
 void ModelViewer::InitGui()
@@ -740,21 +824,7 @@ void ModelViewer::PrepareApp()
 	
 	CreateGraphicsPipeline();
 
-#pragma region Model_Load
-		//LoadAModel("../../Assets/Models/monkey/monkey.obj");
-		//LoadAModel("../../Assets/Models/monkey/suzanne.obj");
-		//LoadAModel("../../Assets/Models/ShaderBall/shaderBall.obj");
-		LoadAModel("../../Assets/Models/Sphere/Sphere.fbx");
-		//LoadAModel("../../Assets/Models/LowPoly/1.obj");
-		//LoadAModel("../../Assets/Models/Kabuto/Kabuto.fbx");
-		//LoadAModel("../../Assets/Models/cornell_box/cornell_box.obj");
-		//LoadAModel("../../Assets/Models/VulkanScene/vulkanscene_shadow.dae");
-		//LoadAModel("../../Assets/Models/venus/venus.fbx");
-#pragma endregion
-
-#pragma region Models_Tex
-		LoadAllTextures();
-#pragma endregion
+	ResourcesLoading();
 
 	CreateImageTextureView();
 	
@@ -775,7 +845,6 @@ void ModelViewer::PrepareApp()
 	
 	//Initialize Dear ImGui
 	InitGui();
-
 }
 
 void ModelViewer::Update(float deltaTime)
@@ -844,7 +913,6 @@ void ModelViewer::Destroy()
 	vkDestroyImage(m_renderer->m_device, depthImageInfo.BufferImage, nullptr);
 	vkFreeMemory(m_renderer->m_device, depthImageInfo.BufferMemory, nullptr);
 
-
 	vkDestroySampler(m_renderer->m_device, PBRMaterial.albedoMap.Sampler, nullptr);
 	vkDestroyImageView(m_renderer->m_device, PBRMaterial.albedoMap.ImageView, nullptr);
 	vkDestroySampler(m_renderer->m_device, PBRMaterial.metallicMap.Sampler, nullptr);
@@ -893,7 +961,9 @@ void ModelViewer::Destroy()
 	vkDestroyBuffer(m_renderer->m_device, m_ModelVertexBuffer.Buffer, nullptr);
 	vkFreeMemory(m_renderer->m_device, m_ModelVertexBuffer.BufferMemory, nullptr);
 
-	vkDestroyCommandPool(m_renderer->m_device, m_commandPool, nullptr);
+	// clear all the allocated CommandPools
+	for(auto cmdPool: m_commandPoolList)
+		vkDestroyCommandPool(m_renderer->m_device, cmdPool, nullptr);
 
 	// Remove all the Vulkan related intialized values
 	m_renderer->Destroy();

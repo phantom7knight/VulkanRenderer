@@ -52,6 +52,36 @@
     <Filter Include="Common\Graphics">
       <UniqueIdentifier>{75e311f3-812b-44ba-9d79-83ea7200e22d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Threading">
+      <UniqueIdentifier>{305de3d5-07b5-46b1-a349-81e43b2c0429}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EventCallbacks">
+      <UniqueIdentifier>{95656acb-941f-4cad-ad44-cb2f3d4d0a2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ObserverModel">
+      <UniqueIdentifier>{3516aa55-9381-4196-8c09-e32cddc9cd60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ObserverModel\EventCallbacks">
+      <UniqueIdentifier>{47abe272-25d7-4a54-a27f-7bb33b18a87b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ObserverModel\SignalSlot">
+      <UniqueIdentifier>{22681a4f-2c0c-48a6-b562-4b593b786891}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ObserverModel\SignalSlot\adapter">
+      <UniqueIdentifier>{386746ec-c4b9-4731-a7f8-15cd901ffa89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ObserverModel\EventCallbacks\internal">
+      <UniqueIdentifier>{45a4b9b5-12a3-4f62-b559-06510f4f8821}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ObserverModel\EventCallbacks\minxins">
+      <UniqueIdentifier>{49cd0c78-4bad-4e08-82df-93f76f8a9b73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ObserverModel\EventCallbacks\utilities">
+      <UniqueIdentifier>{3452ef3e-a149-4dce-9dbd-0ef78754a1d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Profiler">
+      <UniqueIdentifier>{636b3669-b077-406e-b556-31aa1a876f05}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\RendererVulkan\Renderer\vkRenderer.cpp">
@@ -69,11 +99,38 @@
     <ClCompile Include="Core\PCH\stdafx.cpp">
       <Filter>PreCompilerHeader</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Helper\Timer\vkTimer.cpp">
-      <Filter>Helpers\Time</Filter>
-    </ClCompile>
     <ClCompile Include="..\Common\Graphics\Material.cpp">
       <Filter>Common\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Threading\thread_pool_test.cpp">
+      <Filter>Threading</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_capi.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_core.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_gpu.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_gpu.d3d12.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_gpu.vulkan.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_message.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_miniz.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_serialization.cpp">
+      <Filter>Profiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Dependencies\Optick\src\optick_server.cpp">
+      <Filter>Profiler</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -101,11 +158,140 @@
     <ClInclude Include="Core\Helper\Constants\Constans.hpp">
       <Filter>Helpers\Constants</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Helper\Timer\vkTimer.h">
-      <Filter>Helpers\Time</Filter>
-    </ClInclude>
     <ClInclude Include="..\Common\Graphics\Material.h">
       <Filter>Common\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Threading\thread_pool.hpp">
+      <Filter>Threading</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Helper\Timer\BenchmarkHelper.hpp">
+      <Filter>Helpers\Time</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\SignalSlot\sigslot\signal.hpp">
+      <Filter>ObserverModel\SignalSlot</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\SignalSlot\sigslot\adapter\boost.hpp">
+      <Filter>ObserverModel\SignalSlot\adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\SignalSlot\sigslot\adapter\qt.hpp">
+      <Filter>ObserverModel\SignalSlot\adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\callbacklist.h">
+      <Filter>ObserverModel\EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\EventCPPIncludes.hpp">
+      <Filter>ObserverModel\EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\eventdispatcher.h">
+      <Filter>ObserverModel\EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\eventpolicies.h">
+      <Filter>ObserverModel\EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\eventqueue.h">
+      <Filter>ObserverModel\EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\hetercallbacklist.h">
+      <Filter>ObserverModel\EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\hetereventdispatcher.h">
+      <Filter>ObserverModel\EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\hetereventqueue.h">
+      <Filter>ObserverModel\EventCallbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\anyid.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\argumentadapter.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\conditionalfunctor.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\conditionalremover.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\counterremover.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\eventmaker.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\eventutil.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\orderedqueuelist.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\utilities\scopedremover.h">
+      <Filter>ObserverModel\EventCallbacks\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\mixins\mixinfilter.h">
+      <Filter>ObserverModel\EventCallbacks\minxins</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\mixins\mixinheterfilter.h">
+      <Filter>ObserverModel\EventCallbacks\minxins</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\internal\eventpolicies_i.h">
+      <Filter>ObserverModel\EventCallbacks\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\internal\eventqueue_i.h">
+      <Filter>ObserverModel\EventCallbacks\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\internal\hetercallbacklist_i.h">
+      <Filter>ObserverModel\EventCallbacks\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ObserverModels\EventCallbacks\internal\typeutil_i.h">
+      <Filter>ObserverModel\EventCallbacks\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick.config.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_capi.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_common.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.freebsd.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.linux.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.macos.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.platform.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_core.win.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_gpu.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_memory.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_message.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_miniz.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_serialization.h">
+      <Filter>Profiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Dependencies\Optick\src\optick_server.h">
+      <Filter>Profiler</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
