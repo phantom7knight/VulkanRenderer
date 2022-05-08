@@ -188,18 +188,16 @@ void Triangle::CreateRenderPass()
 //===================================================================
 void Triangle::CreateFrameBuffers()
 {
-	m_renderer->m_swapChainFrameBuffer.resize(m_renderer->m_swapChainDescription.swapChainImageViews.size());
+	m_renderer->m_swapChainFBOInfo.resize(m_renderer->m_swapChainDescription.swapChainImageViews.size());
 
 	for (uint32_t i = 0; i < m_renderer->m_swapChainDescription.swapChainImageViews.size(); ++i)
 	{
-		std::vector<VkImageView> attachmentsVector = { m_renderer->m_swapChainDescription.swapChainImageViews[i] };
+		std::vector<VkImageView> attachments = { m_renderer->m_swapChainDescription.swapChainImageViews[i] };
 
-		m_FBO.attachmentCount = 1;
 		m_FBO.fboHeight = m_renderer->m_swapChainDescription.swapChainExtent.height;
 		m_FBO.fboWidth	= m_renderer->m_swapChainDescription.swapChainExtent.width;
-		m_FBO.attachments = attachmentsVector;
 
-		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFrameBuffer[i].frameBuffer);
+		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFBOInfo[i].swapChainFrameBuffer, attachments);
 	}
 
 }
@@ -219,7 +217,7 @@ void Triangle::CreateCommandPool()
 
 void Triangle::CreateCommandBuffers()
 {
-	m_commandBuffers.resize(m_renderer->m_swapChainFrameBuffer.size());
+	m_commandBuffers.resize(m_renderer->m_swapChainFBOInfo.size());
 	
 	//Allocate Command buffer
 	m_renderer->AllocateCommandBuffers(m_commandBuffers, m_commandPool);
@@ -243,7 +241,7 @@ void Triangle::CreateCommandBuffers()
 
 			renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 			renderpassBeginInfo.renderPass = m_renderPass;
-			renderpassBeginInfo.framebuffer = m_renderer->m_swapChainFrameBuffer[i].frameBuffer;// m_swapChainFrameBuffer[i];
+			renderpassBeginInfo.framebuffer = m_renderer->m_swapChainFBOInfo[i].swapChainFrameBuffer;// m_swapChainFrameBuffer[i];
 			renderpassBeginInfo.renderArea.offset = { 0,0 };
 			renderpassBeginInfo.renderArea.extent = m_renderer->m_swapChainDescription.swapChainExtent;
 
@@ -425,12 +423,9 @@ void Triangle::CreateDesciptorSets()
 	descriptorWriteInfo[0].pImageInfo = nullptr;
 	descriptorWriteInfo[0].pTexelBufferView = nullptr;
 
-	m_renderer->CreateDesciptorSets(m_renderer->m_swapChainDescription.swapChainImages.size(), m_descriptorSetLayout,
+	m_renderer->CreateDesciptorSets(static_cast<uint32_t>(m_renderer->m_swapChainDescription.swapChainImages.size()), m_descriptorSetLayout,
 		m_TriangleUniformBuffer, sizeof(UniformBufferObject), descriptorWriteInfo, m_DescriptorPool,
 		m_DescriptorSets);
-
-
-
 }
 
 //===================================================================

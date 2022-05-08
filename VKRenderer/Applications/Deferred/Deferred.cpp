@@ -4,7 +4,7 @@
 #include "../../VKRenderer/Core/Camera/Camera.h"
 #include "../../../Dependencies/Optick/src/optick.h"
 
-#define Is_MT_Enabled 0
+#define Is_MT_Enabled false
 
 
 Deferred::Deferred() : m_showGUILight(true)
@@ -30,6 +30,17 @@ void Deferred::SetUpCameraProperties(Camera* a_cam)
 		(float)m_renderer->m_swapChainDescription.swapChainExtent.width / (float)m_renderer->m_swapChainDescription.swapChainExtent.height, 
 		0.1f,
 		1000.0f);
+
+}
+
+void Deferred::CreateAttachments()
+{
+
+}
+
+void Deferred::CreateOffScreenFBO()
+{
+	// create attachments for all the buffers
 
 }
 
@@ -215,19 +226,17 @@ void Deferred::CreateGraphicsPipeline()
 
 void Deferred::CreateFrameBuffers()
 {
-	m_renderer->m_swapChainFrameBuffer.resize(m_renderer->m_swapChainDescription.swapChainImageViews.size());
+	m_renderer->m_swapChainFBOInfo.resize(m_renderer->m_swapChainDescription.swapChainImageViews.size());
 
 	for (uint32_t i = 0; i < m_renderer->m_swapChainDescription.swapChainImageViews.size(); ++i)
 	{
 		std::vector< VkImageView> attachments = { m_renderer->m_swapChainDescription.swapChainImageViews[i],
 													depthImageInfo.imageView };
 
-		m_FBO.attachmentCount = static_cast<uint32_t>(attachments.size());
-		m_FBO.attachments = attachments;
-		m_FBO.fboWidth = (float)m_renderer->m_swapChainDescription.swapChainExtent.width;
-		m_FBO.fboHeight = (float)m_renderer->m_swapChainDescription.swapChainExtent.height;
+		m_FBO.fboWidth = m_renderer->m_swapChainDescription.swapChainExtent.width;
+		m_FBO.fboHeight = m_renderer->m_swapChainDescription.swapChainExtent.height;
 
-		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFrameBuffer[i].frameBuffer);
+		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFBOInfo[i].swapChainFrameBuffer, attachments);
 	}
 }
 
@@ -385,10 +394,9 @@ void Deferred::CreateDescriptorSets()
 
 void Deferred::CreateCommandBuffers()
 {
-	m_commandBuffers.resize(m_renderer->m_swapChainFrameBuffer.size());
+	m_commandBuffers.resize(m_renderer->m_swapChainFBOInfo.size());
 
 	m_renderer->AllocateCommandBuffers(m_commandBuffers, m_commandPool);
-
 }
 
 void Deferred::CreateSemaphoresandFences()
@@ -505,7 +513,7 @@ void Deferred::UpdateCommandBuffers(uint32_t a_imageIndex)
 
 	renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderpassBeginInfo.renderPass = m_renderPass;
-	renderpassBeginInfo.framebuffer = m_renderer->m_swapChainFrameBuffer[i].frameBuffer;
+	renderpassBeginInfo.framebuffer = m_renderer->m_swapChainFBOInfo[i].swapChainFrameBuffer;
 	renderpassBeginInfo.renderArea.offset = { 0,0 };
 	renderpassBeginInfo.renderArea.extent = m_renderer->m_swapChainDescription.swapChainExtent;
 
@@ -625,7 +633,7 @@ void Deferred::SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_Index
 
 void Deferred::LoadAModel(std::string fileName)
 {
-#if Is_MT_Enabled 1
+#if Is_MT_Enabled true
 	pool.push_task([this, fileName] () {
 		m_modelInfos[fileName] = m_renderer->rsrcLdr.LoadModelResource(fileName);
 		}
@@ -676,7 +684,7 @@ void Deferred::LoadAllTextures()
 	OPTICK_FRAME("Loading Textures");
 	
 
-#if Is_MT_Enabled 1
+#if Is_MT_Enabled true
 
 	pool.push_task([this]() {
 		LoadTexture("../../Assets/Textures/Sphere/Albedo.png", &PBRMaterial.albedoMap);
@@ -814,6 +822,8 @@ void Deferred::Init()
 void Deferred::PrepareApp()
 {
 	m_renderer->PrepareApp();
+
+	CreateOffScreenFBO();
 
 	CreateRenderPass();
 

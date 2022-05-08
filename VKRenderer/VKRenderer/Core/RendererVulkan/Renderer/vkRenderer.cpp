@@ -754,20 +754,19 @@ void vkRenderer::UpdateDescriptorSets(std::vector< VkWriteDescriptorSet>& a_desc
 //===================================================================
 //Creating Frame Buffers
 //===================================================================
-void vkRenderer::CreateFrameBuffer(FrameBufferDesc a_fboDesc, VkRenderPass a_renderPass, VkFramebuffer* a_frameBuffer)
+void vkRenderer::CreateFrameBuffer(FrameBufferDesc a_fboDesc, VkRenderPass a_renderPass, VkFramebuffer* a_frameBuffer, std::vector<VkImageView> a_attachments)
 {
 	VkFramebufferCreateInfo fbcreateInfo = {};
 
 	fbcreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 	fbcreateInfo.renderPass = a_renderPass;
-	fbcreateInfo.attachmentCount = a_fboDesc.attachmentCount;
-	fbcreateInfo.pAttachments = a_fboDesc.attachments.data();
+	fbcreateInfo.attachmentCount = static_cast<uint32_t>(a_attachments.size());
+	fbcreateInfo.pAttachments = a_attachments.data();
 	fbcreateInfo.width  = static_cast<uint32_t>(a_fboDesc.fboWidth);
 	fbcreateInfo.height = static_cast<uint32_t>(a_fboDesc.fboHeight);
 	fbcreateInfo.layers = 1;
 
 	VulkanHelper::CreateFrameBuffer(m_device, &fbcreateInfo, a_frameBuffer);
-	
 }
 
 //===================================================================
@@ -941,9 +940,9 @@ void vkRenderer::DestroyDebugUtilsMessengerEXT(
 
 void vkRenderer::CleanUpSwapChain()
 {
-	for (size_t i = 0; i < m_swapChainFrameBuffer.size(); ++i)
+	for (size_t i = 0; i < m_swapChainFBOInfo.size(); ++i)
 	{
-		vkDestroyFramebuffer(m_device, m_swapChainFrameBuffer[i].frameBuffer, nullptr);
+		vkDestroyFramebuffer(m_device, m_swapChainFBOInfo[i].swapChainFrameBuffer, nullptr);
 	}
 
 	for (size_t i = 0; i < m_swapChainDescription.swapChainImageViews.size(); ++i)

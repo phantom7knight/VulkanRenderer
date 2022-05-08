@@ -167,8 +167,8 @@ struct GraphicsPipelineInfo
 	VkCompareOp										depthCompareOperation;
 
 	VkDescriptorSetLayout							descriptorSetLayout;
-	VkRenderPass                                    renderPass;
-	uint32_t                                        subpass;
+	VkRenderPass									renderPass;
+	uint32_t										subpass;
 	
 	//Final Pipeline Info
 	VkPipelineLayout								pipelineLayout;
@@ -183,13 +183,10 @@ struct ComputePipelineInfo
 
 struct FrameBufferDesc
 {
-	uint32_t							attachmentCount;
 	VkImage								image;
-	std::vector< VkImageView >			attachments;
-	float								fboWidth;
-	float								fboHeight;
-	VkFramebuffer						frameBuffer;
-	VkRenderPass						renderPass;
+	VkImageView							imageView;
+	uint32_t							fboWidth;
+	uint32_t							fboHeight;
 };
 
 struct FrameSubmissionDesc
@@ -207,5 +204,4 @@ struct SamplerCreationDesc
 	VkFilter			magFilter;
 	VkBool32			anisotropyEnable;
 	VkSamplerMipmapMode mipMode;
-
 };

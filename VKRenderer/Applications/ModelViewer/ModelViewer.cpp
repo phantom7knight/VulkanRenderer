@@ -215,19 +215,17 @@ void ModelViewer::CreateGraphicsPipeline()
 
 void ModelViewer::CreateFrameBuffers()
 {
-	m_renderer->m_swapChainFrameBuffer.resize(m_renderer->m_swapChainDescription.swapChainImageViews.size());
+	m_renderer->m_swapChainFBOInfo.resize(m_renderer->m_swapChainDescription.swapChainImageViews.size());
 
 	for (uint32_t i = 0; i < m_renderer->m_swapChainDescription.swapChainImageViews.size(); ++i)
 	{
 		std::vector< VkImageView> attachments = { m_renderer->m_swapChainDescription.swapChainImageViews[i],
 													depthImageInfo.imageView };
 
-		m_FBO.attachmentCount = static_cast<uint32_t>(attachments.size());
-		m_FBO.attachments = attachments;
-		m_FBO.fboWidth = (float)m_renderer->m_swapChainDescription.swapChainExtent.width;
-		m_FBO.fboHeight = (float)m_renderer->m_swapChainDescription.swapChainExtent.height;
+		m_FBO.fboWidth = m_renderer->m_swapChainDescription.swapChainExtent.width;
+		m_FBO.fboHeight = m_renderer->m_swapChainDescription.swapChainExtent.height;
 
-		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFrameBuffer[i].frameBuffer);
+		m_renderer->CreateFrameBuffer(m_FBO, m_renderPass, &m_renderer->m_swapChainFBOInfo[i].swapChainFrameBuffer, attachments);
 	}
 }
 
@@ -385,7 +383,7 @@ void ModelViewer::CreateDescriptorSets()
 
 void ModelViewer::CreateCommandBuffers()
 {
-	m_commandBuffers.resize(m_renderer->m_swapChainFrameBuffer.size());
+	m_commandBuffers.resize(m_renderer->m_swapChainFBOInfo.size());
 
 	m_renderer->AllocateCommandBuffers(m_commandBuffers, m_commandPool);
 
@@ -505,7 +503,7 @@ void ModelViewer::UpdateCommandBuffers(uint32_t a_imageIndex)
 
 	renderpassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderpassBeginInfo.renderPass = m_renderPass;
-	renderpassBeginInfo.framebuffer = m_renderer->m_swapChainFrameBuffer[i].frameBuffer;
+	renderpassBeginInfo.framebuffer = m_renderer->m_swapChainFBOInfo[i].swapChainFrameBuffer;
 	renderpassBeginInfo.renderArea.offset = { 0,0 };
 	renderpassBeginInfo.renderArea.extent = m_renderer->m_swapChainDescription.swapChainExtent;
 

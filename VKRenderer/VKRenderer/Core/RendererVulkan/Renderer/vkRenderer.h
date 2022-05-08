@@ -2,6 +2,12 @@
 
 #include "../../PCH/stdafx.h"
 
+struct SwapChainFBOInfo
+{
+	FrameBufferDesc swapChainFrameBufferDesc;
+	VkFramebuffer swapChainFrameBuffer;
+};
+
 class Camera;
 class vkRenderer
 {
@@ -83,7 +89,7 @@ public:
 	void CreateGraphicsPipeline(GraphicsPipelineInfo* a_pipelineInfo);
 	void CreateComputePipeline(ComputePipelineInfo a_computePipelineInfo);
 	std::vector<VkPipelineShaderStageCreateInfo>  ShaderStageInfoGeneration(std::vector<std::string>ShaderNames);
-	void CreateFrameBuffer(FrameBufferDesc a_fboDesc, VkRenderPass a_renderPass, VkFramebuffer* a_frameBuffer);
+	void CreateFrameBuffer(FrameBufferDesc a_fboDesc, VkRenderPass a_renderPass, VkFramebuffer* a_frameBuffer, std::vector<VkImageView> a_attachments);
 	void AllocateCommandBuffers(std::vector<VkCommandBuffer> &a_cmdBuffer, VkCommandPool a_cmdPool);
 	void CreateCommandPool(VkCommandPool* a_commandPool);
 	void CreateDescriptorPool(std::vector< VkDescriptorPoolSize > a_poolSize, uint32_t a_maxSets, uint32_t a_poolSizeCount,
@@ -154,7 +160,7 @@ public:
 	VkQueue								m_PresentQueue;
 
 	// Swap Chain Frame Buffer
-	std::vector<FrameBufferDesc>		m_swapChainFrameBuffer;
+	std::vector<SwapChainFBOInfo>		m_swapChainFBOInfo;
 
 	std::vector<VkSemaphore>			m_imageAvailableSemaphore;
 	std::vector<VkSemaphore>			m_renderFinishedSemaphore;

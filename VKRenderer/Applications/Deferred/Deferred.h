@@ -11,7 +11,6 @@ struct ModelUBO
 	glm::mat4 ProjectionMatrix;
 };
 
-
 struct LightInfoUBO
 {
 	glm::vec3	lightColor;
@@ -24,9 +23,7 @@ struct LightInfoUBO
 	LightInfoUBO() : lightColor(glm::vec3(1.0, 1.0, 1.0)), specularIntensity(4)
 		, lightPosition(glm::vec3(0.0, 0.0, 0.0)), camPosition(glm::vec3(0.0, 0.0, 0.0)), lightModel(0), lightIntensity(1)
 	{
-		
 	}
-
 };
 
 // Model's buffer related
@@ -35,6 +32,15 @@ struct ModelBuffersInfo
 	BufferDesc VertexBUffer;
 	BufferDesc IndexBUffer;
 	int indexBufferCount = 0;
+};
+
+struct OffScreenFrameBuffer
+{
+	FrameBufferDesc albedoSpecMap;
+	FrameBufferDesc normalMap;
+	FrameBufferDesc positionMap;
+	FrameBufferDesc depthMap;
+	VkRenderPass renderPass;
 };
 
 class Camera;
@@ -49,6 +55,10 @@ private:
 	void SetUpIndexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_IndexBUffer);
 	
 	void SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_VertexBUffer);
+
+	void CreateAttachments();
+
+	void CreateOffScreenFBO();
 
 	void CreateRenderPass();
 
