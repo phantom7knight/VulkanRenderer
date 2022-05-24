@@ -174,9 +174,9 @@ void vkRenderer::CreateTextureSampler(SamplerCreationDesc a_createInfo, VkSample
 	createInfo.magFilter = a_createInfo.magFilter;
 	createInfo.minFilter = a_createInfo.minFilter;
 
-	createInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	createInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	createInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	createInfo.addressModeU = a_createInfo.addressModeU;
+	createInfo.addressModeV = a_createInfo.addressModeV;
+	createInfo.addressModeW = a_createInfo.addressModeW;
 
 	createInfo.anisotropyEnable = a_createInfo.anisotropyEnable;
 	createInfo.maxAnisotropy = 16; // lower value bad quality more performance
@@ -203,8 +203,7 @@ void vkRenderer::CreateTextureSampler(SamplerCreationDesc a_createInfo, VkSample
 #define STB_IMAGE_IMPLEMENTATION
 #include "../../Dependencies/STB/stb_image.h"
 
-void vkRenderer::LoadImageTexture(std::string textureName, TextureBufferDesc *a_imageData, VkCommandPool a_commandPool,
-	VkCommandBuffer* a_commandBuffer)
+void vkRenderer::LoadImageTexture(std::string textureName, TextureBufferDesc *a_imageData, VkCommandPool a_commandPool)
 {
 	int texWidth, texHeight, texChannels;
 
@@ -272,8 +271,6 @@ void vkRenderer::CreateRenderPass(RenderPassInfo a_renderPassDesc, VkRenderPass*
 	renderpassInfo.pDependencies = a_renderPassDesc.subpassDependecy.data();
 
 	VulkanHelper::CreateRenderPass(m_device, renderpassInfo, a_renderPass);
-
-	
 }
 
 //===================================================================
@@ -528,8 +525,16 @@ VkFormat vkRenderer::findSupportedFormat(const std::vector<VkFormat>& candidates
 
 VkFormat vkRenderer::FindDepthFormat()
 {
+	std::vector<VkFormat> candidates = {
+				VK_FORMAT_D32_SFLOAT_S8_UINT,
+				VK_FORMAT_D32_SFLOAT,
+				VK_FORMAT_D24_UNORM_S8_UINT,
+				VK_FORMAT_D16_UNORM_S8_UINT,
+				VK_FORMAT_D16_UNORM
+	};
+
 	return findSupportedFormat(
-		{ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT },
+		candidates,
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
 		);

@@ -55,9 +55,6 @@
     <Filter Include="Threading">
       <UniqueIdentifier>{305de3d5-07b5-46b1-a349-81e43b2c0429}</UniqueIdentifier>
     </Filter>
-    <Filter Include="EventCallbacks">
-      <UniqueIdentifier>{95656acb-941f-4cad-ad44-cb2f3d4d0a2a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ObserverModel">
       <UniqueIdentifier>{3516aa55-9381-4196-8c09-e32cddc9cd60}</UniqueIdentifier>
     </Filter>

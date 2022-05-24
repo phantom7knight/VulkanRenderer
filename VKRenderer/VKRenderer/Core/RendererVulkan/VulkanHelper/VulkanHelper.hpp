@@ -679,8 +679,6 @@ namespace VulkanHelper
 		}
 
 		throw std::runtime_error("Failed to find suitable memory type!");
-
-
 	}
 
 
@@ -715,8 +713,6 @@ namespace VulkanHelper
 			throw std::runtime_error("Failed to allocate memory for the Buffer");
 		}
 		vkBindBufferMemory(a_device, a_buffer, a_bufferMemory, 0);
-
-
 	}
 
 
@@ -735,8 +731,6 @@ namespace VulkanHelper
 		vkCmdCopyBuffer(a_cmdBuffer, a_srcBuffer, a_dstBuffer, 1, &copyRegion);
 
 		EndSingleTimeCommands(&a_cmdBuffer, a_commandPool, a_device, a_graphicsQueue);
-
-
 	}
 
 
@@ -760,8 +754,6 @@ namespace VulkanHelper
 
 		vkCmdCopyBufferToImage(cmdBuffer, buffer, desc.bufferImage,
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
-
-
 
 		EndSingleTimeCommands(&cmdBuffer, a_commandPool, a_device, a_graphicsQueue);
 	}

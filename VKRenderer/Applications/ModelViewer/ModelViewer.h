@@ -108,7 +108,6 @@ private:
 
 	//Depth related variables
 	TextureBufferDesc depthImageInfo;
-	
 
 	// light related
 	bool		m_showGUILight;

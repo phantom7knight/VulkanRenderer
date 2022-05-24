@@ -123,7 +123,6 @@ struct MousePositions
 struct RenderPassInfo
 {
 	std::vector< VkAttachmentDescription> attachmentDescriptions;
-	std::vector<VkAttachmentReference> attachmentReferences;
 	std::vector< VkSubpassDependency> subpassDependecy;
 	VkSubpassDescription subpassInfo = {};
 };
@@ -183,10 +182,10 @@ struct ComputePipelineInfo
 
 struct FrameBufferDesc
 {
-	VkImage								image;
-	VkImageView							imageView;
-	uint32_t							fboWidth;
-	uint32_t							fboHeight;
+	TextureBufferDesc	texbufferInfo;
+	VkDeviceMemory		bufferMemory = VK_NULL_HANDLE;
+	uint32_t			fboWidth;
+	uint32_t			fboHeight;
 };
 
 struct FrameSubmissionDesc
@@ -200,8 +199,11 @@ struct FrameSubmissionDesc
 
 struct SamplerCreationDesc
 {
-	VkFilter			minFilter;
-	VkFilter			magFilter;
-	VkBool32			anisotropyEnable;
-	VkSamplerMipmapMode mipMode;
+	VkFilter				minFilter;
+	VkFilter				magFilter;
+	VkBool32				anisotropyEnable;
+	VkSamplerAddressMode	addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	VkSamplerAddressMode	addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	VkSamplerAddressMode	addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	VkSamplerMipmapMode		mipMode;
 };

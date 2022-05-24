@@ -344,7 +344,6 @@ ModelInfo MeshLoader::LoadModel(std::string fileName)
 	modelDesc.indexbufferData = indexBuffer;
 
 	return modelDesc;
-
 }
 
 ModelInfo ResourceLoader::LoadModelResource(std::string fileName)

@@ -9,6 +9,7 @@ struct ModelUBO
 	glm::mat4 ModelMatrix;
 	glm::mat4 ViewMatrix;
 	glm::mat4 ProjectionMatrix;
+	glm::vec4 instancePos[3];
 };
 
 struct LightInfoUBO
@@ -41,6 +42,13 @@ struct OffScreenFrameBuffer
 	FrameBufferDesc positionMap;
 	FrameBufferDesc depthMap;
 	VkRenderPass renderPass;
+	VkFramebuffer frameBuffer;
+};
+
+struct UniformBuffers
+{
+	BufferDesc modelUniformBuffer;
+	BufferDesc lightInfoUniformBuffer;
 };
 
 class Camera;
@@ -56,11 +64,13 @@ private:
 	
 	void SetUpVertexBuffer(const ModelInfo a_modelDesc, BufferDesc *a_VertexBUffer);
 
-	void CreateAttachments();
+	void CreateAttachments(VkFormat format, VkImageUsageFlagBits usage, FrameBufferDesc* attachment);
 
 	void CreateOffScreenFBO();
 
 	void CreateRenderPass();
+
+	void CreateColorSampler();
 
 	void CreateDescriptorSetLayout();
 	
@@ -84,8 +94,6 @@ private:
 
 	void UpdateCommandBuffers(uint32_t a_imageIndex);
 	
-	void ReCreateSwapChain();
-
 	void CreateImageTextureView();
 
 	void CreateTextureSampler();
@@ -110,7 +118,10 @@ private:
 
 private:
 
-	
+	OffScreenFrameBuffer offScreenFB;
+
+	// One sampler for the frame buffer color attachments
+	VkSampler colorSampler;
 
 	CameraMatrices cam_matrices;
 
@@ -118,7 +129,6 @@ private:
 
 	//Depth related variables
 	TextureBufferDesc depthImageInfo;
-	
 
 	// light related
 	bool		m_showGUILight;
@@ -140,12 +150,13 @@ private:
 	BufferDesc											m_ModelVertexBuffer;
 	BufferDesc											m_ModelIndexBuffer;
 	std::vector<VkCommandBuffer>						m_commandBuffers;
-	std::vector<BufferDesc>								m_ModelUniformBuffer;
-	std::vector<BufferDesc>								m_LightInfoUniformBuffer;
 	std::vector<VkDescriptorSet>						m_DescriptorSets;
 	size_t												m_currentFrame = 0;
 	std::unordered_map<std::string, ModelInfo>			m_modelInfos;
 	std::unordered_map<std::string, ModelBuffersInfo>	m_modelBufferInfos;
+
+	// uniform buffers
+	UniformBuffers m_UniformBuffers;
 
 	Threading::thread_pool pool;
 

@@ -96,19 +96,11 @@ void ModelViewer::CreateRenderPass()
 	//array of attachments for this render pass
 	std::vector< VkAttachmentDescription> attachments = { colorAttachment, depthAttachment };
 
-	std::vector<VkAttachmentReference> attachmentReferences;
-
-	attachmentReferences.resize(attachments.size());
-
-	attachmentReferences[0] = colorAttachmentRef;
-	attachmentReferences[1] = depthAttachmentRef;
-
 	std::vector<VkSubpassDependency> subPassDependency = { dependency };
 
 	RenderPassInfo renderPassdesc = {};
 
 	renderPassdesc.attachmentDescriptions = attachments;
-	renderPassdesc.attachmentReferences = attachmentReferences;
 	renderPassdesc.subpassDependecy = subPassDependency;
 	renderPassdesc.subpassInfo = subpassInfo;
 
@@ -659,7 +651,7 @@ void ModelViewer::LoadTexture(std::string a_textureName, TextureBufferDesc* a_im
 	m_renderer->CreateCommandPool(&imageBuffcommandPool);
 	m_commandPoolList.push_back(imageBuffcommandPool);
 
-	m_renderer->LoadImageTexture(a_textureName, a_imageTex, imageBuffcommandPool, m_commandBuffers.data());
+	m_renderer->LoadImageTexture(a_textureName, a_imageTex, imageBuffcommandPool);
 }
 
 void ModelViewer::CreateImageTextureView()

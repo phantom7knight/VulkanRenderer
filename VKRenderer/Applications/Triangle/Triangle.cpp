@@ -173,14 +173,11 @@ void Triangle::CreateRenderPass()
 
 	RenderPassInfo renderPassdesc = {};
 
-	renderPassdesc.attachmentDescriptions	= attachmentDescriptions;
-	renderPassdesc.attachmentReferences		= attachmentReferences;
+	renderPassdesc.attachmentDescriptions = attachmentDescriptions;
 	renderPassdesc.subpassInfo				= subpassInfo;
 	renderPassdesc.subpassDependecy			= subpassDependecy;
 
 	m_renderer->CreateRenderPass(renderPassdesc, &m_renderPass);
-
-	
 }
 
 //===================================================================
