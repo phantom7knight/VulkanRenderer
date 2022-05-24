@@ -181,15 +181,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Common\Graphics\Material.cpp" />
-    <ClCompile Include="..\Dependencies\Optick\src\optick_capi.cpp" />
-    <ClCompile Include="..\Dependencies\Optick\src\optick_core.cpp" />
-    <ClCompile Include="..\Dependencies\Optick\src\optick_gpu.cpp" />
-    <ClCompile Include="..\Dependencies\Optick\src\optick_gpu.d3d12.cpp" />
-    <ClCompile Include="..\Dependencies\Optick\src\optick_gpu.vulkan.cpp" />
-    <ClCompile Include="..\Dependencies\Optick\src\optick_message.cpp" />
-    <ClCompile Include="..\Dependencies\Optick\src\optick_miniz.cpp" />
-    <ClCompile Include="..\Dependencies\Optick\src\optick_serialization.cpp" />
-    <ClCompile Include="..\Dependencies\Optick\src\optick_server.cpp" />
     <ClCompile Include="Core\Application\Application.cpp" />
     <ClCompile Include="Core\Camera\Camera.cpp" />
     <ClCompile Include="Core\PCH\stdafx.cpp" />
@@ -199,22 +190,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Common\Graphics\Material.h" />
-    <ClInclude Include="..\Dependencies\Optick\src\optick.config.h" />
-    <ClInclude Include="..\Dependencies\Optick\src\optick.h" />
-    <ClInclude Include="..\Dependencies\Optick\src\optick_capi.h" />
-    <ClInclude Include="..\Dependencies\Optick\src\optick_common.h" />
-    <ClInclude Include="..\Dependencies\Optick\src\optick_core.freebsd.h" />
-    <ClInclude Include="..\Dependencies\Optick\src\optick_core.h" />
-    <ClInclude Include="..\Dependencies\Optick\src\optick_core.linux.h" />
-    <ClInclude Include="..\Dependencies\Optick\src\optick_core.macos.h" />
-    <ClInclude Include="..\Dependencies\Optick\src\optick_core.platform.h" />
-    <ClInclude Include="..\Dependencies\Optick\src\optick_core.win.h" />
-    <ClInclude Include="..\Dependencies\Optick\src\optick_gpu.h" />
-    <ClInclude Include="..\Dependencies\Optick\src\optick_memory.h" />
-    <ClInclude Include="..\Dependencies\Optick\src\optick_message.h" />
-    <ClInclude Include="..\Dependencies\Optick\src\optick_miniz.h" />
-    <ClInclude Include="..\Dependencies\Optick\src\optick_serialization.h" />
-    <ClInclude Include="..\Dependencies\Optick\src\optick_server.h" />
     <ClInclude Include="Core\Application\Application.h" />
     <ClInclude Include="Core\Camera\Camera.h" />
     <ClInclude Include="Core\Helper\Constants\Constans.hpp" />
