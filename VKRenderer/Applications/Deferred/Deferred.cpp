@@ -2,7 +2,6 @@
 #include "../../Dependencies/Imgui/IMGUI/Imgui_Impl.h"
 #include "../../VKRenderer/Core/RendererVulkan/Renderer/vkRenderer.h"
 #include "../../VKRenderer/Core/Camera/Camera.h"
-#include "../../../Dependencies/Optick/src/optick.h"
 
 #define Is_MT_Enabled false
 
@@ -721,9 +720,6 @@ void Deferred::CreateImageTextureView()
 
 void Deferred::LoadAllTextures()
 {
-	OPTICK_FRAME("Loading Textures");
-	
-
 #if Is_MT_Enabled true
 
 	pool.push_task([this]() {

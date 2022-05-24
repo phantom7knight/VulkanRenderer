@@ -2,7 +2,6 @@
 #include "../../VKRenderer/Core/Application/Application.h"
 #include "../../VKRenderer/Core/Camera/Camera.h"
 #include "../../VKRenderer/Core/Helper/Timer/BenchmarkHelper.hpp"
-#include "../../../Dependencies/Optick/src/optick.h"
 
 #include "ModelViewer.h"
 
@@ -21,8 +20,6 @@ void MainLoop(Application* rendererExample)
 	
 	while (!glfwWindowShouldClose(rendererExample->getRenderer()->getWindow()))
 	{
-		OPTICK_FRAME("MainThread Loop");
-
 		GLfloat currentFrame = (GLfloat)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
